@@ -13,6 +13,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.RelativeLayout;
 
+import com.skp.Tmap.TMapData;
+import com.skp.Tmap.TMapPoint;
+import com.skp.Tmap.TMapPolyLine;
 import com.skp.Tmap.TMapView;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
@@ -23,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
 
         RelativeLayout relativeLayout = new RelativeLayout(this);
-        TMapView tMapView = new TMapView(this);
+        final TMapView tMapView = new TMapView(this);
         tMapView.setSKPMapApiKey("d2bc2636-c213-3bad-9058-7d46cf9f8039");
 
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -41,6 +44,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         String locationProvider = locationManager.getBestProvider(new Criteria(), true);
         Location cur_locatoin = locationManager.getLastKnownLocation(locationProvider);
         tMapView.setCenterPoint(cur_locatoin.getLongitude(), cur_locatoin.getLatitude());
+        TMapPoint source = new TMapPoint(cur_locatoin.getLatitude(), cur_locatoin.getLongitude());
+        TMapPoint dest = new TMapPoint(cur_locatoin.getLatitude()+0.1, cur_locatoin.getLongitude()+0.1);
+        TMapData tmapData = new TMapData();
+        tmapData.findPathData(source, dest, new TMapData.FindPathDataListenerCallback() {
+            @Override
+            public void onFindPathData(TMapPolyLine tMapPolyLine) {
+                tMapView.addTMapPath(tMapPolyLine);
+            }
+        });
 
         relativeLayout.addView(tMapView);
         setContentView(relativeLayout);
