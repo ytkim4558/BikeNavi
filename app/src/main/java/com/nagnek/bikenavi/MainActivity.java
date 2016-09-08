@@ -23,9 +23,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
 
-        RelativeLayout relativeLayout = new RelativeLayout(this);
+        RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.mapViewLayout);
         final TMapView tMapView = new TMapView(this);
         tMapView.setSKPMapApiKey("d2bc2636-c213-3bad-9058-7d46cf9f8039");
 
@@ -43,19 +44,20 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 6000, 10, this);
         String locationProvider = locationManager.getBestProvider(new Criteria(), true);
         Location cur_locatoin = locationManager.getLastKnownLocation(locationProvider);
-        tMapView.setCenterPoint(cur_locatoin.getLongitude(), cur_locatoin.getLatitude());
-        TMapPoint source = new TMapPoint(cur_locatoin.getLatitude(), cur_locatoin.getLongitude());
-        TMapPoint dest = new TMapPoint(cur_locatoin.getLatitude()+0.1, cur_locatoin.getLongitude()+0.1);
-        TMapData tmapData = new TMapData();
-        tmapData.findPathData(source, dest, new TMapData.FindPathDataListenerCallback() {
-            @Override
-            public void onFindPathData(TMapPolyLine tMapPolyLine) {
-                tMapView.addTMapPath(tMapPolyLine);
-            }
-        });
+        if(cur_locatoin != null) {
+            tMapView.setCenterPoint(cur_locatoin.getLongitude(), cur_locatoin.getLatitude());
+            TMapPoint source = new TMapPoint(cur_locatoin.getLatitude(), cur_locatoin.getLongitude());
+            TMapPoint dest = new TMapPoint(cur_locatoin.getLatitude() + 0.1, cur_locatoin.getLongitude() + 0.1);
+            TMapData tmapData = new TMapData();
+            tmapData.findPathData(source, dest, new TMapData.FindPathDataListenerCallback() {
+                @Override
+                public void onFindPathData(TMapPolyLine tMapPolyLine) {
+                    tMapView.addTMapPath(tMapPolyLine);
+                }
+            });
+        }
 
         relativeLayout.addView(tMapView);
-        setContentView(relativeLayout);
     }
 
     @Override
