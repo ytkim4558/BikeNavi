@@ -12,18 +12,30 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.skp.Tmap.TMapData;
+import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
 import com.skp.Tmap.TMapPolyLine;
 import com.skp.Tmap.TMapView;
 
-public class MainActivity extends AppCompatActivity implements LocationListener {
+import org.xml.sax.SAXException;
 
+import java.io.IOException;
+import java.util.ArrayList;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+public class MainActivity extends AppCompatActivity implements LocationListener {
+    TMapPoint source;
+    TMapPoint dest;
+    TMapData tmapData;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,22 +58,90 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             return;
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 6000, 10, this);
-        Button button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
+        Button googleMapButton = (Button) findViewById(R.id.button);
+        googleMapButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, MapsActivity.class);
                 startActivity(intent);
             }
         });
+        Button searchStartPointButton = (Button) findViewById(R.id.search_start_point_button);
+        searchStartPointButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TMapData tmapData2 = new TMapData();
+                TMapData tmapData3 = new TMapData();
+                EditText editText = (EditText) findViewById(R.id.editText);
+                String start = editText.getText().toString();
+
+                try {
+                    ArrayList<TMapPOIItem> poiItemArrayList = tmapData2.findAddressPOI(start);
+                    for(TMapPOIItem poiITem:poiItemArrayList) {
+                        String str = poiITem.getPOIName().toString();
+                        Log.d("tag",str);
+                    }
+                    TMapPoint tp = poiItemArrayList.get(0).getPOIPoint();
+                    source = tp;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ParserConfigurationException e) {
+                    e.printStackTrace();
+                } catch (SAXException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        Button searchDestPointButton = (Button) findViewById(R.id.search_destination_point_button);
+        searchDestPointButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TMapData tmapData2 = new TMapData();
+                TMapData tmapData3 = new TMapData();
+                EditText editText2 = (EditText) findViewById(R.id.editText2);
+                String start = editText2.getText().toString();
+
+                try {
+                    ArrayList<TMapPOIItem> poiItemArrayList = tmapData2.findAddressPOI(start);
+                    for(TMapPOIItem poiITem:poiItemArrayList) {
+                        String str = poiITem.getPOIName().toString();
+                        Log.d("tag",str);
+                    }
+                    TMapPoint tp = poiItemArrayList.get(0).getPOIPoint();
+                    dest = tp;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ParserConfigurationException e) {
+                    e.printStackTrace();
+                } catch (SAXException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        Button findrouteButton  =(Button) findViewById(R.id.findRouteButton);
+        findrouteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TMapData tmapData3 = new TMapData();
+                tmapData3.findPathData(source, dest, new TMapData.FindPathDataListenerCallback() {
+                    @Override
+                    public void onFindPathData(TMapPolyLine tMapPolyLine) {
+                        tMapView.addTMapPath(tMapPolyLine);
+                    }
+                });
+            }
+        });
+
         String locationProvider = locationManager.getBestProvider(new Criteria(), true);
 
         Location cur_locatoin = locationManager.getLastKnownLocation(locationProvider);
         if(cur_locatoin != null) {
             tMapView.setCenterPoint(cur_locatoin.getLongitude(), cur_locatoin.getLatitude());
-            TMapPoint source = new TMapPoint(cur_locatoin.getLatitude(), cur_locatoin.getLongitude());
-            TMapPoint dest = new TMapPoint(cur_locatoin.getLatitude() + 0.1, cur_locatoin.getLongitude() + 0.1);
-            TMapData tmapData = new TMapData();
+            source = new TMapPoint(cur_locatoin.getLatitude(), cur_locatoin.getLongitude());
+            dest = new TMapPoint(cur_locatoin.getLatitude() + 0.1, cur_locatoin.getLongitude() + 0.1);
+            tmapData = new TMapData();
             tmapData.findPathData(source, dest, new TMapData.FindPathDataListenerCallback() {
                 @Override
                 public void onFindPathData(TMapPolyLine tMapPolyLine) {
