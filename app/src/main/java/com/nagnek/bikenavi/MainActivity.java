@@ -2,6 +2,7 @@ package com.nagnek.bikenavi;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -11,8 +12,11 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapPoint;
 import com.skp.Tmap.TMapPolyLine;
@@ -42,7 +46,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             return;
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 6000, 10, this);
+        Button button = (Button) findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, MapsActivity.class);
+                startActivity(intent);
+            }
+        });
         String locationProvider = locationManager.getBestProvider(new Criteria(), true);
+
         Location cur_locatoin = locationManager.getLastKnownLocation(locationProvider);
         if(cur_locatoin != null) {
             tMapView.setCenterPoint(cur_locatoin.getLongitude(), cur_locatoin.getLatitude());
@@ -79,4 +92,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public void onProviderDisabled(String provider) {
 
     }
+
+    // Google Play서비스 접근 승인 요청
+//    public GoogleApiClient.Builder setGoogleServiceBuilder() {
+//        // Google Api Client 생성
+//        GoogleApiClient.Builder
+//    }
 }

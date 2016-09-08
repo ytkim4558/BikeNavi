@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BikeNavi</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAlLEqHBvm2ZUyWZfl_lVQCH_msZ7a6SI8</string>
 </resources>
