@@ -13,13 +13,13 @@
         android:layout_height="wrap_content"
         android:text="시작지점"
         android:id="@+id/textView"
-        android:layout_alignBaseline="@+id/editText"
-        android:layout_alignBottom="@+id/editText"
+        android:layout_alignBaseline="@+id/start_point"
+        android:layout_alignBottom="@+id/start_point"
         android:layout_alignParentStart="true" />
     <AutoCompleteTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editText"
+        android:id="@+id/start_point"
         android:layout_toRightOf="@+id/textView"
         android:hint="남성역"
         />
@@ -29,22 +29,22 @@
         android:layout_height="wrap_content"
         android:text="도착지점"
         android:id="@+id/textView2"
-        android:layout_alignBaseline="@+id/editText2"
-        android:layout_alignBottom="@+id/editText2"
+        android:layout_alignBaseline="@+id/dest_point"
+        android:layout_alignBottom="@+id/dest_point"
         android:layout_alignParentStart="true" />
 
     <AutoCompleteTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/editText2"
+        android:id="@+id/dest_point"
         android:layout_toRightOf="@id/textView2"
-        android:layout_below="@id/editText"
+        android:layout_below="@id/start_point"
         android:hint="고속터미널역"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/editText2"
+        android:layout_below="@+id/dest_point"
         android:id="@+id/mapViewLayout"
         android:layout_alignParentStart="true"
         android:layout_marginTop="16dp">

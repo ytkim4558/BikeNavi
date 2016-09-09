@@ -23,6 +23,7 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.skp.Tmap.TMapData;
+import com.skp.Tmap.TMapInfo;
 import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
 import com.skp.Tmap.TMapPolyLine;
@@ -39,16 +40,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     TMapPoint source;
     TMapPoint dest;
     TMapData tmapData;
-    ArrayList<String> addressList;
+    ArrayList<String> items;
+    ArrayList<String> addressList, addressList2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
         addressList = new ArrayList<String>();
+        addressList2 = new ArrayList<String>();
+        setContentView(R.layout.activity_main);
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
 
         RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.mapViewLayout);
         final TMapView tMapView = new TMapView(this);
+
+        // 자전거 도로 표출
+        tMapView.setBicycleInfo(true);
         tMapView.setSKPMapApiKey("d2bc2636-c213-3bad-9058-7d46cf9f8039");
 
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -71,12 +77,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startActivity(intent);
             }
         });
-         AutoCompleteTextView editText = (AutoCompleteTextView) findViewById(R.id.editText);
-        setupAutoCompleteTextView(editText);
-//        setupAutoCompleteTextView(editText, addressList);
-        AutoCompleteTextView editText2 = (AutoCompleteTextView) findViewById(R.id.editText2);
-//        setupAutoCompleteTextView(editText2, addressList2);
-        setupAutoCompleteTextView(editText2);
+         AutoCompleteTextView start_point = (AutoCompleteTextView) findViewById(R.id.start_point);
+        setupAutoCompleteTextView(start_point, addressList);
+        AutoCompleteTextView dest_point = (AutoCompleteTextView) findViewById(R.id.dest_point);
+        setupAutoCompleteTextView(dest_point, addressList2);
 
 //        searchStartPointButton.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -93,8 +97,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         findrouteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AutoCompleteTextView startPosition = (AutoCompleteTextView) findViewById(R.id.editText);
-                AutoCompleteTextView destinationPosition = (AutoCompleteTextView) findViewById(R.id.editText2);
+                AutoCompleteTextView startPosition = (AutoCompleteTextView) findViewById(R.id.start_point);
+                AutoCompleteTextView destinationPosition = (AutoCompleteTextView) findViewById(R.id.dest_point);
                 String start = startPosition.getText().toString();
                 String destination = destinationPosition.getText().toString();
                 TMapData tmapData3 = new TMapData();
@@ -116,6 +120,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     @Override
                     public void onFindPathData(TMapPolyLine tMapPolyLine) {
                         tMapView.addTMapPath(tMapPolyLine);
+                        //
+                        TMapInfo info = tMapView.getDisplayTMapInfo(tMapPolyLine.getLinePoint());
+                        tMapView.setCenterPoint(info.getTMapPoint().getLongitude(), info.getTMapPoint().getLatitude());
+                        tMapView.setZoomLevel(info.getTMapZoomLevel());
                     }
                 });
             }
@@ -129,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             source = new TMapPoint(cur_locatoin.getLatitude(), cur_locatoin.getLongitude());
             dest = new TMapPoint(cur_locatoin.getLatitude() + 0.1, cur_locatoin.getLongitude() + 0.1);
             tmapData = new TMapData();
-            tmapData.findPathData(source, dest, new TMapData.FindPathDataListenerCallback() {
+            tmapData.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, source, dest, new TMapData.FindPathDataListenerCallback() {
                 @Override
                 public void onFindPathData(TMapPolyLine tMapPolyLine) {
                     tMapView.addTMapPath(tMapPolyLine);
@@ -159,12 +167,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public void onProviderDisabled(String provider) {
 
     }
-    private void setupAutoCompleteTextView(AutoCompleteTextView autoCompleteTextView) {
-        String items[]= {"SK", "SKWORKS"};
-        addressList.clear();
-        //ArrayList<String> addressList = new ArrayList<String>();
-        ArrayAdapter<String>   adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, addressList);
-//        ArrayAdapter<String>   adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
+    // final ArrayList 는 new ArrayList() 형태로 새로 ArrayList를 만드는게 안될 뿐 add 나 remove는 가능하다.
+    private void setupAutoCompleteTextView(AutoCompleteTextView autoCompleteTextView, final ArrayList<String> addressList) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, addressList);
         autoCompleteTextView.setThreshold(1);
         autoCompleteTextView.setAdapter(adapter);
 
@@ -175,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             @Override
             public void onTextChanged(final CharSequence s, int start, int before, int count) {
+                addressList.clear();
                 getAddressInfo(s.toString(), addressList);
             }
 
@@ -186,8 +192,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private void getAddressInfo(String locationName, ArrayList addressList) {
         TMapData tmapData = new TMapData();
-        Log.d("tag", "주소");
-        Log.d("tag", locationName);
         try {
             ArrayList<TMapPOIItem> poiItemArrayList = tmapData.findAddressPOI(locationName);
 
