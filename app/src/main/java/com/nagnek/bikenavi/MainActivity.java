@@ -1,6 +1,7 @@
 package com.nagnek.bikenavi;
 
 import android.Manifest;
+import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -12,13 +13,15 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
@@ -36,10 +39,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     TMapPoint source;
     TMapPoint dest;
     TMapData tmapData;
+    ArrayList<String> addressList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        addressList = new ArrayList<String>();
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
 
         RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.mapViewLayout);
@@ -66,65 +71,47 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startActivity(intent);
             }
         });
-        Button searchStartPointButton = (Button) findViewById(R.id.search_start_point_button);
-        searchStartPointButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TMapData tmapData2 = new TMapData();
-                TMapData tmapData3 = new TMapData();
-                EditText editText = (EditText) findViewById(R.id.editText);
-                String start = editText.getText().toString();
+         AutoCompleteTextView editText = (AutoCompleteTextView) findViewById(R.id.editText);
+        setupAutoCompleteTextView(editText);
+//        setupAutoCompleteTextView(editText, addressList);
+        AutoCompleteTextView editText2 = (AutoCompleteTextView) findViewById(R.id.editText2);
+//        setupAutoCompleteTextView(editText2, addressList2);
+        setupAutoCompleteTextView(editText2);
 
-                try {
-                    ArrayList<TMapPOIItem> poiItemArrayList = tmapData2.findAddressPOI(start);
-                    for(TMapPOIItem poiITem:poiItemArrayList) {
-                        String str = poiITem.getPOIName().toString();
-                        Log.d("tag",str);
-                    }
-                    TMapPoint tp = poiItemArrayList.get(0).getPOIPoint();
-                    source = tp;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ParserConfigurationException e) {
-                    e.printStackTrace();
-                } catch (SAXException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        Button searchDestPointButton = (Button) findViewById(R.id.search_destination_point_button);
-        searchDestPointButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TMapData tmapData2 = new TMapData();
-                TMapData tmapData3 = new TMapData();
-                EditText editText2 = (EditText) findViewById(R.id.editText2);
-                String start = editText2.getText().toString();
-
-                try {
-                    ArrayList<TMapPOIItem> poiItemArrayList = tmapData2.findAddressPOI(start);
-                    for(TMapPOIItem poiITem:poiItemArrayList) {
-                        String str = poiITem.getPOIName().toString();
-                        Log.d("tag",str);
-                    }
-                    TMapPoint tp = poiItemArrayList.get(0).getPOIPoint();
-                    dest = tp;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ParserConfigurationException e) {
-                    e.printStackTrace();
-                } catch (SAXException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+//        searchStartPointButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//                EditText editText = (EditText) findViewById(R.id.editText);
+//                Intent intent = new Intent(MainActivity.this, POISearchActivity.class);
+//                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this, editText, "searchPOIBar");
+//                startActivity(intent, options.toBundle());
+//            }
+//        });
 
         Button findrouteButton  =(Button) findViewById(R.id.findRouteButton);
         findrouteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                AutoCompleteTextView startPosition = (AutoCompleteTextView) findViewById(R.id.editText);
+                AutoCompleteTextView destinationPosition = (AutoCompleteTextView) findViewById(R.id.editText2);
+                String start = startPosition.getText().toString();
+                String destination = destinationPosition.getText().toString();
                 TMapData tmapData3 = new TMapData();
+                try {
+                    ArrayList<TMapPOIItem> poiItemArrayList = tmapData3.findAddressPOI(start);
+                    source = poiItemArrayList.get(0).getPOIPoint();
+                    poiItemArrayList = tmapData3.findAddressPOI(destination);
+                    dest = poiItemArrayList.get(0).getPOIPoint();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ParserConfigurationException e) {
+                    e.printStackTrace();
+                } catch (SAXException e) {
+                    e.printStackTrace();
+                }
+
                 tmapData3.findPathData(source, dest, new TMapData.FindPathDataListenerCallback() {
                     @Override
                     public void onFindPathData(TMapPolyLine tMapPolyLine) {
@@ -172,10 +159,53 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     public void onProviderDisabled(String provider) {
 
     }
+    private void setupAutoCompleteTextView(AutoCompleteTextView autoCompleteTextView) {
+        String items[]= {"SK", "SKWORKS"};
+        addressList.clear();
+        //ArrayList<String> addressList = new ArrayList<String>();
+        ArrayAdapter<String>   adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, addressList);
+//        ArrayAdapter<String>   adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
+        autoCompleteTextView.setThreshold(1);
+        autoCompleteTextView.setAdapter(adapter);
 
-    // Google Play서비스 접근 승인 요청
-//    public GoogleApiClient.Builder setGoogleServiceBuilder() {
-//        // Google Api Client 생성
-//        GoogleApiClient.Builder
-//    }
+        autoCompleteTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(final CharSequence s, int start, int before, int count) {
+                getAddressInfo(s.toString(), addressList);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+    }
+
+    private void getAddressInfo(String locationName, ArrayList addressList) {
+        TMapData tmapData = new TMapData();
+        Log.d("tag", "주소");
+        Log.d("tag", locationName);
+        try {
+            ArrayList<TMapPOIItem> poiItemArrayList = tmapData.findAddressPOI(locationName);
+
+            if(poiItemArrayList != null) {
+                for (TMapPOIItem poiItem : poiItemArrayList) {
+                    String str = poiItem.getPOIName().toString();
+                    addressList.add(str);
+                    Log.d("tag", str);
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        }
+
+    }
 }
