@@ -83,17 +83,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         AutoCompleteTextView dest_point = (AutoCompleteTextView) findViewById(R.id.dest_point);
         setupAutoCompleteTextView(dest_point);
 
-//        searchStartPointButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//                EditText editText = (EditText) findViewById(R.id.editText);
-//                Intent intent = new Intent(MainActivity.this, POISearchActivity.class);
-//                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this, editText, "searchPOIBar");
-//                startActivity(intent, options.toBundle());
-//            }
-//        });
-
         Button findrouteButton  =(Button) findViewById(R.id.findRouteButton);
         findrouteButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -181,22 +170,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         autoCompleteTextView.setAdapter(mAdapter);
 
-        autoCompleteTextView.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                getAddressInfo(s.toString(), mAddressList, mAdapter);
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-
-            }
-        });
     }
 
     private void getAddressInfo(final String locationName, final ArrayList<String> addressList, final ArrayAdapter<String>adapter) {
