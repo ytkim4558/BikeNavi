@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -13,13 +14,12 @@ import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
 import com.skp.Tmap.TMapData;
@@ -78,17 +78,19 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startActivity(intent);
             }
         });
-        AutoCompleteTextView start_point = (AutoCompleteTextView) findViewById(R.id.start_point);
-        setupAutoCompleteTextView(start_point);
-        AutoCompleteTextView dest_point = (AutoCompleteTextView) findViewById(R.id.dest_point);
-        setupAutoCompleteTextView(dest_point);
+        DelayAutoCompleteTextView start_point = (DelayAutoCompleteTextView) findViewById(R.id.start_point);
+        ProgressBar progressBar1 = (ProgressBar) findViewById(R.id.pb_loading_indicator1);
+        setupTmapPOIAutoCompleteTextView(start_point, progressBar1);
+        DelayAutoCompleteTextView dest_point = (DelayAutoCompleteTextView) findViewById(R.id.dest_point);
+        ProgressBar progressBar2 = (ProgressBar) findViewById(R.id.pb_loading_indicator2);
+        setupTmapPOIAutoCompleteTextView(dest_point, progressBar2);
 
         Button findrouteButton  =(Button) findViewById(R.id.findRouteButton);
         findrouteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AutoCompleteTextView startPosition = (AutoCompleteTextView) findViewById(R.id.start_point);
-                AutoCompleteTextView destinationPosition = (AutoCompleteTextView) findViewById(R.id.dest_point);
+                DelayAutoCompleteTextView startPosition = (DelayAutoCompleteTextView) findViewById(R.id.start_point);
+                DelayAutoCompleteTextView destinationPosition = (DelayAutoCompleteTextView) findViewById(R.id.dest_point);
                 String start = startPosition.getText().toString();
                 String destination = destinationPosition.getText().toString();
                 TMapData tmapData3 = new TMapData();
@@ -158,55 +160,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
     // final ArrayList 는 new ArrayList() 형태로 새로 ArrayList를 만드는게 안될 뿐 add 나 remove는 가능하다.
-    private void setupAutoCompleteTextView(AutoCompleteTextView autoCompleteTextView) {
-        mAddressList = new ArrayList<String>();
-        mAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, mAddressList);
-        String[] from = {"name, descrioption"};
-//        int[] to = {android.R.id.text1, android.R.id.text2};
-//        mSimpleCursorAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, null, from, to, 0);
-
-
-        autoCompleteTextView.setThreshold(1);
-
-        autoCompleteTextView.setAdapter(mAdapter);
-
-
-    }
-
-    private void getAddressInfo(final String locationName, final ArrayList<String> addressList, final ArrayAdapter<String>adapter) {
-        Thread thread = new Thread(new Runnable() {
+    private void setupTmapPOIAutoCompleteTextView(final DelayAutoCompleteTextView locationName, ProgressBar progressBar) {
+        locationName.setThreshold(1);
+        locationName.setAdapter(new TMapPOIAutoCompleteAdapter(this));
+        locationName.setLoadingIndicator(progressBar);
+        locationName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void run() {
-                TMapData tmapData = new TMapData();
-                try {
-                    ArrayList<TMapPOIItem> poiItemArrayList = tmapData.findAddressPOI(locationName);
-                    if(addressList != null) {
-                        addressList.clear();
-                    }
-                    if(poiItemArrayList != null) {
-                        for (TMapPOIItem poiItem : poiItemArrayList) {
-                            if(poiItem != null) {
-                                String str = poiItem.getPOIName();
-                                if (addressList != null) {
-                                    addressList.add(str);
-                                }
-                                Log.d("tag", str);
-                            }
-                        }
-                    }
-                    if(adapter != null) {
-                        adapter.getFilter().filter(locationName, null);
-                        adapter.notifyDataSetChanged();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ParserConfigurationException e) {
-                    e.printStackTrace();
-                } catch (SAXException e) {
-                    e.printStackTrace();
-                }
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                TMapPOIItem tMapPOIItem = (TMapPOIItem) adapterView.getItemAtPosition(position);
+                locationName.setText(tMapPOIItem.getPOIName());
             }
         });
-        thread.start();
     }
 }

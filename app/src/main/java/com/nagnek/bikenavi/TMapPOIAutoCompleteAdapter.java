@@ -55,8 +55,22 @@ public class TMapPOIAutoCompleteAdapter extends BaseAdapter implements Filterabl
             LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = inflater.inflate(R.layout.simple_dropdown_item_2line, parent, false);
         }
-        ((TextView) convertView.findViewById(R.id.text1)).setText(getItem(position).getPOIName());
-        ((TextView) convertView.findViewById(R.id.text2)).setText(getItem(position).getPOIAddress());
+        TextView poiNameView = (TextView) convertView.findViewById(R.id.text1);
+        TextView poiAddressView = (TextView) convertView.findViewById(R.id.text2);
+        if(poiNameView != null) {
+            poiNameView.setText(getItem(position).getPOIName());
+            Log.d("tag","체크");
+            Log.d("tag", getItem(position).getPOIName() );
+        } else {
+            Log.d("tag", "메롱"+getItem(position).getPOIName() );
+        }
+        if (poiAddressView != null) {
+            poiAddressView.setText(getItem(position).getPOIAddress());
+            Log.d("tag","체크");
+            Log.d("tag", getItem(position).getPOIAddress() );
+        } else {
+            Log.d("tag", "메롱"+getItem(position).getPOIAddress() );
+        }
         return convertView;
     }
 
@@ -71,7 +85,11 @@ public class TMapPOIAutoCompleteAdapter extends BaseAdapter implements Filterabl
                     List<TMapPOIItem> tMapPOIItems = findAddressList(mContext, constraint.toString());
 
                     filterResults.values = tMapPOIItems;
-                    filterResults.count = tMapPOIItems.size();
+                    if(tMapPOIItems != null) {
+                        filterResults.count = tMapPOIItems.size();
+                    } else {
+                        filterResults.count = 0;
+                    }
                 }
                 return filterResults;
             }
