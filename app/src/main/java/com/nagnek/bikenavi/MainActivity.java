@@ -1,7 +1,6 @@
 package com.nagnek.bikenavi;
 
 import android.Manifest;
-import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -12,6 +11,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -37,16 +37,17 @@ import java.util.ArrayList;
 import javax.xml.parsers.ParserConfigurationException;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
-    TMapPoint source;
-    TMapPoint dest;
-    TMapData tmapData;
-    ArrayList<String> items;
-    ArrayList<String> addressList, addressList2;
+    TMapPoint mSource;
+    TMapPoint mDest;
+    TMapData mTmapData;
+    ArrayList<String> mAddressList;
+    ArrayAdapter<String> mAdapter;
+    SimpleCursorAdapter mSimpleCursorAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        addressList = new ArrayList<String>();
-        addressList2 = new ArrayList<String>();
+
         setContentView(R.layout.activity_main);
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
 
@@ -77,10 +78,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startActivity(intent);
             }
         });
-         AutoCompleteTextView start_point = (AutoCompleteTextView) findViewById(R.id.start_point);
-        setupAutoCompleteTextView(start_point, addressList);
+        AutoCompleteTextView start_point = (AutoCompleteTextView) findViewById(R.id.start_point);
+        setupAutoCompleteTextView(start_point);
         AutoCompleteTextView dest_point = (AutoCompleteTextView) findViewById(R.id.dest_point);
-        setupAutoCompleteTextView(dest_point, addressList2);
+        setupAutoCompleteTextView(dest_point);
 
 //        searchStartPointButton.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -104,9 +105,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 TMapData tmapData3 = new TMapData();
                 try {
                     ArrayList<TMapPOIItem> poiItemArrayList = tmapData3.findAddressPOI(start);
-                    source = poiItemArrayList.get(0).getPOIPoint();
+                    mSource = poiItemArrayList.get(0).getPOIPoint();
                     poiItemArrayList = tmapData3.findAddressPOI(destination);
-                    dest = poiItemArrayList.get(0).getPOIPoint();
+                    mDest = poiItemArrayList.get(0).getPOIPoint();
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -116,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     e.printStackTrace();
                 }
 
-                tmapData3.findPathData(source, dest, new TMapData.FindPathDataListenerCallback() {
+                tmapData3.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
                     @Override
                     public void onFindPathData(TMapPolyLine tMapPolyLine) {
                         tMapView.addTMapPath(tMapPolyLine);
@@ -134,10 +135,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         Location cur_locatoin = locationManager.getLastKnownLocation(locationProvider);
         if(cur_locatoin != null) {
             tMapView.setCenterPoint(cur_locatoin.getLongitude(), cur_locatoin.getLatitude());
-            source = new TMapPoint(cur_locatoin.getLatitude(), cur_locatoin.getLongitude());
-            dest = new TMapPoint(cur_locatoin.getLatitude() + 0.1, cur_locatoin.getLongitude() + 0.1);
-            tmapData = new TMapData();
-            tmapData.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, source, dest, new TMapData.FindPathDataListenerCallback() {
+            mSource = new TMapPoint(cur_locatoin.getLatitude(), cur_locatoin.getLongitude());
+            mDest = new TMapPoint(cur_locatoin.getLatitude() + 0.1, cur_locatoin.getLongitude() + 0.1);
+            mTmapData = new TMapData();
+            mTmapData.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
                 @Override
                 public void onFindPathData(TMapPolyLine tMapPolyLine) {
                     tMapView.addTMapPath(tMapPolyLine);
@@ -168,48 +169,70 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
     // final ArrayList 는 new ArrayList() 형태로 새로 ArrayList를 만드는게 안될 뿐 add 나 remove는 가능하다.
-    private void setupAutoCompleteTextView(AutoCompleteTextView autoCompleteTextView, final ArrayList<String> addressList) {
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, addressList);
+    private void setupAutoCompleteTextView(AutoCompleteTextView autoCompleteTextView) {
+        mAddressList = new ArrayList<String>();
+        mAdapter = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, mAddressList);
+        String[] from = {"name, descrioption"};
+//        int[] to = {android.R.id.text1, android.R.id.text2};
+//        mSimpleCursorAdapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, null, from, to, 0);
+
+
         autoCompleteTextView.setThreshold(1);
-        autoCompleteTextView.setAdapter(adapter);
+
+        autoCompleteTextView.setAdapter(mAdapter);
 
         autoCompleteTextView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
             }
 
             @Override
-            public void onTextChanged(final CharSequence s, int start, int before, int count) {
-                addressList.clear();
-                getAddressInfo(s.toString(), addressList);
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                getAddressInfo(s.toString(), mAddressList, mAdapter);
             }
 
             @Override
             public void afterTextChanged(Editable s) {
+
             }
         });
     }
 
-    private void getAddressInfo(String locationName, ArrayList addressList) {
-        TMapData tmapData = new TMapData();
-        try {
-            ArrayList<TMapPOIItem> poiItemArrayList = tmapData.findAddressPOI(locationName);
-
-            if(poiItemArrayList != null) {
-                for (TMapPOIItem poiItem : poiItemArrayList) {
-                    String str = poiItem.getPOIName().toString();
-                    addressList.add(str);
-                    Log.d("tag", str);
+    private void getAddressInfo(final String locationName, final ArrayList<String> addressList, final ArrayAdapter<String>adapter) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                TMapData tmapData = new TMapData();
+                try {
+                    ArrayList<TMapPOIItem> poiItemArrayList = tmapData.findAddressPOI(locationName);
+                    if(addressList != null) {
+                        addressList.clear();
+                    }
+                    if(poiItemArrayList != null) {
+                        for (TMapPOIItem poiItem : poiItemArrayList) {
+                            if(poiItem != null) {
+                                String str = poiItem.getPOIName();
+                                if (addressList != null) {
+                                    addressList.add(str);
+                                }
+                                Log.d("tag", str);
+                            }
+                        }
+                    }
+                    if(adapter != null) {
+                        adapter.getFilter().filter(locationName, null);
+                        adapter.notifyDataSetChanged();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ParserConfigurationException e) {
+                    e.printStackTrace();
+                } catch (SAXException e) {
+                    e.printStackTrace();
                 }
             }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        }
-
+        });
+        thread.start();
     }
 }
