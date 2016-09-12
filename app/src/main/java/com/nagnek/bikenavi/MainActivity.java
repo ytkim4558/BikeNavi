@@ -1,6 +1,7 @@
 package com.nagnek.bikenavi;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -14,7 +15,9 @@ import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -24,11 +27,14 @@ import android.widget.RelativeLayout;
 
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapInfo;
+import com.skp.Tmap.TMapMarkerItem;
+import com.skp.Tmap.TMapMarkerItem2;
 import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
 import com.skp.Tmap.TMapPolyLine;
 import com.skp.Tmap.TMapView;
 
+import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -43,16 +49,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     ArrayList<String> mAddressList;
     ArrayAdapter<String> mAdapter;
     SimpleCursorAdapter mSimpleCursorAdapter;
+    DelayAutoCompleteTextView start_point, dest_point;
+    ArrayList<TMapPoint> sourceAndDest;
+    TMapView tMapView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        sourceAndDest = new ArrayList<TMapPoint>();
+
         setContentView(R.layout.activity_main);
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
 
         RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.mapViewLayout);
-        final TMapView tMapView = new TMapView(this);
+        tMapView  = new TMapView(this);
 
         // 자전거 도로 표출
         tMapView.setBicycleInfo(true);
@@ -78,46 +89,59 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 startActivity(intent);
             }
         });
-        DelayAutoCompleteTextView start_point = (DelayAutoCompleteTextView) findViewById(R.id.start_point);
+       start_point = (DelayAutoCompleteTextView) findViewById(R.id.start_point);
         ProgressBar progressBar1 = (ProgressBar) findViewById(R.id.pb_loading_indicator1);
-        setupTmapPOIAutoCompleteTextView(start_point, progressBar1);
-        DelayAutoCompleteTextView dest_point = (DelayAutoCompleteTextView) findViewById(R.id.dest_point);
+        setupTmapPOIAutoCompleteTextView(start_point, progressBar1, "출발");
+        dest_point = (DelayAutoCompleteTextView) findViewById(R.id.dest_point);
         ProgressBar progressBar2 = (ProgressBar) findViewById(R.id.pb_loading_indicator2);
-        setupTmapPOIAutoCompleteTextView(dest_point, progressBar2);
+        setupTmapPOIAutoCompleteTextView(dest_point, progressBar2, "도착");
 
         Button findrouteButton  =(Button) findViewById(R.id.findRouteButton);
         findrouteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DelayAutoCompleteTextView startPosition = (DelayAutoCompleteTextView) findViewById(R.id.start_point);
-                DelayAutoCompleteTextView destinationPosition = (DelayAutoCompleteTextView) findViewById(R.id.dest_point);
-                String start = startPosition.getText().toString();
-                String destination = destinationPosition.getText().toString();
-                TMapData tmapData3 = new TMapData();
-                try {
-                    ArrayList<TMapPOIItem> poiItemArrayList = tmapData3.findAddressPOI(start);
-                    mSource = poiItemArrayList.get(0).getPOIPoint();
-                    poiItemArrayList = tmapData3.findAddressPOI(destination);
-                    mDest = poiItemArrayList.get(0).getPOIPoint();
+                if(start_point != null && dest_point != null) {
+                    start_point.clearFocus();
+                    dest_point.clearFocus();
+                    String start = start_point.getText().toString();
+                    String destination = dest_point.getText().toString();
+                    TMapData tmapData3 = new TMapData();
+                    try {
+                        ArrayList<TMapPOIItem> poiItemArrayList = tmapData3.findAddressPOI(start);
+                        mSource = poiItemArrayList.get(0).getPOIPoint();
+                        poiItemArrayList = tmapData3.findAddressPOI(destination);
+                        mDest = poiItemArrayList.get(0).getPOIPoint();
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (ParserConfigurationException e) {
-                    e.printStackTrace();
-                } catch (SAXException e) {
-                    e.printStackTrace();
-                }
-
-                tmapData3.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
-                    @Override
-                    public void onFindPathData(TMapPolyLine tMapPolyLine) {
-                        tMapView.addTMapPath(tMapPolyLine);
-                        //
-                        TMapInfo info = tMapView.getDisplayTMapInfo(tMapPolyLine.getLinePoint());
-                        tMapView.setCenterPoint(info.getTMapPoint().getLongitude(), info.getTMapPoint().getLatitude());
-                        tMapView.setZoomLevel(info.getTMapZoomLevel());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (ParserConfigurationException e) {
+                        e.printStackTrace();
+                    } catch (SAXException e) {
+                        e.printStackTrace();
                     }
-                });
+
+                    tmapData3.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
+                        @Override
+                        public void onFindPathData(TMapPolyLine tMapPolyLine) {
+                            tMapView.removeAllMarkerItem();
+                            InputMethodManager immhide = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+                            immhide.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+                            tMapView.addTMapPath(tMapPolyLine);
+                            //
+                            TMapInfo info = tMapView.getDisplayTMapInfo(tMapPolyLine.getLinePoint());
+                            tMapView.setCenterPoint(info.getTMapPoint().getLongitude(), info.getTMapPoint().getLatitude());
+                            tMapView.setZoomLevel(info.getTMapZoomLevel());
+                        }
+                    });
+
+                    tmapData3.findPathDataAllType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
+                        @Override
+                        public void onFindPathDataAll(Document document) {
+                            Document document1 = document;
+                            Log.d("check", "hi");
+                        }
+                    });
+                }
             }
         });
 
@@ -160,15 +184,27 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
     // final ArrayList 는 new ArrayList() 형태로 새로 ArrayList를 만드는게 안될 뿐 add 나 remove는 가능하다.
-    private void setupTmapPOIAutoCompleteTextView(final DelayAutoCompleteTextView locationName, ProgressBar progressBar) {
+    private void setupTmapPOIAutoCompleteTextView(final DelayAutoCompleteTextView locationName, final ProgressBar progressBar, final String markerTitle) {
         locationName.setThreshold(1);
         locationName.setAdapter(new TMapPOIAutoCompleteAdapter(this));
         locationName.setLoadingIndicator(progressBar);
         locationName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                TMapPOIItem tMapPOIItem = (TMapPOIItem) adapterView.getItemAtPosition(position);
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                TMapPOIItem tMapPOIItem = (TMapPOIItem) parent.getItemAtPosition(position);
                 locationName.setText(tMapPOIItem.getPOIName());
+                TMapMarkerItem tItem = new TMapMarkerItem();
+                tItem.setTMapPoint(tMapPOIItem.getPOIPoint());
+                tItem.setName(markerTitle);
+                //TMapInfo info = tMapView.getDisplayTMapInfo(tMapPolyLine.getLinePoint());
+                if(tMapView.getMarkerItemFromID(markerTitle) != null) {
+                    tMapView.removeMarkerItem(markerTitle);
+                }
+
+                tMapView.addMarkerItem(markerTitle, tItem);
+                //ArrayList<TMapMarkerItem2> tMapMarkerItem2s = tMapView.getAllMarkerItem2();
+                tMapView.setCenterPoint(tMapPOIItem.getPOIPoint().getLongitude(), tMapPOIItem.getPOIPoint().getLatitude());
+
             }
         });
     }

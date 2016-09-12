@@ -65,11 +65,11 @@ public class TMapPOIAutoCompleteAdapter extends BaseAdapter implements Filterabl
             Log.d("tag", "메롱"+getItem(position).getPOIName() );
         }
         if (poiAddressView != null) {
-            poiAddressView.setText(getItem(position).getPOIAddress());
+            poiAddressView.setText(getItem(position).getPOIAddress().replace("null", ""));
             Log.d("tag","체크");
             Log.d("tag", getItem(position).getPOIAddress() );
         } else {
-            Log.d("tag", "메롱"+getItem(position).getPOIAddress() );
+            Log.d("tag", "메롱"+getItem(position).getPOIAddress().replace("null", "") );
         }
         return convertView;
     }
