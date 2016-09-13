@@ -40,7 +40,7 @@ public class DelayAutoCompleteTextView extends AutoCompleteTextView {
     @Override
     protected void performFiltering(CharSequence text, int keyCode) {
         if (mLoadingIndicator != null) {
-            mLoadingIndicator.setVisibility(View.VISIBLE);;
+            mLoadingIndicator.setVisibility(View.VISIBLE);
         }
         mHandler.removeMessages(MESSAGE_TEXT_CHANGED);
         mHandler.sendMessageDelayed(mHandler.obtainMessage(MESSAGE_TEXT_CHANGED, text), mAutoCompleteDelay);

@@ -33,8 +33,11 @@ import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
 import com.skp.Tmap.TMapPolyLine;
 import com.skp.Tmap.TMapView;
+import com.skp.Tmap.util.HttpConnect;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -137,8 +140,32 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     tmapData3.findPathDataAllType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
                         @Override
                         public void onFindPathDataAll(Document document) {
-                            Document document1 = document;
-                            Log.d("check", "hi");
+                            NodeList list = document.getElementsByTagName("Placemark");
+                            Log.d("count", "길이"+list.getLength());
+                            for(int i = 0; i < list.getLength(); ++i) {
+                                Element item = (Element)list.item(i);
+                                String description = HttpConnect.getContentFromNode(item, "description");
+                                if(description != null) {
+                                    Log.d("description", description);
+                                } else {
+                                    Log.d("dd", "공백");
+                                }
+                                String str = HttpConnect.getContentFromNode(item, "coordinates");
+                                if(str != null) {
+                                    String[] str2 = str.split(" ");
+
+                                    for(int k = 0; k < str2.length; ++k) {
+                                        try {
+                                            String[] e1 = str2[k].split(",");
+                                            TMapPoint point = new TMapPoint(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
+                                            //polyline.addLinePoint(point);
+                                        } catch (Exception var13) {
+                                            ;
+                                        }
+                                    }
+                                }
+                            }
+                            Log.d("count", "길이래"+list.getLength());
                         }
                     });
                 }
