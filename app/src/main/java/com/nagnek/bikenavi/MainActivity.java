@@ -13,6 +13,8 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -25,6 +27,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
+import com.nagnek.bikenavi.dummy.DummyContent;
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapInfo;
 import com.skp.Tmap.TMapMarkerItem;
@@ -45,7 +48,7 @@ import java.util.ArrayList;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-public class MainActivity extends AppCompatActivity implements LocationListener {
+public class MainActivity extends AppCompatActivity implements LocationListener, ItemFragment.OnListFragmentInteractionListener{
     TMapPoint mSource;
     TMapPoint mDest;
     TMapData mTmapData;
@@ -142,11 +145,25 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         public void onFindPathDataAll(Document document) {
                             NodeList list = document.getElementsByTagName("Placemark");
                             Log.d("count", "길이"+list.getLength());
+                            FragmentManager fragmentManager = getSupportFragmentManager();
+                            ItemFragment fragment = new ItemFragment();
+                            Bundle bundle = new Bundle();
+                            fragment.setArguments(bundle);
+
+                            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                            fragmentTransaction.replace(R.id.fragment_container, fragment);
+                            fragmentTransaction.addToBackStack(null);
+                            fragmentTransaction.commit();
+
                             for(int i = 0; i < list.getLength(); ++i) {
                                 Element item = (Element)list.item(i);
                                 String description = HttpConnect.getContentFromNode(item, "description");
+
                                 if(description != null) {
                                     Log.d("description", description);
+
+
                                 } else {
                                     Log.d("dd", "공백");
                                 }
@@ -234,5 +251,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             }
         });
+    }
+
+    @Override
+    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+        
     }
 }

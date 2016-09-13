@@ -10,120 +10,119 @@
     tools:context="com.nagnek.bikenavi.MainActivity">
 
 
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/start_point_search_frame_layout"
+        android:layout_alignBottom="@+id/start_point_search_frame_layout"
+        android:layout_alignParentStart="true"
+        android:text="출발 장소" />
 
+    <FrameLayout
+        android:id="@+id/start_point_search_frame_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/textView">
 
-        <TextView
-            android:id="@+id/textView"
+        <!--flagNoExtractUtil : 입력창이 전체화면으로 가려지는것을 막음-->
+        <!--actionSearch : 키보드의 엔터가 검색으로 글자가 바뀜-->
+        <com.nagnek.bikenavi.DelayAutoCompleteTextView
+            android:id="@+id/start_point"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="출발 장소를 입력하세요"
+            android:imeOptions="flagNoExtractUi|actionSearch"
+            android:inputType="textCapSentences" />
+
+        <ProgressBar
+            android:id="@+id/pb_loading_indicator1"
+            style="?android:attr/progressBarStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBaseline="@+id/start_point_search_frame_layout"
-            android:layout_alignBottom="@+id/start_point_search_frame_layout"
-            android:layout_alignParentStart="true"
-            android:text="출발 장소"
-           />
+            android:layout_gravity="center_vertical|right"
+            android:layout_marginRight="10dp"
+            android:visibility="gone"
 
-        <FrameLayout
-            android:id="@+id/start_point_search_frame_layout"
+            />
+    </FrameLayout>
+
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/dest_point_search_frame_layout"
+        android:layout_alignBottom="@+id/dest_point_search_frame_layout"
+        android:layout_alignParentStart="true"
+        android:text="도착 장소" />
+
+    <FrameLayout
+        android:id="@+id/dest_point_search_frame_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/start_point_search_frame_layout"
+        android:layout_toRightOf="@+id/textView2">
+
+        <com.nagnek.bikenavi.DelayAutoCompleteTextView
+            android:id="@+id/dest_point"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@+id/textView">
+            android:hint="도착 장소를 입력하세요"
+            android:imeOptions="flagNoExtractUi|actionSearch"
+            android:inputType="textCapSentences" />
 
-            <!--flagNoExtractUtil : 입력창이 전체화면으로 가려지는것을 막음-->
-            <!--actionSearch : 키보드의 엔터가 검색으로 글자가 바뀜-->
-            <com.nagnek.bikenavi.DelayAutoCompleteTextView
-                android:id="@+id/start_point"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="출발 장소를 입력하세요"
-                android:imeOptions="flagNoExtractUi|actionSearch"
-                android:inputType="textCapSentences"/>
-            <ProgressBar
-                android:id="@+id/pb_loading_indicator1"
-                style="?android:attr/progressBarStyleSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|right"
-                android:layout_marginRight="10dp"
-                android:visibility="gone"
-
-                />
-        </FrameLayout>
-
-
-        <TextView
-            android:id="@+id/textView2"
+        <ProgressBar
+            android:id="@+id/pb_loading_indicator2"
+            style="?android:attr/progressBarStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBaseline="@+id/dest_point_search_frame_layout"
-            android:layout_alignBottom="@+id/dest_point_search_frame_layout"
-            android:layout_alignParentStart="true"
-            android:text="도착 장소"
-           />
+            android:layout_gravity="center_vertical|right"
+            android:layout_marginRight="10dp"
+            android:visibility="gone"
 
-        <FrameLayout
-            android:id="@+id/dest_point_search_frame_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/start_point_search_frame_layout"
-            android:layout_toRightOf="@+id/textView2">
+            />
+    </FrameLayout>
 
-            <com.nagnek.bikenavi.DelayAutoCompleteTextView
-                android:id="@+id/dest_point"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:imeOptions="flagNoExtractUi|actionSearch"
-                android:inputType="textCapSentences"
-                android:hint="도착 장소를 입력하세요"
-                />
-            <ProgressBar
-                android:id="@+id/pb_loading_indicator2"
-                style="?android:attr/progressBarStyleSmall"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|right"
-                android:layout_marginRight="10dp"
-                android:visibility="gone"
-
-                />
-        </FrameLayout>
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/dest_point_search_frame_layout">
-
-
-
-    <RelativeLayout
-        android:id="@+id/mapViewLayout"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="16dp"
-        android:layout_below="@+id/textView2">
+        android:layout_below="@id/dest_point_search_frame_layout">
 
 
+        <RelativeLayout
+            android:id="@+id/mapViewLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:layout_below="@+id/textView2"
+            android:layout_marginTop="16dp">
 
 
-    </RelativeLayout>
-            <Button
-                android:id="@+id/findRouteButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="경로찾기"
-                android:layout_below="@+id/textView2" />
+        </RelativeLayout>
 
-            <Button
-                android:id="@+id/button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:singleLine="true"
-                android:text="구글맵을 띄워보장"
-                android:layout_gravity="right"
-                android:layout_alignTop="@+id/findRouteButton"
-                android:layout_alignParentEnd="true" />
-        </FrameLayout>
+        <Button
+            android:id="@+id/findRouteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/textView2"
+            android:text="경로찾기" />
 
+        <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignTop="@+id/findRouteButton"
+            android:layout_gravity="right"
+            android:singleLine="true"
+            android:text="구글맵을 띄워보장" />
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/fragment_container"/>
+    </FrameLayout>
 
 
 </RelativeLayout>
