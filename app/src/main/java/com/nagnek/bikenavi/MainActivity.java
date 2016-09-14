@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -13,6 +12,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SimpleCursorAdapter;
@@ -22,16 +22,14 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
-import com.nagnek.bikenavi.dummy.DummyContent;
+import com.nagnek.bikenavi.guide.GuideContent;
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapInfo;
 import com.skp.Tmap.TMapMarkerItem;
-import com.skp.Tmap.TMapMarkerItem2;
 import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
 import com.skp.Tmap.TMapPolyLine;
@@ -58,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     DelayAutoCompleteTextView start_point, dest_point;
     ArrayList<TMapPoint> sourceAndDest;
     TMapView tMapView;
+    boolean bShowGuidance;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,18 +142,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                     tmapData3.findPathDataAllType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
                         @Override
                         public void onFindPathDataAll(Document document) {
-                            NodeList list = document.getElementsByTagName("Placemark");
+                            final NodeList list = document.getElementsByTagName("Placemark");
                             Log.d("count", "길이"+list.getLength());
-                            FragmentManager fragmentManager = getSupportFragmentManager();
-                            ItemFragment fragment = new ItemFragment();
-                            Bundle bundle = new Bundle();
-                            fragment.setArguments(bundle);
+                            int guide_length = 0;
+                            GuideContent.ITEMS.clear();
 
-                            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-
-                            fragmentTransaction.replace(R.id.fragment_container, fragment);
-                            fragmentTransaction.addToBackStack(null);
-                            fragmentTransaction.commit();
 
                             for(int i = 0; i < list.getLength(); ++i) {
                                 Element item = (Element)list.item(i);
@@ -162,8 +154,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
                                 if(description != null) {
                                     Log.d("description", description);
-
-
+                                    GuideContent.GuideItem guideItem = new GuideContent.GuideItem(String.valueOf(guide_length), description);
+                                    GuideContent.ITEMS.add(guideItem);
+                                    ++guide_length;
                                 } else {
                                     Log.d("dd", "공백");
                                 }
@@ -182,7 +175,31 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                                     }
                                 }
                             }
-                            Log.d("count", "길이래"+list.getLength());
+                            Button guide_button  = (Button) findViewById(R.id.guide_button);
+                            guide_button.setVisibility(View.VISIBLE);
+                            guide_button.setOnClickListener(new Button.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    bShowGuidance = !bShowGuidance;
+                                    if(bShowGuidance) {
+                                        FragmentManager fragmentManager = getSupportFragmentManager();
+                                        ItemFragment fragment = new ItemFragment().newInstance(GuideContent.ITEMS.size(), GuideContent.ITEMS);
+                                        Bundle mBundle = new Bundle();
+                                        fragment.setArguments(mBundle);
+                                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                                        fragmentTransaction.replace(R.id.fragment_container, fragment);
+                                        fragmentTransaction.addToBackStack(null);
+                                        fragmentTransaction.commit();
+                                        Log.d("count", "길이래" + list.getLength());
+                                    } else {
+                                        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+                                        if(fragment != null) {
+                                            getSupportFragmentManager().beginTransaction().remove(fragment).commit();
+                                        }
+                                    }
+                                }
+                            });
+
                         }
                     });
                 }
@@ -254,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     }
 
     @Override
-    public void onListFragmentInteraction(DummyContent.DummyItem item) {
-        
+    public void onListFragmentInteraction(GuideContent.GuideItem item) {
+
     }
 }
