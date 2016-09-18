@@ -41,6 +41,7 @@
             android:hint="출발 장소를 입력하세요"
             android:imeOptions="flagNoExtractUi|actionSearch"
             android:inputType="textCapSentences"/>
+
         </android.support.design.widget.TextInputLayout>
         <ProgressBar
             android:id="@+id/pb_loading_indicator1"
@@ -95,9 +96,11 @@
     </FrameLayout>
 
     <FrameLayout
+        android:id="@+id/mapViewFrameLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/dest_point_search_frame_layout">
+        android:layout_below="@id/dest_point_search_frame_layout"
+        android:layout_marginBottom="72dp">
 
 
         <RelativeLayout
@@ -128,11 +131,6 @@
             android:singleLine="true"
             android:text="구글맵을 띄워보장" />
 
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/fragment_container"/>
-
         <Button
             style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
@@ -143,5 +141,51 @@
             android:layout_gravity="center_horizontal|top" />
     </FrameLayout>
 
+    <android.support.design.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/bottom_sheet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            android:orientation="vertical"
+            android:paddingBottom="16dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            app:behavior_peekHeight="72dp"
+            app:behavior_hideable="false"
+            app:layout_behavior="@string/bottom_sheet_behavior">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="72dp"
+                android:ellipsize="end"
+                android:gravity="center_vertical"
+                android:lines="1"
+                android:maxLines="1"
+                android:text="상세 경로"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/fragment_container"/>
+
+        </LinearLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="16dp"
+            android:layout_marginEnd="16dp"
+            app:layout_anchor="@+id/bottom_sheet"
+            app:layout_anchorGravity="top|right" />
+
+
+    </android.support.design.widget.CoordinatorLayout>
 
 </RelativeLayout>
