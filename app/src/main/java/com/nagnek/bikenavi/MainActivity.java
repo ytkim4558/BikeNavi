@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     DelayAutoCompleteTextView start_point, dest_point;
     ArrayList<TMapPoint> sourceAndDest;
     TMapView tMapView;
-    boolean bShowGuidance;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -178,31 +177,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                                     }
                                 }
                             }
-                            Button guide_button  = (Button) findViewById(R.id.guide_button);
-                            guide_button.setVisibility(View.VISIBLE);
-                            guide_button.setOnClickListener(new Button.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    bShowGuidance = !bShowGuidance;
-                                    if(bShowGuidance) {
-                                        FragmentManager fragmentManager = getSupportFragmentManager();
-                                        ItemFragment fragment = new ItemFragment().newInstance(GuideContent.ITEMS.size(), GuideContent.ITEMS);
-                                        Bundle mBundle = new Bundle();
-                                        fragment.setArguments(mBundle);
-                                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                                        fragmentTransaction.replace(R.id.fragment_container, fragment);
-                                        fragmentTransaction.addToBackStack(null);
-                                        fragmentTransaction.commit();
-                                        Log.d("count", "길이래" + list.getLength());
-                                    } else {
-                                        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-                                        if(fragment != null) {
-                                            getSupportFragmentManager().beginTransaction().remove(fragment).commit();
-                                        }
-                                    }
-                                }
-                            });
 
+                            FragmentManager fragmentManager = getSupportFragmentManager();
+                            ItemFragment fragment = new ItemFragment().newInstance(GuideContent.ITEMS.size(), GuideContent.ITEMS);
+                            Bundle mBundle = new Bundle();
+                            fragment.setArguments(mBundle);
+                            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                            fragmentTransaction.replace(R.id.fragment_container, fragment);
+                            fragmentTransaction.addToBackStack(null);
+                            fragmentTransaction.commit();
+                            Log.d("count", "길이래" + list.getLength());
+                            // fragment 제거
+//                                        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+//                                        if(fragment != null) {
+//                                            getSupportFragmentManager().beginTransaction().remove(fragment).commit();
+//                                        }
                         }
                     });
                 }
