@@ -10,30 +10,20 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.nagnek.bikenavi.MainActivity">
 
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/start_point_search_frame_layout"
-        android:layout_alignBottom="@+id/start_point_search_frame_layout"
-        android:layout_alignParentStart="true"
-        android:text="출발 장소" />
-
     <FrameLayout
         android:id="@+id/start_point_search_frame_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/textView">
+        android:layout_height="wrap_content">
 
-        <!--flagNoExtractUtil : 입력창이 전체화면으로 가려지는것을 막음-->
-        <!--actionSearch : 키보드의 엔터가 검색으로 글자가 바뀜-->
+
+
         <android.support.design.widget.TextInputLayout
             android:id="@+id/til_id"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             >
-
+            <!--flagNoExtractUtil : 입력창이 전체화면으로 가려지는것을 막음-->
+            <!--actionSearch : 키보드의 엔터가 검색으로 글자가 바뀜-->
         <com.nagnek.bikenavi.DelayAutoCompleteTextView
             android:id="@+id/start_point"
             android:layout_width="match_parent"
@@ -55,21 +45,11 @@
     </FrameLayout>
 
 
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/dest_point_search_frame_layout"
-        android:layout_alignBottom="@+id/dest_point_search_frame_layout"
-        android:layout_alignParentStart="true"
-        android:text="도착 장소" />
-
     <FrameLayout
         android:id="@+id/dest_point_search_frame_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/start_point_search_frame_layout"
-        android:layout_toRightOf="@+id/textView2">
+        android:layout_below="@id/start_point_search_frame_layout">
 
         <android.support.design.widget.TextInputLayout
             android:id="@+id/til_id2"
