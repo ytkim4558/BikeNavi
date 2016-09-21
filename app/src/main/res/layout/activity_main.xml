@@ -89,8 +89,9 @@
         android:layout_marginBottom="72dp">
 
 
-        <RelativeLayout
-            android:id="@+id/mapViewLayout"
+        <fragment
+            android:name="com.google.android.gms.maps.MapFragment"
+            android:id="@+id/map"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_alignParentStart="true"
@@ -98,7 +99,7 @@
             android:layout_marginTop="16dp">
 
 
-        </RelativeLayout>
+        </fragment>
     </FrameLayout>
 
     <android.support.design.widget.CoordinatorLayout

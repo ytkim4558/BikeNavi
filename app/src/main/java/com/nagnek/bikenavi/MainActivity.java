@@ -4,21 +4,16 @@
 
 package com.nagnek.bikenavi;
 
-import android.Manifest;
 import android.app.Activity;
-import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatDrawableManager;
@@ -26,12 +21,13 @@ import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMapOptions;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.nagnek.bikenavi.guide.GuideContent;
 import com.nagnek.bikenavi.ui.MarkerOverlay;
 import com.skp.Tmap.TMapData;
@@ -53,14 +49,13 @@ import java.util.ArrayList;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
     TMapPoint mSource;
     TMapPoint mDest;
     DelayAutoCompleteTextView start_point, dest_point;
     ArrayList<TMapPoint> sourceAndDest;
     TMapView tMapView;
     TMapTapi tMapTapi;
-    Fragment mapFragment;
 
     public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
         Drawable drawable = AppCompatDrawableManager.get().getDrawable(context, drawableId);
@@ -90,12 +85,8 @@ public class MainActivity extends AppCompatActivity {
          * 구글맵 생성
          */
         // 구글맵 초기 상태를 설정
-        GoogleMapOptions options = new GoogleMapOptions();
-        options.mapType(GoogleMap.MAP_TYPE_NORMAL).compassEnabled(true).rotateGesturesEnabled(true).tiltGesturesEnabled(true).zoomControlsEnabled(true).useViewLifecycleInFragment(true);
-        mapFragment = MapFragment.newInstance(options);
-        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.mapViewLayout, mapFragment);
-        fragmentTransaction.commit();
+        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
         // 티맵 생성 -------------------------
 //        tMapView = new TMapView(this);
@@ -112,20 +103,6 @@ public class MainActivity extends AppCompatActivity {
         //tmapApi 사용
         tMapTapi = new TMapTapi(this);
         tMapTapi.setSKPMapAuthentication("d2bc2636-c213-3bad-9058-7d46cf9f8039");
-
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        Button googleMapButton = (Button) findViewById(R.id.button);
 
         start_point = (DelayAutoCompleteTextView) findViewById(R.id.start_point);
         ProgressBar progressBar1 = (ProgressBar) findViewById(R.id.pb_loading_indicator1);
@@ -248,31 +225,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // final ArrayList 는 new ArrayList() 형태로 새로 ArrayList를 만드는게 안될 뿐 add 나 remove는 가능하다.
-    private void setupTmapPOIAutoCompleteTextView(final DelayAutoCompleteTextView locationName, final ProgressBar progressBar, final String markerTitle) {
-        locationName.setThreshold(1);
-        locationName.setAdapter(new TMapPOIAutoCompleteAdapter(this));
-        locationName.setLoadingIndicator(progressBar);
-        locationName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                TMapPOIItem tMapPOIItem = (TMapPOIItem) parent.getItemAtPosition(position);
-                locationName.setText(tMapPOIItem.getPOIName());
-                TMapMarkerItem tItem = new TMapMarkerItem();
-                tItem.setTMapPoint(tMapPOIItem.getPOIPoint());
-                tItem.setName(markerTitle);
-                //TMapInfo info = tMapView.getDisplayTMapInfo(tMapPolyLine.getLinePoint());
-                if (tMapView.getMarkerItemFromID(markerTitle) != null) {
-                    tMapView.removeMarkerItem(markerTitle);
-                }
-
-                tMapView.addMarkerItem(markerTitle, tItem);
-                //ArrayList<TMapMarkerItem2> tMapMarkerItem2s = tMapView.getAllMarkerItem2();
-                tMapView.setCenterPoint(tMapPOIItem.getPOIPoint().getLongitude(), tMapPOIItem.getPOIPoint().getLatitude());
-            }
-        });
-    }
-
-    // final ArrayList 는 new ArrayList() 형태로 새로 ArrayList를 만드는게 안될 뿐 add 나 remove는 가능하다.
     private void setupTmapPOIToGoogleMapAutoCompleteTextView(final DelayAutoCompleteTextView locationName, final ProgressBar progressBar, final String markerTitle) {
         locationName.setThreshold(1);
         locationName.setAdapter(new TMapPOIAutoCompleteAdapter(this));
@@ -300,5 +252,10 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
     }
 }
