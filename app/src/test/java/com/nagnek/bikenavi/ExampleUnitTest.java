@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2016. UGIF. All Rights Reserved
+ */
+
 package com.nagnek.bikenavi;
 
 import org.junit.Test;

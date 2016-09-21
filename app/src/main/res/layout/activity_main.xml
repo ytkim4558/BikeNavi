@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2016. UGIF. All Rights Reserved
+  -->
+
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -33,6 +37,8 @@
             android:inputType="textCapSentences"/>
 
         </android.support.design.widget.TextInputLayout>
+
+
         <ProgressBar
             android:id="@+id/pb_loading_indicator1"
             style="?android:attr/progressBarStyleSmall"
@@ -100,16 +106,6 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/textView2"
             android:text="경로찾기" />
-
-        <Button
-            android:id="@+id/button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignTop="@+id/findRouteButton"
-            android:layout_gravity="right"
-            android:singleLine="true"
-            android:text="구글맵을 띄워보장" />
     </FrameLayout>
 
     <android.support.design.widget.CoordinatorLayout
@@ -129,7 +125,6 @@
             app:behavior_hideable="false"
             app:layout_behavior="@string/bottom_sheet_behavior">
 
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="72dp"
@@ -139,6 +134,9 @@
                 android:maxLines="1"
                 android:text="상세 경로"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
+
+
+
 
             <FrameLayout
                 android:layout_width="wrap_content"

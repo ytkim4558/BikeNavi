@@ -1,7 +1,14 @@
+/*
+ * Copyright (c) 2016. UGIF. All Rights Reserved
+ */
+
 package com.nagnek.bikenavi;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,10 +24,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatDrawableManager;
 import android.text.Editable;
@@ -33,16 +37,19 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.SimpleCursorAdapter;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMapOptions;
+import com.google.android.gms.maps.MapFragment;
 import com.nagnek.bikenavi.guide.GuideContent;
 import com.nagnek.bikenavi.ui.MarkerOverlay;
 import com.skp.Tmap.TMapData;
-import com.skp.Tmap.TMapInfo;
 import com.skp.Tmap.TMapMarkerItem;
-import com.skp.Tmap.TMapMarkerItem2;
 import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
 import com.skp.Tmap.TMapPolyLine;
+import com.skp.Tmap.TMapTapi;
 import com.skp.Tmap.TMapView;
 import com.skp.Tmap.util.HttpConnect;
 
@@ -53,7 +60,6 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.LogManager;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -67,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     DelayAutoCompleteTextView start_point, dest_point;
     ArrayList<TMapPoint> sourceAndDest;
     TMapView tMapView;
+    TMapTapi tMapTapi;
+    Fragment mapFragment;
 
     public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
         Drawable drawable = AppCompatDrawableManager.get().getDrawable(context, drawableId);
@@ -93,16 +101,36 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
 
         RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.mapViewLayout);
-        tMapView = new TMapView(this);
 
-        // 자전거 도로 표출
-        tMapView.setBicycleInfo(true);
-        tMapView.setSKPMapApiKey("d2bc2636-c213-3bad-9058-7d46cf9f8039");
+        /**
+         * 구글맵 생성
+         */
+        // 구글맵 초기 상태를 설정
+        GoogleMapOptions options = new GoogleMapOptions();
+        options.mapType(GoogleMap.MAP_TYPE_NORMAL).compassEnabled(true).rotateGesturesEnabled(true).tiltGesturesEnabled(true);
+        mapFragment = MapFragment.newInstance(options);
+        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        fragmentTransaction.add(R.id.mapViewLayout, mapFragment);
+        fragmentTransaction.commit();
+
+        // 티맵 생성 -------------------------
+//        tMapView = new TMapView(this);
+//
+//        // 자전거 도로 표출
+//        tMapView.setBicycleInfo(true);
+//        tMapView.setSKPMapApiKey("d2bc2636-c213-3bad-9058-7d46cf9f8039");
 
         // 화면중심을 단말의 현재위치로 이동시켜주는 트래킹모드로 설정한다.
         //tMapView.setTrackingMode(true);
+        // 티맵 생성 끝 ---------------------
+
+
+        //tmapApi 사용
+        tMapTapi = new TMapTapi(this);
+        tMapTapi.setSKPMapAuthentication("d2bc2636-c213-3bad-9058-7d46cf9f8039");
 
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -115,19 +143,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 6000, 10, this);
         Button googleMapButton = (Button) findViewById(R.id.button);
-        googleMapButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, MapsActivity.class);
-                startActivity(intent);
-            }
-        });
+
         start_point = (DelayAutoCompleteTextView) findViewById(R.id.start_point);
         ProgressBar progressBar1 = (ProgressBar) findViewById(R.id.pb_loading_indicator1);
-        setupTmapPOIAutoCompleteTextView(start_point, progressBar1, "출발");
+        setupTmapPOIToGoogleMapAutoCompleteTextView(start_point, progressBar1, "출발");
         dest_point = (DelayAutoCompleteTextView) findViewById(R.id.dest_point);
         ProgressBar progressBar2 = (ProgressBar) findViewById(R.id.pb_loading_indicator2);
-        setupTmapPOIAutoCompleteTextView(dest_point, progressBar2, "도착");
+        setupTmapPOIToGoogleMapAutoCompleteTextView(dest_point, progressBar2, "도착");
 
         Button findrouteButton = (Button) findViewById(R.id.findRouteButton);
         findrouteButton.setOnClickListener(new View.OnClickListener() {
@@ -149,15 +171,15 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                             tmapData3.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
                                 @Override
                                 public void onFindPathData(TMapPolyLine tMapPolyLine) {
-                                    tMapView.removeAllMarkerItem();
+                                    //tMapView.removeAllMarkerItem();
                                     InputMethodManager immhide = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
                                     immhide.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
-                                    tMapView.addTMapPath(tMapPolyLine);
-                                    //
-                                    TMapInfo info = tMapView.getDisplayTMapInfo(tMapPolyLine.getLinePoint());
+                                    //tMapView.addTMapPath(tMapPolyLine);
+
+                                    //TMapInfo info = tMapView.getDisplayTMapInfo(tMapPolyLine.getLinePoint());
                                     tMapPolyLine.setID("cyclePath");
-                                    tMapView.setCenterPoint(info.getTMapPoint().getLongitude(), info.getTMapPoint().getLatitude());
-                                    tMapView.setZoomLevel(info.getTMapZoomLevel());
+                                    //tMapView.setCenterPoint(info.getTMapPoint().getLongitude(), info.getTMapPoint().getLatitude());
+                                    //tMapView.setZoomLevel(info.getTMapZoomLevel());
                                 }
                             });
 
@@ -197,18 +219,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                                                             stop.setIcon(bitmap);
                                                             stop.setID(i + "경유지" + k);
 
-                                                            tMapView.addMarkerItem2(i + "경유지" + k, stop);
+                                                            //tMapView.addMarkerItem2(i + "경유지" + k, stop);
 
                                                         } catch (Exception var13) {
                                                             ;
                                                         }
                                                     }
-                                                    tMapView.setOnMarkerClickEvent(new TMapView.OnCalloutMarker2ClickCallback() {
-                                                        @Override
-                                                        public void onCalloutMarker2ClickEvent(String s, TMapMarkerItem2 tMapMarkerItem2) {
-
-                                                        }
-                                                    });
+//                                                    tMapView.setOnMarkerClickEvent(new TMapView.OnCalloutMarker2ClickCallback() {
+//                                                        @Override
+//                                                        public void onCalloutMarker2ClickEvent(String s, TMapMarkerItem2 tMapMarkerItem2) {
+//
+//                                                        }
+//                                                    });
                                                 }
                                             }
                                         } else {
@@ -217,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
                                     }
 
-                                    FragmentManager fragmentManager = getSupportFragmentManager();
+                                    FragmentManager fragmentManager = getFragmentManager();
                                     ItemFragment fragment = new ItemFragment().newInstance(GuideContent.ITEMS.size(), GuideContent.ITEMS);
                                     Bundle mBundle = new Bundle();
                                     fragment.setArguments(mBundle);
@@ -248,21 +270,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
         String locationProvider = locationManager.getBestProvider(new Criteria(), true);
 
-        Location cur_locatoin = locationManager.getLastKnownLocation(locationProvider);
-        if (cur_locatoin != null) {
-            tMapView.setCenterPoint(cur_locatoin.getLongitude(), cur_locatoin.getLatitude());
-            mSource = new TMapPoint(cur_locatoin.getLatitude(), cur_locatoin.getLongitude());
-            mDest = new TMapPoint(cur_locatoin.getLatitude() + 0.1, cur_locatoin.getLongitude() + 0.1);
-            mTmapData = new TMapData();
-            mTmapData.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
-                @Override
-                public void onFindPathData(TMapPolyLine tMapPolyLine) {
-                    tMapView.addTMapPath(tMapPolyLine);
-                }
-            });
-        }
-
-        relativeLayout.addView(tMapView);
+//        Location cur_locatoin = locationManager.getLastKnownLocation(locationProvider);
+//        if (cur_locatoin != null) {
+//            tMapView.setCenterPoint(cur_locatoin.getLongitude(), cur_locatoin.getLatitude());
+//            mSource = new TMapPoint(cur_locatoin.getLatitude(), cur_locatoin.getLongitude());
+//            mDest = new TMapPoint(cur_locatoin.getLatitude() + 0.1, cur_locatoin.getLongitude() + 0.1);
+//            mTmapData = new TMapData();
+//            mTmapData.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
+//                @Override
+//                public void onFindPathData(TMapPolyLine tMapPolyLine) {
+//                    tMapView.addTMapPath(tMapPolyLine);
+//                }
+//            });
+//        }
+//
+//        relativeLayout.addView(tMapView);
     }
 
     @Override
@@ -306,6 +328,32 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 tMapView.addMarkerItem(markerTitle, tItem);
                 //ArrayList<TMapMarkerItem2> tMapMarkerItem2s = tMapView.getAllMarkerItem2();
                 tMapView.setCenterPoint(tMapPOIItem.getPOIPoint().getLongitude(), tMapPOIItem.getPOIPoint().getLatitude());
+
+            }
+        });
+    }
+
+    // final ArrayList 는 new ArrayList() 형태로 새로 ArrayList를 만드는게 안될 뿐 add 나 remove는 가능하다.
+    private void setupTmapPOIToGoogleMapAutoCompleteTextView(final DelayAutoCompleteTextView locationName, final ProgressBar progressBar, final String markerTitle) {
+        locationName.setThreshold(1);
+        locationName.setAdapter(new TMapPOIAutoCompleteAdapter(this));
+        locationName.setLoadingIndicator(progressBar);
+        locationName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                TMapPOIItem tMapPOIItem = (TMapPOIItem) parent.getItemAtPosition(position);
+                locationName.setText(tMapPOIItem.getPOIName());
+                TMapMarkerItem tItem = new TMapMarkerItem();
+                tItem.setTMapPoint(tMapPOIItem.getPOIPoint());
+                tItem.setName(markerTitle);
+//                //TMapInfo info = tMapView.getDisplayTMapInfo(tMapPolyLine.getLinePoint());
+//                if (tMapView.getMarkerItemFromID(markerTitle) != null) {
+//                    tMapView.removeMarkerItem(markerTitle);
+//                }
+//
+//                tMapView.addMarkerItem(markerTitle, tItem);
+//                //ArrayList<TMapMarkerItem2> tMapMarkerItem2s = tMapView.getAllMarkerItem2();
+//                tMapView.setCenterPoint(tMapPOIItem.getPOIPoint().getLongitude(), tMapPOIItem.getPOIPoint().getLatitude());
 
             }
         });
