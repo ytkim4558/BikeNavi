@@ -15,14 +15,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.nagnek.bikenavi.guide.GuideContent;
 import com.nagnek.bikenavi.guide.GuideContent.GuideItem;
 
 import java.util.List;
 
 /**
  * A mFragment representing a list of Items.
- * <p>
+ * <p/>
  * Activities containing this mFragment MUST implement the {@link OnListFragmentInteractionListener}
  * interface.
  */
@@ -31,9 +30,9 @@ public class ItemFragment extends Fragment {
     // TODO: Customize parameter argument names
     private static final String ARG_COLUMN_COUNT = "column-count";
     private static MyItemRecyclerViewAdapter mMyItemRecyclerViewAdapter;
+    private static OnListFragmentInteractionListener mListener;
     // TODO: Customize parameters
     private int mColumnCount = 1;
-    private static OnListFragmentInteractionListener mListener;
 
     /**
      * Mandatory empty constructor for the mFragment manager to instantiate the
@@ -105,7 +104,7 @@ public class ItemFragment extends Fragment {
      * mFragment to allow an interaction in this mFragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p>
+     * <p/>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.

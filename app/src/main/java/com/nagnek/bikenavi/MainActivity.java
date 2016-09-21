@@ -10,34 +10,24 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatDrawableManager;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
-import android.widget.SimpleCursorAdapter;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMapOptions;
@@ -63,13 +53,9 @@ import java.util.ArrayList;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-public class MainActivity extends AppCompatActivity implements LocationListener, ItemFragment.OnListFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity {
     TMapPoint mSource;
     TMapPoint mDest;
-    TMapData mTmapData;
-    ArrayList<String> mAddressList;
-    ArrayAdapter<String> mAdapter;
-    SimpleCursorAdapter mSimpleCursorAdapter;
     DelayAutoCompleteTextView start_point, dest_point;
     ArrayList<TMapPoint> sourceAndDest;
     TMapView tMapView;
@@ -99,8 +85,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
         setContentView(R.layout.activity_main);
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
-
-        RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.mapViewLayout);
 
         /**
          * 구글맵 생성
@@ -141,7 +125,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 6000, 10, this);
         Button googleMapButton = (Button) findViewById(R.id.button);
 
         start_point = (DelayAutoCompleteTextView) findViewById(R.id.start_point);
@@ -151,26 +134,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
         ProgressBar progressBar2 = (ProgressBar) findViewById(R.id.pb_loading_indicator2);
         setupTmapPOIToGoogleMapAutoCompleteTextView(dest_point, progressBar2, "도착");
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
     }
 
     void performFindRoute() {
@@ -322,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 TMapMarkerItem tItem = new TMapMarkerItem();
                 tItem.setTMapPoint(tMapPOIItem.getPOIPoint());
                 tItem.setName(markerTitle);
-                if(start_point.getText().toString().equals("") != true && dest_point.getText().toString().equals("") != true) {
+                if (start_point.getText().toString().equals("") != true && dest_point.getText().toString().equals("") != true) {
                     performFindRoute();
                 }
 
@@ -337,10 +300,5 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 
             }
         });
-    }
-
-    @Override
-    public void onListFragmentInteraction(GuideContent.GuideItem item) {
-
     }
 }

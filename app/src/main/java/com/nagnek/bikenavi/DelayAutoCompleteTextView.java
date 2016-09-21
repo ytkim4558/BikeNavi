@@ -10,7 +10,6 @@ import android.os.Message;
 import android.support.v7.widget.AppCompatAutoCompleteTextView;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.AutoCompleteTextView;
 import android.widget.ProgressBar;
 
 /**
@@ -19,16 +18,14 @@ import android.widget.ProgressBar;
 public class DelayAutoCompleteTextView extends AppCompatAutoCompleteTextView {
     private static final int MESSAGE_TEXT_CHANGED = 100;
     private static final int DEFAULT_AUTOCOMPLETE_DELAY = 750;
-
-    private int mAutoCompleteDelay = DEFAULT_AUTOCOMPLETE_DELAY;
-    private ProgressBar mLoadingIndicator;
-
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             DelayAutoCompleteTextView.super.performFiltering((CharSequence) msg.obj, msg.arg1);
         }
     };
+    private int mAutoCompleteDelay = DEFAULT_AUTOCOMPLETE_DELAY;
+    private ProgressBar mLoadingIndicator;
 
     public DelayAutoCompleteTextView(Context context) {
         super(context);

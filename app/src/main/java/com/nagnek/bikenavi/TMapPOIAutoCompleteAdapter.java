@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
@@ -61,19 +60,19 @@ public class TMapPOIAutoCompleteAdapter extends BaseAdapter implements Filterabl
         }
         TextView poiNameView = (TextView) convertView.findViewById(R.id.text1);
         TextView poiAddressView = (TextView) convertView.findViewById(R.id.text2);
-        if(poiNameView != null) {
+        if (poiNameView != null) {
             poiNameView.setText(getItem(position).getPOIName());
-            Log.d("tag","체크");
-            Log.d("tag", getItem(position).getPOIName() );
+            Log.d("tag", "체크");
+            Log.d("tag", getItem(position).getPOIName());
         } else {
-            Log.d("tag", "메롱"+getItem(position).getPOIName() );
+            Log.d("tag", "메롱" + getItem(position).getPOIName());
         }
         if (poiAddressView != null) {
             poiAddressView.setText(getItem(position).getPOIAddress().replace("null", ""));
-            Log.d("tag","체크");
-            Log.d("tag", getItem(position).getPOIAddress() );
+            Log.d("tag", "체크");
+            Log.d("tag", getItem(position).getPOIAddress());
         } else {
-            Log.d("tag", "메롱"+getItem(position).getPOIAddress().replace("null", "") );
+            Log.d("tag", "메롱" + getItem(position).getPOIAddress().replace("null", ""));
         }
         return convertView;
     }
@@ -85,11 +84,11 @@ public class TMapPOIAutoCompleteAdapter extends BaseAdapter implements Filterabl
             // constraint : autocompletetextview 에 친 명령어
             protected FilterResults performFiltering(CharSequence constraint) {
                 FilterResults filterResults = new FilterResults();
-                if(constraint != null) {
+                if (constraint != null) {
                     List<TMapPOIItem> tMapPOIItems = findAddressList(mContext, constraint.toString());
 
                     filterResults.values = tMapPOIItems;
-                    if(tMapPOIItems != null) {
+                    if (tMapPOIItems != null) {
                         filterResults.count = tMapPOIItems.size();
                     } else {
                         filterResults.count = 0;
@@ -106,8 +105,9 @@ public class TMapPOIAutoCompleteAdapter extends BaseAdapter implements Filterabl
                 } else {
                     notifyDataSetInvalidated();
                 }
-            }};
-        return  filter;
+            }
+        };
+        return filter;
     }
 
     private List<TMapPOIItem> findAddressList(Context context, String locationName) {
