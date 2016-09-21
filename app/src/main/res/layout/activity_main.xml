@@ -99,13 +99,6 @@
 
 
         </RelativeLayout>
-
-        <Button
-            android:id="@+id/findRouteButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/textView2"
-            android:text="경로찾기" />
     </FrameLayout>
 
     <android.support.design.widget.CoordinatorLayout

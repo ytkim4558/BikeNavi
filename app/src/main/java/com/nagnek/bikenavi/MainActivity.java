@@ -107,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
          */
         // 구글맵 초기 상태를 설정
         GoogleMapOptions options = new GoogleMapOptions();
-        options.mapType(GoogleMap.MAP_TYPE_NORMAL).compassEnabled(true).rotateGesturesEnabled(true).tiltGesturesEnabled(true);
+        options.mapType(GoogleMap.MAP_TYPE_NORMAL).compassEnabled(true).rotateGesturesEnabled(true).tiltGesturesEnabled(true).zoomControlsEnabled(true).useViewLifecycleInFragment(true);
         mapFragment = MapFragment.newInstance(options);
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
         fragmentTransaction.add(R.id.mapViewLayout, mapFragment);
@@ -148,143 +148,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
         ProgressBar progressBar1 = (ProgressBar) findViewById(R.id.pb_loading_indicator1);
         setupTmapPOIToGoogleMapAutoCompleteTextView(start_point, progressBar1, "출발");
         dest_point = (DelayAutoCompleteTextView) findViewById(R.id.dest_point);
+
         ProgressBar progressBar2 = (ProgressBar) findViewById(R.id.pb_loading_indicator2);
         setupTmapPOIToGoogleMapAutoCompleteTextView(dest_point, progressBar2, "도착");
-
-        Button findrouteButton = (Button) findViewById(R.id.findRouteButton);
-        findrouteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (start_point != null && dest_point != null) {
-                    start_point.clearFocus();
-                    dest_point.clearFocus();
-                    String start = start_point.getText().toString();
-                    String destination = dest_point.getText().toString();
-                    TMapData tmapData3 = new TMapData();
-                    try {
-                        ArrayList<TMapPOIItem> poiPositionOfStartItemArrayList = tmapData3.findAddressPOI(start);
-                        ArrayList<TMapPOIItem> poiPositionOfDestItemArrayList = tmapData3.findAddressPOI(destination);
-                        if (poiPositionOfStartItemArrayList != null && poiPositionOfDestItemArrayList != null) {
-                            mSource = poiPositionOfStartItemArrayList.get(0).getPOIPoint();
-                            mDest = poiPositionOfDestItemArrayList.get(0).getPOIPoint();
-
-                            tmapData3.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
-                                @Override
-                                public void onFindPathData(TMapPolyLine tMapPolyLine) {
-                                    //tMapView.removeAllMarkerItem();
-                                    InputMethodManager immhide = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-                                    immhide.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
-                                    //tMapView.addTMapPath(tMapPolyLine);
-
-                                    //TMapInfo info = tMapView.getDisplayTMapInfo(tMapPolyLine.getLinePoint());
-                                    tMapPolyLine.setID("cyclePath");
-                                    //tMapView.setCenterPoint(info.getTMapPoint().getLongitude(), info.getTMapPoint().getLatitude());
-                                    //tMapView.setZoomLevel(info.getTMapZoomLevel());
-                                }
-                            });
-
-                            tmapData3.findPathDataAllType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
-                                @Override
-                                public void onFindPathDataAll(Document document) {
-                                    final NodeList list = document.getElementsByTagName("Placemark");
-                                    Log.d("count", "길이" + list.getLength());
-                                    int guide_length = 0;
-                                    GuideContent.ITEMS.clear();
-
-
-                                    for (int i = 0; i < list.getLength(); ++i) {
-                                        Element item = (Element) list.item(i);
-                                        String description = HttpConnect.getContentFromNode(item, "description");
-
-                                        if (description != null) {
-                                            Log.d("description", description);
-                                            GuideContent.GuideItem guideItem = new GuideContent.GuideItem(String.valueOf(guide_length), description);
-                                            GuideContent.ITEMS.add(guideItem);
-                                            ++guide_length;
-                                            String index = HttpConnect.getContentFromNode(item, "tmap:pointIndex");
-                                            if (index != null) {
-                                                String str = HttpConnect.getContentFromNode(item, "coordinates");
-                                                if (str != null) {
-                                                    String[] str2 = str.split(" ");
-
-                                                    for (int k = 0; k < str2.length; ++k) {
-                                                        try {
-                                                            String[] e1 = str2[k].split(",");
-                                                            TMapPoint point = new TMapPoint(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
-                                                            // 경유지 마커 설정
-                                                            MarkerOverlay stop = new MarkerOverlay(MainActivity.this, tMapView, description);
-                                                            stop.setTMapPoint(point);
-
-                                                            Bitmap bitmap = getBitmapFromVectorDrawable(MainActivity.this, R.drawable.ic_place_colored_24dp);
-                                                            stop.setIcon(bitmap);
-                                                            stop.setID(i + "경유지" + k);
-
-                                                            //tMapView.addMarkerItem2(i + "경유지" + k, stop);
-
-                                                        } catch (Exception var13) {
-                                                            ;
-                                                        }
-                                                    }
-//                                                    tMapView.setOnMarkerClickEvent(new TMapView.OnCalloutMarker2ClickCallback() {
-//                                                        @Override
-//                                                        public void onCalloutMarker2ClickEvent(String s, TMapMarkerItem2 tMapMarkerItem2) {
-//
-//                                                        }
-//                                                    });
-                                                }
-                                            }
-                                        } else {
-                                            Log.d("dd", "공백");
-                                        }
-
-                                    }
-
-                                    FragmentManager fragmentManager = getFragmentManager();
-                                    ItemFragment fragment = new ItemFragment().newInstance(GuideContent.ITEMS.size(), GuideContent.ITEMS);
-                                    Bundle mBundle = new Bundle();
-                                    fragment.setArguments(mBundle);
-                                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                                    fragmentTransaction.replace(R.id.fragment_container, fragment);
-                                    fragmentTransaction.addToBackStack(null);
-                                    fragmentTransaction.commit();
-                                    Log.d("count", "길이래" + list.getLength());
-                                    // fragment 제거
-//                                        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
-//                                        if(fragment != null) {
-//                                            getSupportFragmentManager().beginTransaction().remove(fragment).commit();
-//                                        }
-                                }
-                            });
-                        }
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ParserConfigurationException e) {
-                        e.printStackTrace();
-                    } catch (SAXException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-
-        String locationProvider = locationManager.getBestProvider(new Criteria(), true);
-
-//        Location cur_locatoin = locationManager.getLastKnownLocation(locationProvider);
-//        if (cur_locatoin != null) {
-//            tMapView.setCenterPoint(cur_locatoin.getLongitude(), cur_locatoin.getLatitude());
-//            mSource = new TMapPoint(cur_locatoin.getLatitude(), cur_locatoin.getLongitude());
-//            mDest = new TMapPoint(cur_locatoin.getLatitude() + 0.1, cur_locatoin.getLongitude() + 0.1);
-//            mTmapData = new TMapData();
-//            mTmapData.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
-//                @Override
-//                public void onFindPathData(TMapPolyLine tMapPolyLine) {
-//                    tMapView.addTMapPath(tMapPolyLine);
-//                }
-//            });
-//        }
-//
-//        relativeLayout.addView(tMapView);
     }
 
     @Override
@@ -305,6 +171,117 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
     @Override
     public void onProviderDisabled(String provider) {
 
+    }
+
+    void performFindRoute() {
+        start_point.clearFocus();
+        dest_point.clearFocus();
+        String start = start_point.getText().toString();
+        String destination = dest_point.getText().toString();
+        TMapData tmapData3 = new TMapData();
+        try {
+            ArrayList<TMapPOIItem> poiPositionOfStartItemArrayList = tmapData3.findAddressPOI(start);
+            ArrayList<TMapPOIItem> poiPositionOfDestItemArrayList = tmapData3.findAddressPOI(destination);
+            if (poiPositionOfStartItemArrayList != null && poiPositionOfDestItemArrayList != null) {
+                mSource = poiPositionOfStartItemArrayList.get(0).getPOIPoint();
+                mDest = poiPositionOfDestItemArrayList.get(0).getPOIPoint();
+
+                tmapData3.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
+                    @Override
+                    public void onFindPathData(TMapPolyLine tMapPolyLine) {
+                        //tMapView.removeAllMarkerItem();
+                        InputMethodManager immhide = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+                        immhide.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+                        //tMapView.addTMapPath(tMapPolyLine);
+
+                        //TMapInfo info = tMapView.getDisplayTMapInfo(tMapPolyLine.getLinePoint());
+                        tMapPolyLine.setID("cyclePath");
+                        //tMapView.setCenterPoint(info.getTMapPoint().getLongitude(), info.getTMapPoint().getLatitude());
+                        //tMapView.setZoomLevel(info.getTMapZoomLevel());
+                    }
+                });
+
+                tmapData3.findPathDataAllType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
+                    @Override
+                    public void onFindPathDataAll(Document document) {
+                        final NodeList list = document.getElementsByTagName("Placemark");
+                        Log.d("count", "길이" + list.getLength());
+                        int guide_length = 0;
+                        GuideContent.ITEMS.clear();
+
+
+                        for (int i = 0; i < list.getLength(); ++i) {
+                            Element item = (Element) list.item(i);
+                            String description = HttpConnect.getContentFromNode(item, "description");
+
+                            if (description != null) {
+                                Log.d("description", description);
+                                GuideContent.GuideItem guideItem = new GuideContent.GuideItem(String.valueOf(guide_length), description);
+                                GuideContent.ITEMS.add(guideItem);
+                                ++guide_length;
+                                String index = HttpConnect.getContentFromNode(item, "tmap:pointIndex");
+                                if (index != null) {
+                                    String str = HttpConnect.getContentFromNode(item, "coordinates");
+                                    if (str != null) {
+                                        String[] str2 = str.split(" ");
+
+                                        for (int k = 0; k < str2.length; ++k) {
+                                            try {
+                                                String[] e1 = str2[k].split(",");
+                                                TMapPoint point = new TMapPoint(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
+                                                // 경유지 마커 설정
+                                                MarkerOverlay stop = new MarkerOverlay(MainActivity.this, tMapView, description);
+                                                stop.setTMapPoint(point);
+
+                                                Bitmap bitmap = getBitmapFromVectorDrawable(MainActivity.this, R.drawable.ic_place_colored_24dp);
+                                                stop.setIcon(bitmap);
+                                                stop.setID(i + "경유지" + k);
+
+                                                //tMapView.addMarkerItem2(i + "경유지" + k, stop);
+
+                                            } catch (Exception var13) {
+                                                ;
+                                            }
+                                        }
+//                                                    tMapView.setOnMarkerClickEvent(new TMapView.OnCalloutMarker2ClickCallback() {
+//                                                        @Override
+//                                                        public void onCalloutMarker2ClickEvent(String s, TMapMarkerItem2 tMapMarkerItem2) {
+//
+//                                                        }
+//                                                    });
+                                    }
+                                }
+                            } else {
+                                Log.d("dd", "공백");
+                            }
+
+                        }
+
+                        FragmentManager fragmentManager = getFragmentManager();
+                        ItemFragment fragment = new ItemFragment().newInstance(GuideContent.ITEMS.size(), GuideContent.ITEMS);
+                        Bundle mBundle = new Bundle();
+                        fragment.setArguments(mBundle);
+                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                        fragmentTransaction.replace(R.id.fragment_container, fragment);
+                        fragmentTransaction.addToBackStack(null);
+                        fragmentTransaction.commit();
+                        Log.d("count", "길이래" + list.getLength());
+                        // fragment 제거
+//                                        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+//                                        if(fragment != null) {
+//                                            getSupportFragmentManager().beginTransaction().remove(fragment).commit();
+//                                        }
+                    }
+                });
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        } catch (SAXException e) {
+            e.printStackTrace();
+        }
     }
 
     // final ArrayList 는 new ArrayList() 형태로 새로 ArrayList를 만드는게 안될 뿐 add 나 remove는 가능하다.
@@ -328,7 +305,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 tMapView.addMarkerItem(markerTitle, tItem);
                 //ArrayList<TMapMarkerItem2> tMapMarkerItem2s = tMapView.getAllMarkerItem2();
                 tMapView.setCenterPoint(tMapPOIItem.getPOIPoint().getLongitude(), tMapPOIItem.getPOIPoint().getLatitude());
-
             }
         });
     }
@@ -346,6 +322,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
                 TMapMarkerItem tItem = new TMapMarkerItem();
                 tItem.setTMapPoint(tMapPOIItem.getPOIPoint());
                 tItem.setName(markerTitle);
+                if(start_point.getText().toString().equals("") != true && dest_point.getText().toString().equals("") != true) {
+                    performFindRoute();
+                }
+
 //                //TMapInfo info = tMapView.getDisplayTMapInfo(tMapPolyLine.getLinePoint());
 //                if (tMapView.getMarkerItemFromID(markerTitle) != null) {
 //                    tMapView.removeMarkerItem(markerTitle);
@@ -354,27 +334,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener,
 //                tMapView.addMarkerItem(markerTitle, tItem);
 //                //ArrayList<TMapMarkerItem2> tMapMarkerItem2s = tMapView.getAllMarkerItem2();
 //                tMapView.setCenterPoint(tMapPOIItem.getPOIPoint().getLongitude(), tMapPOIItem.getPOIPoint().getLatitude());
-
-            }
-        });
-    }
-
-    private void setupFloatingLabelError(TextInputLayout floatingLabel) {
-        floatingLabel.getEditText().addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                if (s.length() > 0 && s.length() <= 4) {
-
-                }
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
 
             }
         });
