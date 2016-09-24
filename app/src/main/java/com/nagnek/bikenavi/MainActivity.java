@@ -34,6 +34,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -53,9 +54,15 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
     static final LatLng SEOUL_STATION = new LatLng(37.555755, 126.970431);
@@ -68,8 +75,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mGoogleMap;
     private PolylineOptions polylineOptions; // polyline option
     private ArrayList<LatLng> pathStopPointList;    // 출발지 도착지를 포함한 경유지점(위도, 경도) 리스트
-    private ArrayList<MarkerOptions> markerOptionsArrayList;
-
+    private ArrayList<MarkerOptions> markerOptionsArrayList;    // 출발지 도착지 사이에 마커 리스트
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +136,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return bitmap;
     }
 
+    public static String docToString(Document doc) {
+        try {
+            StringWriter sw = new StringWriter();
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+
+            transformer.transform(new DOMSource(doc), new StreamResult(sw));
+            return sw.toString();
+        } catch (Exception ex) {
+            throw new RuntimeException("Error converting to String", ex);
+        }
+    }
+
     void performFindRoute() {
         // 키보드 감추기
         InputMethodManager immhide = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
@@ -142,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         String destination = dest_point.getText().toString();
         TMapData tmapData3 = new TMapData();
 
-
+        mGoogleMap.clear();
 
         try {
             ArrayList<TMapPOIItem> poiPositionOfStartItemArrayList = tmapData3.findAddressPOI(start);
@@ -150,33 +173,57 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (poiPositionOfStartItemArrayList != null && poiPositionOfDestItemArrayList != null) {
                 mSource = poiPositionOfStartItemArrayList.get(0).getPOIPoint();
                 mDest = poiPositionOfDestItemArrayList.get(0).getPOIPoint();
+                tmapData3.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
+                    @Override
+                    public void onFindPathData(TMapPolyLine tMapPolyLine) {
+                        pathStopPointList.clear();
+                        ArrayList<TMapPoint>pointArrayList = tMapPolyLine.getLinePoint();
+                        for(TMapPoint point:pointArrayList) {
+                            LatLng latLng = new LatLng(point.getLatitude(), point.getLongitude());
+                            Log.d("tag", "위도 : " + latLng.latitude + ", 경도 : " + latLng.longitude);
+                            pathStopPointList.add(latLng);
+                        }
+
+                        Handler handler = new Handler(Looper.getMainLooper());
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                if(mGoogleMap != null) {
+                                    // 경로 polyline 그리기
+                                    addPolyLineUsingGoogleMap(pathStopPointList);
+                                } else {
+                                    Log.d("tag", "아직 맵이 준비안됬어");
+                                }
+                            }
+                        });
+                    }
+                });
 
                 tmapData3.findPathDataAllType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
                     @Override
                     public void onFindPathDataAll(Document document) {
                         final NodeList list = document.getElementsByTagName("Placemark");
-                        Log.d("count", "길이" + list.getLength());
+//                        Log.d("count", "길이" + list.getLength());
                         int guide_length = 0;
                         GuideContent.ITEMS.clear();
-                        pathStopPointList.clear();
+                        markerOptionsArrayList.clear();
 
                         for (int i = 0; i < list.getLength(); ++i) {
                             Element item = (Element) list.item(i);
                             String description = HttpConnect.getContentFromNode(item, "description");
 
                             if (description != null) {
-                                Log.d("description", description);
+//                                Log.d("description", description);
                                 GuideContent.GuideItem guideItem = new GuideContent.GuideItem(String.valueOf(guide_length), description);
                                 GuideContent.ITEMS.add(guideItem);
                                 ++guide_length;
 
-                                String index = HttpConnect.getContentFromNode(item, "tmap:pointIndex");
-                                if (index != null) {
+                                String pointIndex = HttpConnect.getContentFromNode(item, "tmap:pointIndex");
+                                if (pointIndex != null) {
                                     String str = HttpConnect.getContentFromNode(item, "coordinates");
-                                    Log.d("tag", "index");
                                     if (str != null) {
                                         String[] str2 = str.split(" ");
-                                        Log.d("tag", "str");
                                         for (int k = 0; k < str2.length; ++k) {
                                             try {
                                                 String[] e1 = str2[k].split(",");
@@ -186,8 +233,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                                 MarkerOptions marker = new MarkerOptions().title("지점").snippet(description).position(latLng);
                                                 // 마커리스트에 추가 (addmarker는 Main 스레드에서만 되므로 이 콜백함수에서 쓸수없다. 따라서 한번에 묶어서 핸들러로 호출한다.)
                                                 markerOptionsArrayList.add(marker);
-                                                pathStopPointList.add(latLng);
-                                                Log.d("tag", "kk");
                                             } catch (Exception var13) {
                                                 Log.d("tag", "에러 : " + var13.getMessage());
                                             }
@@ -196,9 +241,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                                 }
 
+                                String lineIndex = HttpConnect.getContentFromNode(item, "tmap:lineIndex");
+                                if (lineIndex != null) {
+                                    String str = HttpConnect.getContentFromNode(item, "coordinates");
+                                    if (str != null) {
+                                        String[] str2 = str.split(" ");
+                                        try {
+                                            String[] e1 = str2[str2.length / 2].split(",");
+                                            // 마커 및 path 포인트를 추가하기 위한 위도 경도 생성
+                                            LatLng latLng = new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
+                                            // 마커 생성
+                                            MarkerOptions marker = new MarkerOptions().title("지점").snippet(description).position(latLng);
+                                            // 마커리스트에 추가 (addmarker는 Main 스레드에서만 되므로 이 콜백함수에서 쓸수없다. 따라서 한번에 묶어서 핸들러로 호출한다.)
+                                            markerOptionsArrayList.add(marker);
+                                        } catch (Exception var13) {
+                                            Log.d("tag", "에러 : " + var13.getMessage());
+                                        }
+                                    }
+
+                                }
+
 
                             } else {
-                                Log.d("dd", "공백");
+//                                Log.d("dd", "공백");
                             }
 
                         }
@@ -207,12 +272,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             @Override
                             public void run() {
                                 if(mGoogleMap != null) {
-                                    // 경로 찾고나서 경로 지점들의 마커들 추가
+                                    LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                                    // 경로 찾고나서 경로 지점들의 마커들 추가, 모든 마커들을 표시할 수 있는 줌레벨 계산
                                     for(MarkerOptions markerOptions : markerOptionsArrayList) {
                                         mGoogleMap.addMarker(markerOptions);
+                                        builder.include(markerOptions.getPosition());
                                     }
-                                    // 경로 polyline 그리기
-                                    addPolyLinetoGoogleMap(pathStopPointList);
+                                    LatLngBounds bounds = builder.build();
+
+                                    int padding = 0; // offset from edges of the map in pixels
+                                    CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+                                    mGoogleMap.animateCamera(cu);
                                 } else {
                                     Log.d("tag", "아직 맵이 준비안됬어");
                                 }
@@ -240,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void addPolyLinetoGoogleMap(ArrayList<LatLng> list) {
+    private void addPolyLineUsingGoogleMap(ArrayList<LatLng> list) {
         Polyline polyline = mGoogleMap.addPolyline(new PolylineOptions().geodesic(true).color(Color.RED).width(5).addAll(list));
     }
     // final ArrayList 는 new ArrayList() 형태로 새로 ArrayList를 만드는게 안될 뿐 add 나 remove는 가능하다.
@@ -330,5 +400,4 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mGoogleMap = googleMap;
     }
-
 }
