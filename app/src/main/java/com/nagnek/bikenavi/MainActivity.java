@@ -10,6 +10,7 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -38,6 +39,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -89,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ArrayList<MarkerOptions> markerOptionsArrayList;    // 출발지 도착지 사이에 마커 리스트
     private List<Marker> descriptorMarkers = new ArrayList<Marker>(); //markers
     private List<Marker> markers = new ArrayList<Marker>(); //markers
+    boolean animating; //애니메이션 진행중인지
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,7 +127,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         floatingActionButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
+                // 이전에 애니메이션 시작했으면 중지 후 초기화
+                if(animating) {
+                    animator.stopAnimation();
+                }
                 animator.startAnimation(true);
+
             }
         });
     }
@@ -166,6 +174,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // 키보드 감추기
         InputMethodManager immhide = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
         immhide.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+
+        // 이전에 애니메이션 시작했으면 중지 후 초기화
+        if(animating) {
+            animator.stopAnimation();
+            clearMarkers();
+        }
+        markers.clear();
+        descriptorMarkers.clear();
+        markerOptionsArrayList.clear();
 
         // 시작위치. 도착지의 포커스 초기화.
         start_point.clearFocus();
@@ -299,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                                     int padding = 0; // offset from edges of the map in pixels
                                     CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-                                    mGoogleMap.animateCamera(cu);
+                                    mGoogleMap.moveCamera(cu);
                                 } else {
                                     Log.d("tag", "아직 맵이 준비안됬어");
                                 }
@@ -311,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         fragment.setArguments(mBundle);
                         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                         fragmentTransaction.replace(R.id.fragment_container, fragment);
-                        fragmentTransaction.addToBackStack(null);
+//                        fragmentTransaction.addToBackStack(null);
                         fragmentTransaction.commit();
                         Log.d("count", "길이래" + list.getLength());
                     }
@@ -333,6 +350,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void clearMarkers() {
         mGoogleMap.clear();
         markers.clear();
+        descriptorMarkers.clear();
         markerOptionsArrayList.clear();
     }
 
@@ -437,8 +455,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     /**
      * Highlight the marker by index.
      */
-    private void highLightMarker(int index) {
-        highLightMarker(markers.get(index));
+    // moveMarkerIndex : 실제 애니메이션하기 위해 움직이는데 필요한 마커, descrioptorMarkerIndex : 풍선 띄우는 마커들 인덱스
+    private boolean highLightMarker(int moveMarkerIndex, int descriptorMarkerIndex) {
+        LatLng descriptorLatLng = descriptorMarkers.get(descriptorMarkerIndex).getPosition();
+        LatLng usedForMovingMarkers = markers.get(moveMarkerIndex).getPosition();
+        Log.d("tag", "markerIndex :"+ moveMarkerIndex + ", descIndex : " + descriptorMarkerIndex);
+        if(descriptorLatLng.latitude == usedForMovingMarkers.latitude && descriptorLatLng.longitude == usedForMovingMarkers.longitude) {
+            highLightMarker(descriptorMarkers.get(descriptorMarkerIndex));
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -470,11 +496,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         private static final int ANIMATE_SPEEED = 1500;
         private static final int ANIMATE_SPEEED_TURN = 1000;
-        private static final int BEARING_OFFSET = 20;
+        private static final int BEARING_OFFSET = -90;
 
         private final Interpolator interpolator = new LinearInterpolator();
 
-        int currentIndex = 0;
+        int movingCurrentMarkerIndex = 0;
+        int descriptorMarkerIndex = 0;
 
         float tilt = 90;
         float zoom = 15.5f;
@@ -492,10 +519,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         public void reset() {
             resetMarkers();
             start = SystemClock.uptimeMillis();
-            currentIndex = 0;
+            movingCurrentMarkerIndex = 0;
+            descriptorMarkerIndex = 1;
             endLatLng = getEndLatLng();
             beginLatLng = getBeginLatLng();
-
         }
 
         public void stop() {
@@ -508,7 +535,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             reset();
             this.showPolyline = showPolyLine;
 
-            highLightMarker(0);
+            highLightMarker(0, 0);
+            Log.d("tag", "descriptorIndex :" + descriptorMarkerIndex);
 
             if (showPolyLine) {
                 polyLine = initializePolyLine();
@@ -522,14 +550,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
 
+        private BitmapDescriptor getBitmapDescriptor(int id) {
+            Drawable vectorDrawable = MainActivity.this.getDrawable(id);
+            int h = vectorDrawable.getIntrinsicHeight();
+            int w = vectorDrawable.getIntrinsicWidth();
+            vectorDrawable.setBounds(0, 0, w, h);
+            Bitmap bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bm);
+            vectorDrawable.draw(canvas);
+            return BitmapDescriptorFactory.fromBitmap(bm);
+        }
+
         private void setupCameraPositionForMovement(LatLng markerPos,
                                                     LatLng secondPos) {
 
             float bearing = bearingBetweenLatLngs(markerPos,secondPos);
 
             trackingMarker = mGoogleMap.addMarker(new MarkerOptions().position(markerPos)
-                    .title("title")
-                    .snippet("snippet"));
+                    .title("접니다")
+                    .snippet("자전거에요"));
+            trackingMarker.setIcon(getBitmapDescriptor(R.drawable.ic_directions_bike_black_24dp));
 
             CameraPosition cameraPosition =
                     new CameraPosition.Builder()
@@ -550,22 +590,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             animator.reset();
                             Handler handler = new Handler();
                             handler.post(animator);
+                            animating = true;
                         }
 
                         @Override
                         public void onCancel() {
                             System.out.println("cancelling camera");
+                            animating = false;
                         }
                     }
             );
         }
 
         private Polyline polyLine;
-        private PolylineOptions rectOptions = new PolylineOptions().geodesic(true).color(Color.CYAN);
+        private PolylineOptions rectOptions;
 
 
         private Polyline initializePolyLine() {
             //polyLinePoints = new ArrayList<LatLng>();
+            if(polyLine != null) {
+                polyLine.remove();
+            }
+            rectOptions  = new PolylineOptions().geodesic(true).color(Color.CYAN);
             rectOptions.add(markers.get(0).getPosition());
             return mGoogleMap.addPolyline(rectOptions);
         }
@@ -618,11 +664,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mHandler.postDelayed(this, 16);
             } else {
 
-                System.out.println("Move to next marker.... current = " + currentIndex + " and size = " + markers.size());
+                System.out.println("Move to next marker.... current = " + movingCurrentMarkerIndex + " and size = " + markers.size());
                 // imagine 5 elements -  0|1|2|3|4 currentindex must be smaller than 4
-                if (currentIndex<markers.size()-2) {
+                if (movingCurrentMarkerIndex <markers.size()-2) {
 
-                    currentIndex++;
+                    movingCurrentMarkerIndex++;
 
                     endLatLng = getEndLatLng();
                     beginLatLng = getBeginLatLng();
@@ -635,7 +681,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     float bearingL = bearingBetweenLatLngs(begin, end);
 
-                    highLightMarker(currentIndex);
+                    boolean highLighted = highLightMarker(movingCurrentMarkerIndex, descriptorMarkerIndex);
+                    if(highLighted) {
+                        ++descriptorMarkerIndex;
+                    }
 
                     CameraPosition cameraPosition =
                             new CameraPosition.Builder()
@@ -656,8 +705,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     mHandler.postDelayed(animator, 16);
 
                 } else {
-                    currentIndex++;
-                    highLightMarker(currentIndex);
+                    movingCurrentMarkerIndex++;
+                    highLightMarker(movingCurrentMarkerIndex, descriptorMarkerIndex);
                     stopAnimation();
                 }
 
@@ -668,11 +717,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         private LatLng getEndLatLng() {
-            return markers.get(currentIndex+1).getPosition();
+            return markers.get(movingCurrentMarkerIndex +1).getPosition();
         }
 
         private LatLng getBeginLatLng() {
-            return markers.get(currentIndex).getPosition();
+            return markers.get(movingCurrentMarkerIndex).getPosition();
         }
 
         private void adjustCameraPosition() {
@@ -700,8 +749,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     };
 
     private void resetMarkers() {
+        Log.d("tag", "초기화");
         for (Marker marker : this.markers) {
-            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            Log.d("tag", "색깔변함");
         }
     }
 }
