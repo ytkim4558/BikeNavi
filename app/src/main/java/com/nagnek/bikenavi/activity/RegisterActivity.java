@@ -127,14 +127,13 @@ public class RegisterActivity extends AppCompatActivity {
                     if (!error) {
                         // User successfully stored in MySQL
                         // Now store the user in sqlite
-                        String uid = jsonObject.getString("uid");
 
                         JSONObject user = jsonObject.getJSONObject("user");
                         String email = user.getString("email");
                         String created_at = user.getString("created_at");
 
                         // Inserting row in users table
-                        db.addUser(email, uid, created_at);
+                        db.addUser(email, created_at);
 
                         Toast.makeText(getApplicationContext(), "User successfully registered. Try login now!", Toast.LENGTH_LONG).show();
 

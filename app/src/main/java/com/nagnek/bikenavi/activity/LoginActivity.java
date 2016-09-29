@@ -133,15 +133,13 @@ public class LoginActivity extends AppCompatActivity {
                         session.setLogin(true);
 
                         // Now store the user in SQLite
-                        String uid = jsonObject.getString("uid");
-
                         JSONObject user = jsonObject.getJSONObject("user");
                         String email = user.getString("email");
                         String created_at = user
                                 .getString("created_at");
 
                         // Inserting row in users table
-                        db.addUser(email, uid, created_at);
+                        db.addUser(email, created_at);
 
                         // Launch main activity
                         Intent intent = new Intent(LoginActivity.this,

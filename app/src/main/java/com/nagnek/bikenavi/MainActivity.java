@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -27,11 +28,14 @@ import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatDrawableManager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -50,6 +54,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
+import com.nagnek.bikenavi.activity.LoginActivity;
 import com.nagnek.bikenavi.guide.GuideContent;
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapMarkerItem;
@@ -78,6 +83,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+    private static final String TAG = MainActivity.class.getSimpleName();
     static final LatLng SEOUL_STATION = new LatLng(37.555755, 126.970431);
     TMapPoint mSource;
     TMapPoint mDest;
@@ -92,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private List<Marker> descriptorMarkers = new ArrayList<Marker>(); //markers
     private List<Marker> markers = new ArrayList<Marker>(); //markers
     boolean animating; //애니메이션 진행중인지
+    boolean bLog = false; // false : 로그아웃 상태
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,6 +144,51 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        // 메뉴 버튼이 처음 눌러졌을 때 실행되는 콜백메서드
+        // 메뉴 버튼이 눌렸을 때 보여줄 menu에 대해서 정의
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        Log.d(TAG, "onCreateOptionsMenu - 최초 메뉴키를 눌렀을 때 호출됨");
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        Log.d(TAG, "opPrepareOptionsMenu - 옵션 메뉴가 " +
+        "화면에 보여질때마다 호출됨");
+        if (bLog) { // 로그인 한 상태 : 로그인은 안보이게, 로그아웃은 보이게
+            menu.getItem(0).setEnabled(true);
+            menu.getItem(1).setEnabled(false);
+        } else { // 로그아웃 한 상태 : 로그인은 보이게, 로그아웃으 안보이게
+            menu.getItem(0).setEnabled(false);
+            menu.getItem(1).setEnabled(true);
+        }
+
+        bLog = !bLog; // 값을 반대로 바꿈
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // 메뉴의 항목을 선택(클릭)했을 때 호출되는 콜백메서드
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        Log.d(TAG, "onOptionsItemSelected - 메뉴항목을 클릭했을 때 호출됨.");
+
+        int id = item.getItemId();
+
+        switch (id) {
+            case R.id.menu_login:
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(intent);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
         Drawable drawable = AppCompatDrawableManager.get().getDrawable(context, drawableId);
