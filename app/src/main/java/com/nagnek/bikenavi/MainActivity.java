@@ -185,6 +185,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.menu_login:
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(intent);
+                finish();
                 return true;
         }
         return super.onOptionsItemSelected(item);
