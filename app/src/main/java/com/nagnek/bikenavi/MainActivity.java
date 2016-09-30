@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -35,8 +34,8 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -191,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.menu_login:
                 if(session.isLoggedIn()) {  // 로그인이 되어있으면
                     logoutUser();
+                    Toast.makeText(getApplicationContext(), "로그아웃 되었습니다.", Toast.LENGTH_LONG).show();
                 } else {
                     Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                     startActivity(intent);
@@ -632,7 +632,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             trackingMarker = mGoogleMap.addMarker(new MarkerOptions().position(markerPos)
                     .title("접니다")
                     .snippet("자전거에요"));
-            trackingMarker.setIcon(getBitmapDescriptor(R.drawable.ic_directions_bike_black_24dp));
+            trackingMarker.setIcon(getBitmapDescriptor(R.drawable.ic_directions_bike_red_24dp));
 
             CameraPosition cameraPosition =
                     new CameraPosition.Builder()
