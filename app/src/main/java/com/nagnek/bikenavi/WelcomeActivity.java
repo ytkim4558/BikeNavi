@@ -6,6 +6,7 @@ package com.nagnek.bikenavi;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -27,6 +28,9 @@ public class WelcomeActivity extends AppCompatActivity{
 
     private SQLiteHandler db;
     private SessionManager sessionManager;
+
+    private SplashRunnable mSplashRunnable;
+    private Handler mSplashLodingHandler;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,6 +65,19 @@ public class WelcomeActivity extends AppCompatActivity{
                 logoutUser();
             }
         });
+
+        mSplashLodingHandler = new Handler();
+        mSplashRunnable = new SplashRunnable();
+        mSplashLodingHandler.postDelayed(mSplashRunnable, 3000);
+    }
+
+    // 로딩화면
+    private class SplashRunnable implements Runnable {
+        @Override
+        public void run() {
+            startActivity(new Intent(getApplicationContext(), MainActivity.class));
+            WelcomeActivity.this.finish();
+        }
     }
 
     /**
@@ -68,6 +85,7 @@ public class WelcomeActivity extends AppCompatActivity{
      * preferences Clears the user data from sqlite users table
      */
     private void logoutUser() {
+        mSplashLodingHandler.removeCallbacks(mSplashRunnable);
         sessionManager.setLogin(false);
         db.deleteUsers();
         // Launching the login activity

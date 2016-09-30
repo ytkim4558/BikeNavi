@@ -23,6 +23,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.nagnek.bikenavi.MainActivity;
 import com.nagnek.bikenavi.R;
+import com.nagnek.bikenavi.WelcomeActivity;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.app.AppController;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
@@ -70,7 +71,7 @@ public class LoginActivity extends AppCompatActivity {
         // Check if user is already logged in or not
         if (session.isLoggedIn()) {
             // User is already logged in. Take him to main activty
-            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            Intent intent = new Intent(LoginActivity.this, WelcomeActivity.class);
             startActivity(intent);
             finish();
         }
@@ -144,7 +145,7 @@ public class LoginActivity extends AppCompatActivity {
 
                         // Launch main activity
                         Intent intent = new Intent(LoginActivity.this,
-                                MainActivity.class);
+                                WelcomeActivity.class);
                         startActivity(intent);
                         finish();
                     } else {
