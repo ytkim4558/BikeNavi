@@ -75,7 +75,6 @@ public class WelcomeActivity extends AppCompatActivity{
     private class SplashRunnable implements Runnable {
         @Override
         public void run() {
-            startActivity(new Intent(getApplicationContext(), MainActivity.class));
             WelcomeActivity.this.finish();
         }
     }

@@ -26,6 +26,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatDrawableManager;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,6 +36,7 @@ import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -74,6 +76,7 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -153,6 +156,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        toolbar.setNavigationIcon(R.drawable.ic_directions_bike_red_24dp);
+        if(session.isLoggedIn()) {
+            TextView textView = (TextView) findViewById(R.id.name);
+
+            // SqLite database handler
+            SQLiteHandler db = new SQLiteHandler(getApplicationContext());
+
+            // Fetching user details from sqlite
+            HashMap<String, String> user = db.getUserDetails();
+
+            String email = user.get("email");
+
+            textView.setText(email);
+            textView.setVisibility(View.VISIBLE);
+        } else {
+
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         // 메뉴 버튼이 처음 눌러졌을 때 실행되는 콜백메서드
@@ -188,14 +216,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         switch (id) {
             case R.id.menu_login:
-                if(session.isLoggedIn()) {  // 로그인이 되어있으면
-                    logoutUser();
-                    Toast.makeText(getApplicationContext(), "로그아웃 되었습니다.", Toast.LENGTH_LONG).show();
-                } else {
-                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                    startActivity(intent);
-                    finish();
-                }
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(intent);
                 return true;
         }
         return super.onOptionsItemSelected(item);

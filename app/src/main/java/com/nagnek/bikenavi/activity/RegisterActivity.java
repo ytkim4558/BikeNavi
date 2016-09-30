@@ -87,7 +87,7 @@ public class RegisterActivity extends AppCompatActivity {
                     registerUser(email, password);
                 } else {
                     Toast.makeText(getApplicationContext(),
-                            "Please enter your details!", Toast.LENGTH_LONG)
+                            "이메일과 비밀번호를 입력하세요!", Toast.LENGTH_LONG)
                             .show();
                 }
             }
@@ -112,7 +112,7 @@ public class RegisterActivity extends AppCompatActivity {
         // Tag used to cancel the request
         String tag_string_req = "req_register";
 
-        progressDialog.setMessage("Registering ...");
+        progressDialog.setMessage("등록중 ...");
         showDialog();
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST,

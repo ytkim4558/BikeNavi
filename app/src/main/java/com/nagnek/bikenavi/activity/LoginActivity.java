@@ -90,7 +90,7 @@ public class LoginActivity extends AppCompatActivity {
                 } else {
                     // Prompt user to enter credentials
                     Toast.makeText(getApplicationContext(),
-                            "Please enter the credentials!", Toast.LENGTH_LONG).show();
+                            "이메일과 비밀번호를 입력하세요!", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -114,7 +114,7 @@ public class LoginActivity extends AppCompatActivity {
         // Tag used to cancel the request
         String tag_string_req = "req_login";
 
-        pDialog.setMessage("Logging in ...");
+        pDialog.setMessage("로그인 시도중 ...");
         showDialog();
 
         StringRequest strReq = new StringRequest(Request.Method.POST,
@@ -142,6 +142,8 @@ public class LoginActivity extends AppCompatActivity {
 
                         // Inserting row in users table
                         db.addUser(email, created_at);
+                        Log.d(TAG, "email : " + email);
+                        Log.d(TAG, "created_at : " + created_at);
 
                         // Launch main activity
                         Intent intent = new Intent(LoginActivity.this,
