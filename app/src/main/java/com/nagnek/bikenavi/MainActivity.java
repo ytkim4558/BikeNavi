@@ -56,6 +56,8 @@ import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.nagnek.bikenavi.activity.LoginActivity;
 import com.nagnek.bikenavi.guide.GuideContent;
+import com.nagnek.bikenavi.helper.SQLiteHandler;
+import com.nagnek.bikenavi.helper.SessionManager;
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapMarkerItem;
 import com.skp.Tmap.TMapPOIItem;
@@ -98,7 +100,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private List<Marker> descriptorMarkers = new ArrayList<Marker>(); //markers
     private List<Marker> markers = new ArrayList<Marker>(); //markers
     boolean animating; //애니메이션 진행중인지
-    boolean bLog = false; // false : 로그아웃 상태
+    private SessionManager session; // 로그인했는지 확인용 변수
+    private SQLiteHandler db;   // sqlite
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +110,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         sourceAndDest = new ArrayList<TMapPoint>();
         pathStopPointList = new ArrayList<LatLng>();
         markerOptionsArrayList = new ArrayList<MarkerOptions>();
+
+        // SQLite database handler
+        db = new SQLiteHandler(getApplicationContext());
+
+        // Session manager
+        session = new SessionManager(getApplicationContext());
 
         setContentView(R.layout.activity_main);
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
@@ -158,15 +167,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onPrepareOptionsMenu(Menu menu) {
         Log.d(TAG, "opPrepareOptionsMenu - 옵션 메뉴가 " +
         "화면에 보여질때마다 호출됨");
-        if (bLog) { // 로그인 한 상태 : 로그인은 안보이게, 로그아웃은 보이게
-            menu.getItem(0).setEnabled(true);
-            menu.getItem(1).setEnabled(false);
-        } else { // 로그아웃 한 상태 : 로그인은 보이게, 로그아웃으 안보이게
-            menu.getItem(0).setEnabled(false);
-            menu.getItem(1).setEnabled(true);
-        }
 
-        bLog = !bLog; // 값을 반대로 바꿈
+        if (session.isLoggedIn()) { // 로그인 한 상태확인
+            menu.getItem(0).setTitle("로그아웃");
+        } else {
+            menu.getItem(0).setTitle("로그인");
+        }
 
         return super.onPrepareOptionsMenu(menu);
     }
@@ -183,9 +189,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         switch (id) {
             case R.id.menu_login:
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish();
+                if(session.isLoggedIn()) {  // 로그인이 되어있으면
+                    logoutUser();
+                } else {
+                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -807,5 +817,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
             Log.d("tag", "색깔변함");
         }
+    }
+
+    /**
+     * Logging out the user. Will set isLoggedIn flag to false in shared
+     * preferences Clears the user data from sqlite users table
+     */
+    private void logoutUser() {
+        session.setLogin(false);
+        db.deleteUsers();
     }
 }
