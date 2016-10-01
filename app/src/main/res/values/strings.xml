@@ -10,7 +10,7 @@
     <string name="btn_login">로그인</string>
     <string name="btn_register">회원가입</string>
     <string name="btn_link_to_register">회원이 아닙니까? 지금 가입하세요.</string>
-    <string name="btn_link_to_login">이미 회원가입되어있습니다! 로그인하세요.</string>
+    <string name="btn_link_to_login">이미 회원이십니까? 로그인하세요! </string>
     <string name="welcome">환영합니다.</string>
     <string name="btn_logout">로그아웃</string>
     <string name="menu_login">로그인</string>

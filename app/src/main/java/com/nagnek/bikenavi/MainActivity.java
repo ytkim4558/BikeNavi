@@ -113,14 +113,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         pathStopPointList = new ArrayList<LatLng>();
         markerOptionsArrayList = new ArrayList<MarkerOptions>();
 
+        long start = System.currentTimeMillis();
+
         // SQLite database handler
         db = new SQLiteHandler(getApplicationContext());
 
         // Session manager
         session = new SessionManager(getApplicationContext());
 
+        long end = System.currentTimeMillis();
+        Log.d(TAG, "db쪽 로딩 시간 : " + (end-start)/1000.0);
+        start = System.currentTimeMillis();
         setContentView(R.layout.activity_main);
+
+        end = System.currentTimeMillis();
+        Log.d(TAG, "setContentView 시간 : " + (end-start)/1000.0);
+        start = System.currentTimeMillis();
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
+        end = System.currentTimeMillis();
+        Log.d(TAG, "strict 로딩 시간 : " + (end-start)/1000.0);
+        start = System.currentTimeMillis();
 
         /**
          * 구글맵 생성
@@ -129,17 +141,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        //tmapApi 사용
-        tMapTapi = new TMapTapi(this);
-        tMapTapi.setSKPMapAuthentication("d2bc2636-c213-3bad-9058-7d46cf9f8039");
+        end = System.currentTimeMillis();
+        Log.d(TAG, "구글맵 로딩 시간 : " + (end-start)/1000.0);
+        start = System.currentTimeMillis();
+        new Handler().post(new Runnable() {
+            @Override
+            public void run() {
+                start_point = (DelayAutoCompleteTextView) findViewById(R.id.start_point);
+                ProgressBar progressBar1 = (ProgressBar) findViewById(R.id.pb_loading_indicator1);
+                setupTmapPOIToGoogleMapAutoCompleteTextView(start_point, progressBar1, "출발");
+                dest_point = (DelayAutoCompleteTextView) findViewById(R.id.dest_point);
 
-        start_point = (DelayAutoCompleteTextView) findViewById(R.id.start_point);
-        ProgressBar progressBar1 = (ProgressBar) findViewById(R.id.pb_loading_indicator1);
-        setupTmapPOIToGoogleMapAutoCompleteTextView(start_point, progressBar1, "출발");
-        dest_point = (DelayAutoCompleteTextView) findViewById(R.id.dest_point);
-
-        ProgressBar progressBar2 = (ProgressBar) findViewById(R.id.pb_loading_indicator2);
-        setupTmapPOIToGoogleMapAutoCompleteTextView(dest_point, progressBar2, "도착");
+                ProgressBar progressBar2 = (ProgressBar) findViewById(R.id.pb_loading_indicator2);
+                setupTmapPOIToGoogleMapAutoCompleteTextView(dest_point, progressBar2, "도착");
+            }
+        });
 
         FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
         floatingActionButton.setOnClickListener(new View.OnClickListener(){
@@ -153,6 +169,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         });
+
+        //tmapApi 사용
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                tMapTapi = new TMapTapi(MainActivity.this);
+                tMapTapi.setSKPMapAuthentication("d2bc2636-c213-3bad-9058-7d46cf9f8039");
+            }
+        }).start();
+        end = System.currentTimeMillis();
+        Log.d(TAG, "나머지 : " + (end-start)/1000.0);
+
     }
 
     @Override
@@ -162,8 +190,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         toolbar.setNavigationIcon(R.drawable.ic_directions_bike_red_24dp);
+        TextView textView = (TextView) findViewById(R.id.name);
         if(session.isLoggedIn()) {
-            TextView textView = (TextView) findViewById(R.id.name);
 
             // SqLite database handler
             SQLiteHandler db = new SQLiteHandler(getApplicationContext());
@@ -176,7 +204,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             textView.setText(email);
             textView.setVisibility(View.VISIBLE);
         } else {
-
+            textView.setVisibility(View.GONE);
         }
     }
 
