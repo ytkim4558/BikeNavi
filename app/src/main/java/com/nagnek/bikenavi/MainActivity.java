@@ -169,19 +169,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         });
-
-        //tmapApi 사용
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                tMapTapi = new TMapTapi(MainActivity.this);
-                tMapTapi.setSKPMapAuthentication("d2bc2636-c213-3bad-9058-7d46cf9f8039");
-            }
-        }).start();
         end = System.currentTimeMillis();
         Log.d(TAG, "나머지 : " + (end-start)/1000.0);
 
     }
+
 
     @Override
     protected void onStart() {
@@ -479,6 +471,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         locationName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+
                 TMapPOIItem tMapPOIItem = (TMapPOIItem) parent.getItemAtPosition(position);
                 locationName.setText(tMapPOIItem.getPOIName());
                 TMapMarkerItem tItem = new TMapMarkerItem();

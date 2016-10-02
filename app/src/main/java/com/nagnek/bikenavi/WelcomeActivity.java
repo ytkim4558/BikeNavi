@@ -56,7 +56,7 @@ public class WelcomeActivity extends AppCompatActivity{
         String email = user.get("email");
 
         // Displaying th euser details on the screen
-        textEmail.setText(email);
+        textEmail.setText(email + "님 환영합니다.");
 
         // Logout button click event
         btnLogout.setOnClickListener(new View.OnClickListener() {

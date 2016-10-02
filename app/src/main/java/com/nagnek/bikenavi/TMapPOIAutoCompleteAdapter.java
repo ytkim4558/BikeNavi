@@ -16,12 +16,14 @@ import android.widget.TextView;
 
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapPOIItem;
+import com.skp.Tmap.TMapTapi;
 
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.LogManager;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -32,9 +34,16 @@ public class TMapPOIAutoCompleteAdapter extends BaseAdapter implements Filterabl
     private static final int MAX_RESULTS = 10;
     private Context mContext;
     private List<TMapPOIItem> poiList = new ArrayList<TMapPOIItem>();
+    TMapTapi tMapTapi = null;
+    private static final String TAG = TMapPOIAutoCompleteAdapter.class.getSimpleName();
 
     public TMapPOIAutoCompleteAdapter(Context context) {
         mContext = context;
+    }
+
+    void initializeTMapTapi() {
+        tMapTapi = new TMapTapi(mContext);
+        tMapTapi.setSKPMapAuthentication("d2bc2636-c213-3bad-9058-7d46cf9f8039");
     }
 
     @Override
@@ -85,6 +94,9 @@ public class TMapPOIAutoCompleteAdapter extends BaseAdapter implements Filterabl
             protected FilterResults performFiltering(CharSequence constraint) {
                 FilterResults filterResults = new FilterResults();
                 if (constraint != null) {
+                    if (tMapTapi == null) {
+                        initializeTMapTapi();
+                    }
                     List<TMapPOIItem> tMapPOIItems = findAddressList(mContext, constraint.toString());
 
                     filterResults.values = tMapPOIItems;

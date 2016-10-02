@@ -13,7 +13,6 @@ import android.support.v7.widget.AppCompatEditText;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -43,6 +42,7 @@ public class RegisterActivity extends AppCompatActivity {
     private Button btnLinkToLogin;
     private AppCompatEditText inputEmail;
     private AppCompatEditText inputPassword;
+    private AppCompatEditText inputPasswordConfirm;
     private ProgressDialog progressDialog;
     private SessionManager sessionManager;
     private SQLiteHandler db;
@@ -54,6 +54,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         inputEmail = (AppCompatEditText) findViewById(R.id.email);
         inputPassword = (AppCompatEditText) findViewById(R.id.password);
+        inputPasswordConfirm = (AppCompatEditText) findViewById(R.id.confirm_password);
         btnRegister = (Button) findViewById(R.id.btnRegister);
         btnLinkToLogin = (Button) findViewById(R.id.btnLinkToLoginScreen);
 
@@ -82,9 +83,16 @@ public class RegisterActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String email = inputEmail.getText().toString().trim();
                 String password = inputPassword.getText().toString().trim();
+                String passwordConfirm = inputPasswordConfirm.getText().toString().trim();
 
-                if (!email.isEmpty() && !password.isEmpty()) {
-                    registerUser(email, password);
+                if (!email.isEmpty() && !password.isEmpty() && !passwordConfirm.isEmpty()) {
+                    if(password.equals(passwordConfirm)) {
+                        registerUser(email, password);
+                    } else {
+                        Toast.makeText(getApplicationContext(),
+                                "입력한 패스워드들이 일치 하지 않습니다!", Toast.LENGTH_LONG)
+                                .show();
+                    }
                 } else {
                     Toast.makeText(getApplicationContext(),
                             "이메일과 비밀번호를 입력하세요!", Toast.LENGTH_LONG)
