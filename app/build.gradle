@@ -39,3 +39,5 @@ dependencies {
     compile 'com.google.maps.android:android-maps-utils:0.4.4'
     compile 'com.android.volley:volley:1.0.0'
 }
+
+apply plugin: 'com.google.gms.google-services'

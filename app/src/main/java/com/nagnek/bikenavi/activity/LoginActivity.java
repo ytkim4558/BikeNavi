@@ -6,7 +6,9 @@ package com.nagnek.bikenavi.activity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
@@ -21,6 +23,15 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.nagnek.bikenavi.MainActivity;
 import com.nagnek.bikenavi.R;
 import com.nagnek.bikenavi.WelcomeActivity;
@@ -38,15 +49,19 @@ import java.util.Map;
 /**
  * Created by user on 2016-09-27.
  */
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener{
     private static final String TAG = LoginActivity.class.getSimpleName();
-    private Button btnLogin;
-    private Button btnLinkToRegister;
-    private AppCompatEditText inputEmail;
-    private AppCompatEditText inputPassword;
+    private Button btnLogin; // 자체 로그인
+    private SignInButton btnGoogleLogin; //구글 로그인
+    private Button btnLinkToRegister; // 회원가입으로 가게하는 버튼
+    private AppCompatEditText inputEmail;   // 이메일 입력창
+    private AppCompatEditText inputPassword;    // 패스워드 입력창
+    private GoogleApiClient mGoogleApiClient; // 구글 로그인등을 위한 구글 api 클라이언트
+    private GoogleSignInOptions mGso; // 구글 로그인 후 유저 아이디나 기본 프로필 정보를 요청하기 위한 객체
     private ProgressDialog pDialog;
     private SessionManager session;
     private SQLiteHandler db;
+    private static final int RC_SIGN_IN = 9001; // 구글 로그인 요청 키
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -56,6 +71,7 @@ public class LoginActivity extends AppCompatActivity {
         inputEmail = (AppCompatEditText) findViewById(R.id.email);
         inputPassword = (AppCompatEditText) findViewById(R.id.password);
         btnLogin = (Button) findViewById(R.id.btnLogin);
+        btnGoogleLogin = (SignInButton) findViewById(R.id.sign_in_button);
         btnLinkToRegister = (Button) findViewById(R.id.btnLinkToRegisterScreen);
 
         // Progress dialog
@@ -67,6 +83,13 @@ public class LoginActivity extends AppCompatActivity {
 
         // Session manager
         session = new SessionManager(getApplicationContext());
+
+        // GoogleSignInOptions
+        mGso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail().requestId().build();
+
+        // 구글 로그인 api에 접근하기 위한 googleapi 클라이언트 객체 생성.
+        mGoogleApiClient = new GoogleApiClient.Builder(this).enableAutoManage(this, this).addApi(Auth.GOOGLE_SIGN_IN_API, mGso).addApi(AppIndex.API).build();
 
         // Check if user is already logged in or not
         if (session.isLoggedIn()) {
@@ -95,6 +118,14 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        // 구글 로그인 버튼 눌렀을 때
+        btnGoogleLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                signIn();
+            }
+        });
+
         // Link to Register Screen
         btnLinkToRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,6 +137,35 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
+    // 구글 로그인 버튼 눌렀을 때
+    private void signIn() {
+        Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            handleSignInResult(result);
+        }
+    }
+
+    // 구글 로그인 처리
+    private void handleSignInResult(GoogleSignInResult result) {
+        Log.d(TAG, "handleSignInResult:" + result.isSuccess());
+        if (result.isSuccess()) {
+            GoogleSignInAccount acct = result.getSignInAccount();
+
+        } else {
+            // Signed out, show unauthenticated UI.
+        }
+    }
+
 
     /**
      * function to verify login details in mysql db
@@ -196,5 +256,10 @@ public class LoginActivity extends AppCompatActivity {
         if (pDialog.isShowing()) {
             pDialog.dismiss();
         }
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d(TAG, "onConnectionFailed:" + connectionResult);
     }
 }

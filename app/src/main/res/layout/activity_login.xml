@@ -53,6 +53,13 @@
             android:singleLine="true" />
     </android.support.design.widget.TextInputLayout>
 
+    <!-- 구글 로그인 버튼 -->
+    <com.google.android.gms.common.SignInButton
+        android:layout_marginTop="20dp"
+        android:id="@+id/sign_in_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_login"/>
 
     <!-- Login Button -->
 
