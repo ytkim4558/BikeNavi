@@ -5,12 +5,19 @@
 package com.nagnek.bikenavi.activity;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TextInputLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -20,6 +27,7 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+import com.nagnek.bikenavi.ClearableAppCompatEditText;
 import com.nagnek.bikenavi.MainActivity;
 import com.nagnek.bikenavi.R;
 import com.nagnek.bikenavi.app.AppConfig;
@@ -40,9 +48,12 @@ public class RegisterActivity extends AppCompatActivity {
     private static final String TAG = RegisterActivity.class.getSimpleName();
     private Button btnRegister;
     private Button btnLinkToLogin;
-    private AppCompatEditText inputEmail;
-    private AppCompatEditText inputPassword;
-    private AppCompatEditText inputPasswordConfirm;
+    private TextInputLayout ti_input_email;
+    private ClearableAppCompatEditText inputEmail;
+    private TextInputLayout ti_input_password;
+    private ClearableAppCompatEditText inputPassword;
+    private TextInputLayout ti_input_confirm_password;
+    private ClearableAppCompatEditText inputPasswordConfirm;
     private ProgressDialog progressDialog;
     private SessionManager sessionManager;
     private SQLiteHandler db;
@@ -52,11 +63,21 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        inputEmail = (AppCompatEditText) findViewById(R.id.email);
-        inputPassword = (AppCompatEditText) findViewById(R.id.password);
-        inputPasswordConfirm = (AppCompatEditText) findViewById(R.id.confirm_password);
+        ti_input_email = (TextInputLayout) findViewById(R.id.ti_email);
+        inputEmail = (ClearableAppCompatEditText) findViewById(R.id.email);
+        ti_input_password = (TextInputLayout) findViewById(R.id.ti_password);
+        inputPassword = (ClearableAppCompatEditText) findViewById(R.id.password);
+        ti_input_confirm_password = (TextInputLayout) findViewById(R.id.ti_confirm_password);
+        inputPasswordConfirm = (ClearableAppCompatEditText) findViewById(R.id.confirm_password);
         btnRegister = (Button) findViewById(R.id.btnRegister);
         btnLinkToLogin = (Button) findViewById(R.id.btnLinkToLoginScreen);
+
+        /**
+         * textinputlayout 에러메시지 사용
+         */
+        ti_input_email.setErrorEnabled(true);
+        ti_input_password.setErrorEnabled(true);
+        ti_input_confirm_password.setErrorEnabled(true);
 
         // ProgressDialog
         progressDialog = new ProgressDialog(this);
@@ -77,6 +98,78 @@ public class RegisterActivity extends AppCompatActivity {
             finish();
         }
 
+        // inputEmail watcher
+        inputEmail.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if(!isValidEmail(s)) {
+                    ti_input_email.setError("유효한 이메일을 입력해주세요.");
+                } else {
+                    ti_input_email.setError(null);
+                }
+            }
+        });
+
+        inputPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String password = inputPassword.getText().toString().trim();
+                String passwordConfirm = inputPasswordConfirm.getText().toString().trim();
+                if(!password.isEmpty() && !passwordConfirm.isEmpty()) {
+                    if(!password.equals(passwordConfirm)) {
+                        ti_input_password.setError("입력한 비밀번호가 서로 일치하지 않습니다.");
+                    } else {
+                        ti_input_password.setError(null);
+                    }
+                }
+            }
+        });
+
+        inputPasswordConfirm.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String password = inputPassword.getText().toString().trim();
+                String passwordConfirm = inputPasswordConfirm.getText().toString().trim();
+                if(!password.isEmpty() && !passwordConfirm.isEmpty()) {
+                    if(!password.equals(passwordConfirm)) {
+                        ti_input_confirm_password.setError("입력한 비밀번호가 서로 일치하지 않습니다.");
+                    } else {
+                        ti_input_confirm_password.setError(null);
+                    }
+                }
+            }
+        });
+
         // Register Button Click event
         btnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,17 +178,68 @@ public class RegisterActivity extends AppCompatActivity {
                 String password = inputPassword.getText().toString().trim();
                 String passwordConfirm = inputPasswordConfirm.getText().toString().trim();
 
+                // 이메일 입력창이 비어있고 패스워드와 패스워드 확인 입력창이 비어있지 않을 때
                 if (!email.isEmpty() && !password.isEmpty() && !passwordConfirm.isEmpty()) {
                     if(password.equals(passwordConfirm)) {
-                        registerUser(email, password);
+                        if (isValidEmail(email)) {
+                            registerUser(email, password);
+                        } else {
+                            new AlertDialog.Builder(RegisterActivity.this)
+                                    .setTitle("입력 유효성 에러")
+                                    .setMessage("유효한 이메일을 입력해주세요!")
+                                    .setNeutralButton("닫기", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+
+                                        }
+                                    })
+                                    .show();
+                        }
+
                     } else {
-                        Toast.makeText(getApplicationContext(),
-                                "입력한 패스워드들이 일치 하지 않습니다!", Toast.LENGTH_LONG)
+                        new AlertDialog.Builder(RegisterActivity.this)
+                                .setTitle("입력 유효성 에러")
+                                .setMessage("입력한 패스워드들이 일치하지 않습니다!")
+                                .setNeutralButton("닫기", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+
+                                    }
+                                })
                                 .show();
                     }
                 } else {
-                    Toast.makeText(getApplicationContext(),
-                            "이메일과 비밀번호를 입력하세요!", Toast.LENGTH_LONG)
+                    StringBuffer sb = new StringBuffer();
+                    if(email.isEmpty()) {
+                        sb.append("이메일");
+                        inputEmail.setShakeAnimation();
+                    }
+                    if(password.isEmpty()) {
+                        if(!sb.toString().isEmpty()) {
+                            sb.append(", ");
+                        }
+                        sb.append("비밀번호");
+
+                        inputPassword.setShakeAnimation();
+                    }
+                    if(passwordConfirm.isEmpty()) {
+                        if(!sb.toString().isEmpty()) {
+                            sb.append(", ");
+                        }
+
+                        sb.append("비밀번호 확인");
+                        inputPasswordConfirm.setShakeAnimation();
+                    }
+
+                    new AlertDialog.Builder(RegisterActivity.this)
+                            .setTitle("입력 유효성 에러")
+                            .setMessage(sb.toString() + "를 입력하세요.")
+                            .setNeutralButton("닫기", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            })
                             .show();
                 }
             }
@@ -112,6 +256,18 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
     }
+
+    /**
+     * 이메일 인증 시스템
+     */
+    public final boolean isValidEmail(CharSequence target) {
+        if (TextUtils.isEmpty(target)) {
+            return false;
+        } else {
+            return Patterns.EMAIL_ADDRESS.matcher(target).matches();
+        }
+    }
+
 
     /**
      * Function to store user in MySQL database will post params(tag, email, password) to register url

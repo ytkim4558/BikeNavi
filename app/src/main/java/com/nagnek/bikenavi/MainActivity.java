@@ -93,8 +93,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     TMapPoint mDest;
     DelayAutoCompleteTextView start_point, dest_point;
     ArrayList<TMapPoint> sourceAndDest;
-    TMapView tMapView;
-    TMapTapi tMapTapi;
     private GoogleMap mGoogleMap;
     private final Handler mHandler = new Handler();
     private ArrayList<LatLng> pathStopPointList;    // 출발지 도착지를 포함한 경유지점(위도, 경도) 리스트
