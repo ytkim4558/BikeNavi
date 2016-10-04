@@ -64,8 +64,6 @@ import com.skp.Tmap.TMapMarkerItem;
 import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
 import com.skp.Tmap.TMapPolyLine;
-import com.skp.Tmap.TMapTapi;
-import com.skp.Tmap.TMapView;
 import com.skp.Tmap.util.HttpConnect;
 
 import org.w3c.dom.Document;
@@ -106,6 +104,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        if(toolbar != null) {
+            setSupportActionBar(toolbar);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            toolbar.setNavigationIcon(R.drawable.ic_directions_bike_red_24dp);
+        }
 
         sourceAndDest = new ArrayList<TMapPoint>();
         pathStopPointList = new ArrayList<LatLng>();
@@ -122,7 +128,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         long end = System.currentTimeMillis();
         Log.d(TAG, "db쪽 로딩 시간 : " + (end-start)/1000.0);
         start = System.currentTimeMillis();
-        setContentView(R.layout.activity_main);
 
         end = System.currentTimeMillis();
         Log.d(TAG, "setContentView 시간 : " + (end-start)/1000.0);
@@ -176,10 +181,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onStart() {
         super.onStart();
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-        toolbar.setNavigationIcon(R.drawable.ic_directions_bike_red_24dp);
+
         TextView textView = (TextView) findViewById(R.id.name);
         if(session.isLoggedIn()) {
 
@@ -214,9 +216,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         "화면에 보여질때마다 호출됨");
 
         if (session.isLoggedIn()) { // 로그인 한 상태확인
-            menu.getItem(0).setTitle("로그아웃");
+            menu.getItem(1).setTitle("로그아웃");
         } else {
-            menu.getItem(0).setTitle("로그인");
+            menu.getItem(1).setTitle("로그인");
         }
 
         return super.onPrepareOptionsMenu(menu);
@@ -233,6 +235,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         int id = item.getItemId();
 
         switch (id) {
+            case R.id.action_settings:
+                // 세팅(...)버튼을 누르고 나서 생긴것
+                return true;
+
             case R.id.menu_login:
                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(intent);

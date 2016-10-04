@@ -16,4 +16,5 @@
     <string name="btn_logout">로그아웃</string>
     <string name="menu_login">로그인</string>
     <string name="menu_logout">로그아웃</string>
+    <string name="action_settings">설정</string>
 </resources>
