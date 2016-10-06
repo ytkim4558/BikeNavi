@@ -63,6 +63,7 @@ import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.customview.ClearableSqliteAutoCompleteTextView;
 import com.nagnek.bikenavi.customview.DelayAutoCompleteTextView;
 import com.nagnek.bikenavi.guide.GuideContent;
+import com.nagnek.bikenavi.helper.IPManager;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.helper.SessionManager;
 import com.skp.Tmap.TMapData;
@@ -130,8 +131,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         db = new SQLiteHandler(getApplicationContext());
 
         /**
-         * ip 세팅
+         * ip 세팅화면
          */
+
+        // SharedPreference에서 ip 가져오기
+        IPManager ipManager = new IPManager(this);
+        String savedIP = ipManager.loadServerIP();
+        if(savedIP != null) {
+            AppConfig.setServerIp(savedIP);
+        }
+
         // ip 자동완성
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         // 레이아웃 가져오기
@@ -163,6 +172,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         String serverIP = serverIpAutoComplete.getText().toString().trim();
                         db.addIp(serverIP);
                         AppConfig.setServerIp(serverIP);
+                        IPManager ipManager = new IPManager(MainActivity.this);
+                        ipManager.saveServerIP(serverIP);
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -316,6 +327,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         switch (id) {
             case R.id.action_settings:
+                IPManager ipManager = new IPManager(this);
+                String savedIP = ipManager.loadServerIP();
+                if(savedIP != null) {
+                    AppConfig.setServerIp(savedIP);
+                    serverIpAutoComplete.setText(savedIP);
+                }
                 alertDialog.show();
                 return true;
 
