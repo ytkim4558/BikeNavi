@@ -20,7 +20,7 @@
             android:background="@color/input_register_bg"
             android:layout_marginTop="@dimen/activity_vertical_margin"
             >
-            <com.nagnek.bikenavi.ClearableAppCompatEditText
+            <com.nagnek.bikenavi.customview.ClearableAppCompatEditText
                 android:id="@+id/email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/activity_vertical_margin"
             android:background="@color/input_register_bg">
-            <com.nagnek.bikenavi.ClearableAppCompatEditText
+            <com.nagnek.bikenavi.customview.ClearableAppCompatEditText
                 android:id="@+id/password"
                 android:layout_width="match_parent"
 
@@ -62,7 +62,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/activity_vertical_margin"
             android:background="@color/input_register_bg">
-            <com.nagnek.bikenavi.ClearableAppCompatEditText
+            <com.nagnek.bikenavi.customview.ClearableAppCompatEditText
                 android:id="@+id/confirm_password"
                 android:layout_width="match_parent"
 

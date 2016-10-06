@@ -13,4 +13,18 @@ public class AppConfig {
 
     // Server user register url
     public static String URL_REGISTER = "http://192.168.1.189/android_login_api/register.php";
+
+    public static void setServerIp(String serverIp) {
+        StringBuffer loginURLBuffer = new StringBuffer();
+        loginURLBuffer.append("http://");
+        loginURLBuffer.append(serverIp);
+        loginURLBuffer.append("/android_login_api/login.php");
+        URL_LOGIN = loginURLBuffer.toString().trim();
+
+        StringBuffer registerURLBuffer = new StringBuffer();
+        registerURLBuffer.append("http://");
+        registerURLBuffer.append(serverIp);
+        registerURLBuffer.append("/android_login_api/register.php");
+        URL_REGISTER = registerURLBuffer.toString().trim();
+    }
 }

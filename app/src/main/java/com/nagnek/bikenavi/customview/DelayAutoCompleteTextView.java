@@ -2,7 +2,7 @@
  * Copyright (c) 2016. UGIF. All Rights Reserved
  */
 
-package com.nagnek.bikenavi;
+package com.nagnek.bikenavi.customview;
 
 import android.content.Context;
 import android.os.Handler;
@@ -15,7 +15,7 @@ import android.widget.ProgressBar;
 /**
  * Created by user on 2016-09-10.
  */
-public class DelayAutoCompleteTextView extends AppCompatAutoCompleteTextView {
+public class DelayAutoCompleteTextView extends ClearableAutoCompleteTextView {
     private static final int MESSAGE_TEXT_CHANGED = 100;
     private static final int DEFAULT_AUTOCOMPLETE_DELAY = 750;
     private final Handler mHandler = new Handler() {

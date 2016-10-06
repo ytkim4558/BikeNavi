@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -24,10 +25,12 @@ import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatDrawableManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,9 +38,9 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -56,6 +59,9 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.nagnek.bikenavi.activity.LoginActivity;
+import com.nagnek.bikenavi.app.AppConfig;
+import com.nagnek.bikenavi.customview.ClearableSqliteAutoCompleteTextView;
+import com.nagnek.bikenavi.customview.DelayAutoCompleteTextView;
 import com.nagnek.bikenavi.guide.GuideContent;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.helper.SessionManager;
@@ -75,6 +81,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -100,6 +107,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     boolean animating; //애니메이션 진행중인지
     private SessionManager session; // 로그인했는지 확인용 변수
     private SQLiteHandler db;   // sqlite
+    String[] serverIPs = new String[] {};
+    /**
+     * AutoCompleteTextView 대신 ClearableSQliteAutoCompleteTextView로 변경했다.
+     * 왜냐하면 view를 커스터마이징하기 위해 확장시키고, 필터를 비활성화 시키기 위해서다.
+     * 또한 x를 눌러 지울 수도 있게 하기 위해서다.
+     * xml view에도 똑같이 했고 이를 ClearableSqliteAutoCompleteTextView라고 했다.
+     */
+    ClearableSqliteAutoCompleteTextView serverIpAutoComplete;
+    AlertDialog alertDialog;
+    // 자동완성을 위한 어댑터
+    ArrayAdapter<String> arrayAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +125,55 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        // SqLite database handler 초기화
+        db = new SQLiteHandler(getApplicationContext());
+
+        /**
+         * ip 세팅
+         */
+        // ip 자동완성
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // 레이아웃 가져오기
+        LayoutInflater inflater = this.getLayoutInflater();
+
+        // 레이아웃 설정
+        // parent view에 null을 넘기는 이유는 다이얼로그 레이아웃 안으로 가기 때문
+        View view = inflater.inflate(R.layout.dialog_ip_setting, null);
+
+        HashMap<String, String> serverIPMap = db.getIpDetails();
+        Iterator<String> keys = serverIPMap.keySet().iterator();
+        Log.d(TAG, "size : " + serverIPMap.size());
+
+        // ip autocompletetextview is in activity_main.xml
+        serverIpAutoComplete = (ClearableSqliteAutoCompleteTextView) view.findViewById(R.id.ip);
+
+        // add the listener so it will tries to suggest while the user types
+        serverIpAutoComplete.addTextChangedListener(new CustomAutoCompleteTextChangedListener(this));
+
+        // set adapter
+        arrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, serverIPs);
+        serverIpAutoComplete.setAdapter(arrayAdapter);
+
+        builder.setView(view)
+                // 버튼 추가
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String serverIP = serverIpAutoComplete.getText().toString().trim();
+                        db.addIp(serverIP);
+                        AppConfig.setServerIp(serverIP);
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                });
+         alertDialog = builder.create();
+        Log.d(TAG, "세팅 버튼 누름");
+
         if(toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -118,9 +185,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         markerOptionsArrayList = new ArrayList<MarkerOptions>();
 
         long start = System.currentTimeMillis();
-
-        // SQLite database handler
-        db = new SQLiteHandler(getApplicationContext());
 
         // Session manager
         session = new SessionManager(getApplicationContext());
@@ -177,6 +241,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    // this function is used in CustomAutoCompleteTextChangedListener.java
+    public String[] getItemsFromDb(String searchTerm){
+
+        // add items on the array dynamically
+        List<String> products = db.read(searchTerm);
+        int rowCount = products.size();
+
+        String[] item = new String[rowCount];
+        int x = 0;
+
+        for (String record : products) {
+
+            item[x] = record;
+            x++;
+        }
+
+        return item;
+    }
 
     @Override
     protected void onStart() {
@@ -185,8 +267,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         TextView textView = (TextView) findViewById(R.id.name);
         if(session.isLoggedIn()) {
 
-            // SqLite database handler
-            SQLiteHandler db = new SQLiteHandler(getApplicationContext());
 
             // Fetching user details from sqlite
             HashMap<String, String> user = db.getUserDetails();
@@ -236,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         switch (id) {
             case R.id.action_settings:
-                // 세팅(...)버튼을 누르고 나서 생긴것
+                alertDialog.show();
                 return true;
 
             case R.id.menu_login:

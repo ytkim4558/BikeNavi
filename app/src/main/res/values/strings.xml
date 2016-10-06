@@ -17,4 +17,7 @@
     <string name="menu_login">로그인</string>
     <string name="menu_logout">로그아웃</string>
     <string name="action_settings">설정</string>
+    <string name="ok">확인</string>
+    <string name="cancel">취소</string>
+    <string name="ip">아이피를 입력해주세요</string>
 </resources>

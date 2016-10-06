@@ -40,7 +40,7 @@
                 >
                 <!--flagNoExtractUtil : 입력창이 전체화면으로 가려지는것을 막음-->
                 <!--actionSearch : 키보드의 엔터가 검색으로 글자가 바뀜-->
-                <com.nagnek.bikenavi.DelayAutoCompleteTextView
+                <com.nagnek.bikenavi.customview.DelayAutoCompleteTextView
                     android:id="@+id/start_point"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -74,7 +74,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 >
-                <com.nagnek.bikenavi.DelayAutoCompleteTextView
+                <com.nagnek.bikenavi.customview.DelayAutoCompleteTextView
                     android:id="@+id/dest_point"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
