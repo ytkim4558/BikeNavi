@@ -30,8 +30,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
 import com.nagnek.bikenavi.MainActivity;
 import com.nagnek.bikenavi.R;
 import com.nagnek.bikenavi.WelcomeActivity;
@@ -72,6 +74,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         inputPassword = (AppCompatEditText) findViewById(R.id.password);
         btnLogin = (Button) findViewById(R.id.btnLogin);
         btnGoogleLogin = (SignInButton) findViewById(R.id.sign_in_button);
+
         btnLinkToRegister = (Button) findViewById(R.id.btnLinkToRegisterScreen);
 
         // Progress dialog
@@ -84,12 +87,39 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         // Session manager
         session = new SessionManager(getApplicationContext());
 
-        // GoogleSignInOptions
+        // Configure sign-in to request offline access to the user's ID, basic
+        // profile, and Google Drive. The first time you request a code you will
+        // be able to exchange it for an access token and refresh token, which
+        // you should store. In subsequent calls, the code will only result in
+        // an access token. By asking for profile access (through
+        // DEFAULT_SIGN_IN) you will also get an ID Token as a result of the
+        // code exchange.
+        String serverClientId = getString(R.string.server_client_id);
+//        mGso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+//                .requestScopes(new Scope(Scopes.DRIVE_APPFOLDER))
+//                .requestServerAuthCode(serverClientId, false)
+//                .build();
         mGso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail().requestId().build();
+                .requestIdToken(getString(R.string.server_client_id))
+                .requestServerAuthCode(getString(R.string.server_client_id))
+                .requestEmail()
+                .build();
+
+        // Customize sign-in button. The sign-in button can be displayed in
+        // multiple sizes and color schemes. It can also be contextually
+        // rendered based on the requested scopes. For example. a red button may
+        // be displayed when Google+ scopes are requested, but a white button
+        // may be displayed when only basic profile is requested. Try adding the
+        // Scopes.PLUS_LOGIN scope to the GoogleSignInOptions to see the
+        // difference.
+        btnGoogleLogin.setSize(SignInButton.SIZE_WIDE);
+        btnGoogleLogin.setScopes(mGso.getScopeArray());
 
         // 구글 로그인 api에 접근하기 위한 googleapi 클라이언트 객체 생성.
-        mGoogleApiClient = new GoogleApiClient.Builder(this).enableAutoManage(this, this).addApi(Auth.GOOGLE_SIGN_IN_API, mGso).addApi(AppIndex.API).build();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, this)
+                .addApi(Auth.GOOGLE_SIGN_IN_API, mGso).addApi(AppIndex.API)
+                .build();
 
         // Check if user is already logged in or not
         if (session.isLoggedIn()) {
@@ -157,13 +187,90 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
     // 구글 로그인 처리
     private void handleSignInResult(GoogleSignInResult result) {
+        // Tag used to cancel the request
+        String tag_string_req = "req_google_login";
+
         Log.d(TAG, "handleSignInResult:" + result.isSuccess());
         if (result.isSuccess()) {
+            // 성공적으로 로그인 하면 auth code를 가져온다.
+            // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
+            final String authCode = acct.getServerAuthCode();
+            final String idToken = acct.getIdToken();
+            Log.d(TAG, "authCode : " + authCode + "idToken : " + idToken);
 
+            // authcode 및 idToken을 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
+            StringRequest strReq = new StringRequest(Request.Method.POST,
+                    AppConfig.URL_REGISTER, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    Log.d(TAG, "Register Response: " + response.toString());
+                    hideDialog();
+
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        boolean error = jsonObject.getBoolean("error");
+
+                        // Check for error node in json
+                        if (!error) {
+                            //user successfully logged in
+                            // Create login session
+                            session.setLogin(true);
+
+                            // Now store the user in SQLite
+                            JSONObject user = jsonObject.getJSONObject("user");
+                            String email = user.getString("email");
+                            String created_at = user
+                                    .getString("created_at");
+
+                            // Inserting row in users table
+                            db.addUser(email, created_at);
+                            Log.d(TAG, "email : " + email);
+                            Log.d(TAG, "created_at : " + created_at);
+
+                            // Launch main activity
+                            Intent intent = new Intent(LoginActivity.this,
+                                    WelcomeActivity.class);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            // Error in login. Get the error message
+                            String errorMsg = jsonObject.getString("error_msg");
+                            Toast.makeText(getApplicationContext(),
+                                    errorMsg, Toast.LENGTH_LONG).show();
+                        }
+                    } catch (JSONException e) {
+                        // JSON error
+                        e.printStackTrace();
+                        Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e(TAG, "Login Error: " + error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            error.getMessage(), Toast.LENGTH_LONG).show();
+                    hideDialog();
+                }
+            }) {
+                @Override
+                protected Map<String, String> getParams() throws AuthFailureError {
+                    // Posting parameters to login url
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put("google_authcode", authCode);
+                    params.put("idToken", idToken);
+
+                    return params;
+                }
+            };
+
+            // Adding request to request queue
+            AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
         } else {
             // Signed out, show unauthenticated UI.
         }
+
     }
 
 
