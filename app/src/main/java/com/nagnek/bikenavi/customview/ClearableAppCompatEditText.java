@@ -133,7 +133,7 @@ public class ClearableAppCompatEditText extends AppCompatEditText implements Tex
      */
     public static Animation shakeAnimation(int counts) {
         // 이동 애니메이션
-        Animation translateAnimation = new TranslateAnimation(0, 10, 0, 0);
+        Animation translateAnimation = new TranslateAnimation(0, 30, 0, 0);
         translateAnimation.setInterpolator(new CycleInterpolator(counts));
         translateAnimation.setDuration(100);
         return translateAnimation;
