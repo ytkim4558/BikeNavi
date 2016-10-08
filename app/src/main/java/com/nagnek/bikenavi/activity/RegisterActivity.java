@@ -26,11 +26,11 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.nagnek.bikenavi.customview.ClearableAppCompatEditText;
 import com.nagnek.bikenavi.MainActivity;
 import com.nagnek.bikenavi.R;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.app.AppController;
+import com.nagnek.bikenavi.customview.ClearableAppCompatEditText;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.helper.SessionManager;
 
@@ -56,6 +56,7 @@ public class RegisterActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private SessionManager sessionManager;
     private SQLiteHandler db;
+    private static final int VALIDATE_MINIMUM_PASSWORD_COUNT = 4;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -77,6 +78,9 @@ public class RegisterActivity extends AppCompatActivity {
         ti_input_email.setErrorEnabled(true);
         ti_input_password.setErrorEnabled(true);
         ti_input_confirm_password.setErrorEnabled(true);
+
+        ti_input_password.setCounterEnabled(true);
+        ti_input_confirm_password.setCounterEnabled(true);
 
         // ProgressDialog
         progressDialog = new ProgressDialog(this);
@@ -111,8 +115,12 @@ public class RegisterActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if(!isValidEmail(s)) {
-                    ti_input_email.setError("유효한 이메일을 입력해주세요.");
+                if(s.length() > 0) {
+                    if (!isValidEmail(s)) {
+                        ti_input_email.setError("유효한 이메일을 입력해주세요.");
+                    } else {
+                        ti_input_email.setError(null);
+                    }
                 } else {
                     ti_input_email.setError(null);
                 }
@@ -140,6 +148,10 @@ public class RegisterActivity extends AppCompatActivity {
                     } else {
                         ti_input_password.setError(null);
                     }
+                } else if(!isValidPassword(s)) {
+                    ti_input_password.setError("최소 4자리 이상 설정해주세요.");
+                } else {
+                    ti_input_password.setError(null);
                 }
             }
         });
@@ -147,7 +159,6 @@ public class RegisterActivity extends AppCompatActivity {
         inputPasswordConfirm.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
             }
 
             @Override
@@ -165,6 +176,10 @@ public class RegisterActivity extends AppCompatActivity {
                     } else {
                         ti_input_confirm_password.setError(null);
                     }
+                } else if(!isValidPassword(s)) {
+                    ti_input_confirm_password.setError("최소 4자리 이상 설정해주세요.");
+                } else {
+                    ti_input_confirm_password.setError(null);
                 }
             }
         });
@@ -230,9 +245,27 @@ public class RegisterActivity extends AppCompatActivity {
                         inputPasswordConfirm.setShakeAnimation();
                     }
 
+                    if(isValidPassword(password)) {
+                        if(!sb.toString().isEmpty()) {
+                            sb.append(", ");
+                        }
+
+                        sb.append("비밀번호");
+                        inputPassword.setShakeAnimation();
+                    }
+
+                    if(isValidPassword(passwordConfirm)) {
+                        if(!sb.toString().isEmpty()) {
+                            sb.append(", ");
+                        }
+
+                        sb.append("비밀번호 확인");
+                        inputPasswordConfirm.setShakeAnimation();
+                    }
+
                     new AlertDialog.Builder(RegisterActivity.this)
                             .setTitle("입력 유효성 에러")
-                            .setMessage(sb.toString() + "를 입력하세요.")
+                            .setMessage(sb.toString() + "를 제대로 입력하세요.")
                             .setNeutralButton("닫기", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -264,6 +297,17 @@ public class RegisterActivity extends AppCompatActivity {
             return false;
         } else {
             return Patterns.EMAIL_ADDRESS.matcher(target).matches();
+        }
+    }
+
+    /**
+     * 비밀번호 유효 확인
+     */
+    public final boolean isValidPassword(CharSequence target) {
+        if (TextUtils.isEmpty(target)) {
+            return false;
+        } else {
+            return target.length() >= VALIDATE_MINIMUM_PASSWORD_COUNT;
         }
     }
 
