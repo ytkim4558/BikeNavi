@@ -85,7 +85,11 @@ public class WelcomeActivity extends AppCompatActivity{
      */
     private void logoutUser() {
         mSplashLodingHandler.removeCallbacks(mSplashRunnable);
-        sessionManager.setLogin(false);
+        if(sessionManager.isLoggedIn()) {
+            sessionManager.setLogin(false);
+        } else {
+            sessionManager.setGoogleLogin(false);
+        }
         db.deleteUsers();
         // Launching the login activity
         Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);

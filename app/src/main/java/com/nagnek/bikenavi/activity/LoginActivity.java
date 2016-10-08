@@ -50,6 +50,7 @@ import java.util.Map;
 
 /**
  * Created by user on 2016-09-27.
+ * 자체 회원가입 및 구글 로그인용 가입 및 로그인
  */
 public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener{
     private static final String TAG = LoginActivity.class.getSimpleName();
@@ -189,6 +190,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private void handleSignInResult(GoogleSignInResult result) {
         // Tag used to cancel the request
         String tag_string_req = "req_google_login";
+        pDialog.setMessage("로그인 시도중 ...");
+        showDialog();
 
         Log.d(TAG, "handleSignInResult:" + result.isSuccess());
         if (result.isSuccess()) {
@@ -215,7 +218,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                         if (!error) {
                             //user successfully logged in
                             // Create login session
-                            session.setLogin(true);
+                            session.setGoogleLogin(true);
 
                             // Now store the user in SQLite
                             JSONObject user = jsonObject.getJSONObject("user");

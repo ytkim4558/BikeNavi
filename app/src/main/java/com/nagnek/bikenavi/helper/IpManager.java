@@ -10,6 +10,7 @@ import android.util.Log;
 
 /**
  * Created by user on 2016-10-06.
+ * 서버 ip 설정 클래스
  */
 public class IPManager {
     // LogCat tag

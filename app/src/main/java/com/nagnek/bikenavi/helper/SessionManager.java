@@ -30,6 +30,9 @@ public class SessionManager {
 
     private static final String KEY_IS_LOGGEDIN = "isLoggedIn";
 
+    // 구글에 로그인 되어있는 상태
+    private static final String KEY_IS_GOOGLE_LOGGEDIN = "isGoogleLoggedIn";
+
     public SessionManager(Context context) {
         this._context = context;
         pref = _context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
@@ -45,7 +48,20 @@ public class SessionManager {
         Log.d(TAG, "User login session modified!");
     }
 
+    public void setGoogleLogin(boolean isGoogleLoggedIn) {
+        editor.putBoolean(KEY_IS_GOOGLE_LOGGEDIN, isGoogleLoggedIn);
+
+        // commit changes
+        editor.commit();
+
+        Log.d(TAG, "User Google login session modified!");
+    }
+
     public boolean isLoggedIn() {
         return pref.getBoolean(KEY_IS_LOGGEDIN, false);
+    }
+
+    public boolean isGoogleLoggedIn() {
+        return pref.getBoolean(KEY_IS_GOOGLE_LOGGEDIN, false);
     }
 }

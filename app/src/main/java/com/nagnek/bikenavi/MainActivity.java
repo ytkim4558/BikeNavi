@@ -306,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d(TAG, "opPrepareOptionsMenu - 옵션 메뉴가 " +
         "화면에 보여질때마다 호출됨");
 
-        if (session.isLoggedIn()) { // 로그인 한 상태확인
+        if (session.isLoggedIn() || session.isGoogleLoggedIn()) { // 로그인 한 상태확인
             menu.getItem(1).setTitle("로그아웃");
         } else {
             menu.getItem(1).setTitle("로그인");
