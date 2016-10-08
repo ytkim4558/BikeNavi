@@ -45,10 +45,10 @@ public class WelcomeActivity extends AppCompatActivity{
 
         // session manager
         sessionManager = new SessionManager(getApplicationContext());
-
-        if (!sessionManager.isLoggedIn()) {
-            logoutUser();
-        }
+//
+//        if (!sessionManager.isLoggedIn()) {
+//            logoutUser();
+//        }
 
         // Fetching user details from sqlite
         HashMap<String, String> user = db.getUserDetails();

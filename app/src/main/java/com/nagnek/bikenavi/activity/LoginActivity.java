@@ -6,7 +6,6 @@ package com.nagnek.bikenavi.activity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,26 +14,24 @@ import android.support.v7.widget.AppCompatEditText;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
-import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Scope;
-import com.nagnek.bikenavi.MainActivity;
 import com.nagnek.bikenavi.R;
 import com.nagnek.bikenavi.WelcomeActivity;
 import com.nagnek.bikenavi.app.AppConfig;
@@ -130,6 +127,10 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             finish();
         }
 
+        if (session.isGoogleLoggedIn()) {
+            signIn();
+        }
+
         // Login button Click Event
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -171,6 +172,10 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
     // 구글 로그인 버튼 눌렀을 때
     private void signIn() {
+        if(session.isGoogleLoggedIn()) {
+            pDialog.setMessage("구글 로그인 시도중 ...");
+            showDialog();
+        }
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -190,8 +195,10 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private void handleSignInResult(GoogleSignInResult result) {
         // Tag used to cancel the request
         String tag_string_req = "req_google_login";
-        pDialog.setMessage("로그인 시도중 ...");
-        showDialog();
+        if(!session.isGoogleLoggedIn()) {
+            pDialog.setMessage("구글 로그인 시도중 ...");
+            showDialog();
+        }
 
         Log.d(TAG, "handleSignInResult:" + result.isSuccess());
         if (result.isSuccess()) {
@@ -251,7 +258,23 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Log.e(TAG, "Login Error: " + error.getMessage());
+                    if(error instanceof TimeoutError) {
+                        Log.e(TAG, "Login Error: 서버가 응답하지 않습니다." + error.getMessage());
+                        VolleyLog.e(TAG, error.getMessage());
+                        Toast.makeText(getApplicationContext(),
+                                "Login Error: 서버가 응답하지 않습니다.", Toast.LENGTH_LONG).show();
+                    } else if(error instanceof ServerError){
+                        Log.e(TAG, "서버 에러래" + error.getMessage());
+                        VolleyLog.e(TAG, error.getMessage());
+                        Toast.makeText(getApplicationContext(),
+                                "Login Error: 서버 Error.", Toast.LENGTH_LONG).show();
+                    }else {
+                        Log.e(TAG, error.getMessage());
+                        VolleyLog.e(TAG, error.getMessage());
+                        Toast.makeText(getApplicationContext(),
+                                error.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+
                     Toast.makeText(getApplicationContext(),
                             error.getMessage(), Toast.LENGTH_LONG).show();
                     hideDialog();

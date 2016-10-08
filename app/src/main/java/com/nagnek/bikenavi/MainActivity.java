@@ -286,7 +286,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             textView.setText(email);
             textView.setVisibility(View.VISIBLE);
-        } else {
+        } else if(session.isGoogleLoggedIn()) {
+            // Fetching user details from sqlite
+            HashMap<String, String> user = db.getUserDetails();
+
+            String email = user.get("email");
+
+            textView.setText(email);
+            textView.setVisibility(View.VISIBLE);
+        } else{
             textView.setVisibility(View.GONE);
         }
     }
@@ -332,6 +340,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if(savedIP != null) {
                     AppConfig.setServerIp(savedIP);
                     serverIpAutoComplete.setText(savedIP);
+                } else {
+                    serverIpAutoComplete.setText("192.168.1.189");
                 }
                 alertDialog.show();
                 return true;
@@ -954,7 +964,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         }
-    };
+    }
 
     private void resetMarkers() {
         Log.d("tag", "초기화");
