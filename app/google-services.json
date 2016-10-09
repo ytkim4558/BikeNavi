@@ -1,0 +1,59 @@
+{
+  "project_info": {
+    "project_number": "350817727456",
+    "firebase_url": "https://bikenavi-142808.firebaseio.com",
+    "project_id": "bikenavi-142808",
+    "storage_bucket": "bikenavi-142808.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:350817727456:android:035d95da8dc9a6d1",
+        "android_client_info": {
+          "package_name": "com.nagnek.bikenavi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "350817727456-v3p59ve36vgoifhe8kf667n6ft0kathq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nagnek.bikenavi",
+            "certificate_hash": "F54B46F2A83D67B79CC55409367F219EEEEB2E1D"
+          }
+        },
+        {
+          "client_id": "350817727456-uoof8lofgt4ah5q9qtl4pt3h0m6u3dir.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "350817727456-nkfgl6mkjvs6lmlhfl7smlegfthup433.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAIgZSrU7fGx4iVj7zTeq6NUM0o3a3AHSk"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "350817727456-uoof8lofgt4ah5q9qtl4pt3h0m6u3dir.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
