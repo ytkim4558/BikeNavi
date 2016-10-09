@@ -1,8 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-  ~ Copyright (c) 2016. UGIF. All Rights Reserved
-  -->
-
+<?xml version="1.0" encoding="utf-8"?><!-- ~ Copyright (c) 2016. UGIF. All Rights Reserved -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.nagnek.bikenavi">
 
@@ -25,34 +21,34 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
-
-        <meta-data android:name="com.kakao.sdk.AppKey"
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+        <meta-data
+            android:name="com.kakao.sdk.AppKey"
             android:value="@string/kakao_app_key" />
-        <!-- 구글지도 API Key 선언-->
+        <!-- 구글지도 API Key 선언 -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
-
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity android:name=".activity.LoginActivity"
+        <activity
+            android:name=".activity.LoginActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustPan" />
-
-        <activity android:name=".activity.RegisterActivity"
+        <activity
+            android:name=".activity.RegisterActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustPan" />
-
-        <activity android:name=".WelcomeActivity"
+        <activity
+            android:name=".WelcomeActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop" />
-
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -60,6 +56,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".kakao.KakaoSignupActivity" />
+        <activity android:name=".kakao.KakaoLoginActivity"></activity>
     </application>
 
 </manifest>
