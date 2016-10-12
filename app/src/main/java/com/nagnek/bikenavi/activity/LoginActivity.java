@@ -403,7 +403,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             } else {
                 Log.d(TAG, "에러");
             }
-            Toast.makeText(this, result.getStatus().getStatusMessage(), Toast.LENGTH_LONG);
+            Toast.makeText(this, "로그인 에러! 다시 시도해주세요! " + GoogleSignInStatusCodes.getStatusCodeString(result.getStatus().getStatusCode()), Toast.LENGTH_LONG);
             hideDialog();
         }
 
