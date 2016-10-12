@@ -40,6 +40,7 @@ import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -262,10 +263,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
     // 구글 로그인 버튼 눌렀을 때
     private void signIn() {
-        if(session.isGoogleLoggedIn()) {
-            pDialog.setMessage("구글 로그인 시도중 ...");
-            showDialog();
-        }
+        pDialog.setMessage("구글 로그인 시도중 ...");
+        showDialog();
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -285,10 +284,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private void handleSignInResult(GoogleSignInResult result) {
         // Tag used to cancel the request
         String tag_string_req = "req_google_login";
-        if(!session.isGoogleLoggedIn()) {
-            pDialog.setMessage("구글 로그인 시도중 ...");
-            showDialog();
-        }
+
 
         Log.d(TAG, "handleSignInResult:" + result.isSuccess());
         if (result.isSuccess()) {
@@ -384,7 +380,31 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             // Adding request to request queue
             AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
         } else {
+            switch (result.getStatus().getStatusCode()) {
+                case GoogleSignInStatusCodes.SIGN_IN_CANCELLED:
+                    Log.d(TAG, "sign in canceled");
+                    break;
+                case GoogleSignInStatusCodes.SIGN_IN_FAILED:
+                    Log.d(TAG, "SIGN_IN_FAILED");
+                    break;
+                case GoogleSignInStatusCodes.SIGN_IN_REQUIRED:
+                    Log.d(TAG, "SIGN_IN_REQUIRED");
+                    break;
+                default:
+                    Log.d(TAG, GoogleSignInStatusCodes.getStatusCodeString(result.getStatus().getStatusCode()));
+            }
+            Log.d(TAG, "에러 코드 : " + result.getStatus().getStatusCode() + "메시지 : " + GoogleSignInStatusCodes.getStatusCodeString(result.getStatus().getStatusCode()));
+
             // Signed out, show unauthenticated UI.
+            Log.d(TAG, "fail~");
+            String message = result.getStatus().getStatusMessage();
+            if( message != null) {
+                Log.d(TAG, result.getStatus().getStatusMessage());
+            } else {
+                Log.d(TAG, "에러");
+            }
+            Toast.makeText(this, result.getStatus().getStatusMessage(), Toast.LENGTH_LONG);
+            hideDialog();
         }
 
     }
