@@ -20,12 +20,13 @@ import java.security.NoSuchAlgorithmException;
 
 public class KakaoLoginActivity extends AppCompatActivity {
 
+    private static final String TAG = KakaoLoginActivity.class.getSimpleName();
     private SessionCallback callback; // 콜백 선언
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_kakao_login);
+        Log.d(TAG, "kakao login");
 
         try {
             PackageInfo info = getPackageManager().getPackageInfo(
@@ -44,6 +45,7 @@ public class KakaoLoginActivity extends AppCompatActivity {
 
         callback = new SessionCallback(); // 이 두개함수 중요함
         Session.getCurrentSession().addCallback(callback);
+        Session.getCurrentSession().checkAndImplicitOpen();
     }
 
     @Override

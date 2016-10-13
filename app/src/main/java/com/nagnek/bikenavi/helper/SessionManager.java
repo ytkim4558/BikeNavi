@@ -33,6 +33,12 @@ public class SessionManager {
     // 구글에 로그인 되어있는 상태
     private static final String KEY_IS_GOOGLE_LOGGEDIN = "isGoogleLoggedIn";
 
+    // 카카오에 로그인 되어있는 상태
+    private static final String KEY_IS_KAKAO_LOGGEDIN = "isKakaoLoggedIn";
+
+    // 페북에 로그인 되어있는 상태
+    private static final String KEY_IS_FACEBOOK_LOGGEDIN = "isFaceBookLoggedIn";
+
     public SessionManager(Context context) {
         this._context = context;
         pref = _context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
@@ -57,11 +63,37 @@ public class SessionManager {
         Log.d(TAG, "User Google login session modified!");
     }
 
+    public void setKakaoLogin(boolean isKakaoLoggedIn) {
+        editor.putBoolean(KEY_IS_KAKAO_LOGGEDIN, isKakaoLoggedIn);
+
+        // commit changes
+        editor.commit();
+
+        Log.d(TAG, "User Kakao login session modified!");
+    }
+
+    public void setFacebookLogin(boolean isFacebookLoggedIn) {
+        editor.putBoolean(KEY_IS_FACEBOOK_LOGGEDIN, isFacebookLoggedIn);
+
+        // commit changes
+        editor.commit();
+
+        Log.d(TAG, "User Facebook login session modified!");
+    }
+
     public boolean isLoggedIn() {
         return pref.getBoolean(KEY_IS_LOGGEDIN, false);
     }
 
     public boolean isGoogleLoggedIn() {
         return pref.getBoolean(KEY_IS_GOOGLE_LOGGEDIN, false);
+    }
+
+    public boolean isFacebookIn() {
+        return pref.getBoolean(KEY_IS_FACEBOOK_LOGGEDIN, false);
+    }
+
+    public boolean isKakaoLoggedIn() {
+        return pref.getBoolean(KEY_IS_KAKAO_LOGGEDIN, false);
     }
 }

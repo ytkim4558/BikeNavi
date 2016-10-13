@@ -277,10 +277,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         TextView textView = (TextView) findViewById(R.id.name);
         if(session.isLoggedIn()) {
-
+            Log.d(TAG, "자체회원로긴");
 
             // Fetching user details from sqlite
-            HashMap<String, String> user = db.getUserDetails();
+            HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.BIKENAVI);
 
             String email = user.get("email");
 
@@ -288,9 +288,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             textView.setVisibility(View.VISIBLE);
         } else if(session.isGoogleLoggedIn()) {
             // Fetching user details from sqlite
-            HashMap<String, String> user = db.getUserDetails();
+            Log.d(TAG, "구글 자동로긴");
+            HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.GOOGLE);
 
-            String email = user.get("email");
+            String email = user.get("googleemail");
+
+            textView.setText(email);
+            textView.setVisibility(View.VISIBLE);
+        } else if(session.isFacebookIn()) {
+            // Fetching user details from sqlite
+            Log.d(TAG, "페북 자동로긴");
+            HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.FACEBOOK);
+
+            String email = user.get("facebookemail");
+
+            textView.setText(email);
+            textView.setVisibility(View.VISIBLE);
+        } else if(session.isKakaoLoggedIn()) {
+            Log.d(TAG, "카카오로긴");
+            // Fetching user details from sqlite
+            HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.KAKAO);
+
+            String email = user.get("kakaoemail");
 
             textView.setText(email);
             textView.setVisibility(View.VISIBLE);

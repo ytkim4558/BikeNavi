@@ -420,7 +420,7 @@ public class RegisterActivity extends AppCompatActivity {
                         String created_at = user.getString("created_at");
 
                         // Inserting row in users table
-                        db.addUser(email, created_at);
+                        db.addUser(SQLiteHandler.UserType.BIKENAVI, email, created_at);
 
                         Toast.makeText(getApplicationContext(), "성공적으로 회원가입되었습니다. 지금 로그인하세요!", Toast.LENGTH_LONG).show();
 

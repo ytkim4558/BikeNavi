@@ -44,12 +44,17 @@ import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.kakao.auth.ISessionCallback;
+import com.kakao.auth.Session;
+import com.kakao.util.exception.KakaoException;
+import com.kakao.util.helper.log.Logger;
 import com.nagnek.bikenavi.R;
 import com.nagnek.bikenavi.WelcomeActivity;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.app.AppController;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.helper.SessionManager;
+import com.nagnek.bikenavi.kakao.KakaoSignupActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -57,9 +62,6 @@ import org.json.JSONObject;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
-
-// 카카오톡
-// 페이스북
 
 /**
  * Created by user on 2016-09-27.
@@ -81,6 +83,11 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private TextInputLayout ti_input_email;
 
     private static final int RC_SIGN_IN = 9001; // 구글 로그인 요청 키
+
+    /**
+     * 카카오톡
+     */
+    private SessionCallback callback; // 콜백 선언
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -232,6 +239,39 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 }
             }
         });
+
+        /**
+         * 카카오톡
+         */
+        callback = new SessionCallback();
+        Session.getCurrentSession().addCallback(callback);
+        Session.getCurrentSession().checkAndImplicitOpen();
+    }
+
+
+    private class SessionCallback implements ISessionCallback { // 카카오톡 콜백
+
+        // 	access token을 성공적으로 발급 받아 valid access token을 가지고 있는 상태. 일반적으로 로그인 후의 다음 activity로 이동한다.
+        @Override
+        public void onSessionOpened() {
+            redirectSignupActivity();
+        }
+
+        // 카카오톡 설명엔 : memory와 cache에 session 정보가 전혀 없는 상태. 일반적으로 로그인 버튼이 보이고 사용자가 클릭시 동의를 받아 access token 요청을 시도한다.
+        // 함수 설명엔 : 로그인을 실패한 상태. 세션이 만료된 경우와는 다르게 네트웤등 일반적인 에러로 오픈에 실패한경우 불린다.
+        // 아래 설명이 더 맞는것 같다.
+        @Override
+        public void onSessionOpenFailed(KakaoException exception) {
+            if(exception != null) {
+                Logger.e(exception);
+            }
+        }
+    }
+
+    protected void redirectSignupActivity() {
+        final Intent intent = new Intent(this, KakaoSignupActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private void getAppKeyHash() {
@@ -278,6 +318,17 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
             handleSignInResult(result);
         }
+
+        if (Session.getCurrentSession().handleActivityResult(requestCode, resultCode, data)) {  // 카카오톡 콜백.. 뭐하는거지? 처리?
+            return;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        Session.getCurrentSession().removeCallback(callback); // 카카오톡 콜백 제거
     }
 
     // 구글 로그인 처리
@@ -315,12 +366,12 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
                             // Now store the user in SQLite
                             JSONObject user = jsonObject.getJSONObject("user");
-                            String email = user.getString("email");
+                            String email = user.getString("googleemail");
                             String created_at = user
                                     .getString("created_at");
 
                             // Inserting row in users table
-                            db.addUser(email, created_at);
+                            db.addUser(SQLiteHandler.UserType.GOOGLE, email, created_at);
                             Log.d(TAG, "email : " + email);
                             Log.d(TAG, "created_at : " + created_at);
 
@@ -444,7 +495,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                                 .getString("created_at");
 
                         // Inserting row in users table
-                        db.addUser(email, created_at);
+                        db.addUser(SQLiteHandler.UserType.BIKENAVI, email, created_at);
                         Log.d(TAG, "email : " + email);
                         Log.d(TAG, "created_at : " + created_at);
 
