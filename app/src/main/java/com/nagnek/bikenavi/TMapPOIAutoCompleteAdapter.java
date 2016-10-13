@@ -31,10 +31,10 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 public class TMapPOIAutoCompleteAdapter extends BaseAdapter implements Filterable {
     private static final int MAX_RESULTS = 10;
+    private static final String TAG = TMapPOIAutoCompleteAdapter.class.getSimpleName();
+    TMapTapi tMapTapi = null;
     private Context mContext;
     private List<TMapPOIItem> poiList = new ArrayList<TMapPOIItem>();
-    TMapTapi tMapTapi = null;
-    private static final String TAG = TMapPOIAutoCompleteAdapter.class.getSimpleName();
 
     public TMapPOIAutoCompleteAdapter(Context context) {
         mContext = context;

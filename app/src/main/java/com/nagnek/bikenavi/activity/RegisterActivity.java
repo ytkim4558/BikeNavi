@@ -51,6 +51,7 @@ import java.util.Map;
  */
 public class RegisterActivity extends AppCompatActivity {
     private static final String TAG = RegisterActivity.class.getSimpleName();
+    private static final int VALIDATE_MINIMUM_PASSWORD_COUNT = 4;
     private Button btnRegister;
     private Button btnLinkToLogin;
     private TextInputLayout ti_input_email;
@@ -62,7 +63,20 @@ public class RegisterActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private SessionManager sessionManager;
     private SQLiteHandler db;
-    private static final int VALIDATE_MINIMUM_PASSWORD_COUNT = 4;
+
+    /**
+     * 입력창이 흔들리는 애니메이션 (counts 횟수만큼)
+     *
+     * @param counts 애니메이션 횟수
+     * @return
+     */
+    public static Animation shakeAnimation(int counts) {
+        // 이동 애니메이션
+        Animation translateAnimation = new TranslateAnimation(0, 30, 0, 0);
+        translateAnimation.setInterpolator(new CycleInterpolator(counts));
+        translateAnimation.setDuration(100);
+        return translateAnimation;
+    }
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -123,7 +137,7 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {
                 inputEmail.setError(null);
-                if(s.length() > 0) {
+                if (s.length() > 0) {
                     if (!isValidEmail(s)) {
                         ti_input_email.setError("유효한 이메일을 입력해주세요.");
                     } else {
@@ -151,16 +165,16 @@ public class RegisterActivity extends AppCompatActivity {
                 inputPassword.setError(null);
                 String password = inputPassword.getText().toString().trim();
                 String passwordConfirm = inputPasswordConfirm.getText().toString().trim();
-                if(!password.isEmpty() && !passwordConfirm.isEmpty()) {
-                    if(!password.equals(passwordConfirm)) {
+                if (!password.isEmpty() && !passwordConfirm.isEmpty()) {
+                    if (!password.equals(passwordConfirm)) {
                         ti_input_password.setError("입력한 비밀번호가 서로 일치하지 않습니다.");
-                    } else if(!isValidPassword(s)) {
+                    } else if (!isValidPassword(s)) {
                         ti_input_password.setError("최소 4자리 이상 설정해주세요.");
                     } else {
                         ti_input_password.setError(null);
                         ti_input_confirm_password.setError(null);
                     }
-                } else if(!isValidPassword(s)) {
+                } else if (!isValidPassword(s)) {
                     ti_input_password.setError("최소 4자리 이상 설정해주세요.");
                 } else {
                     ti_input_password.setError(null);
@@ -183,16 +197,16 @@ public class RegisterActivity extends AppCompatActivity {
                 inputPassword.setError(null);
                 String password = inputPassword.getText().toString().trim();
                 String passwordConfirm = inputPasswordConfirm.getText().toString().trim();
-                if(!password.isEmpty() && !passwordConfirm.isEmpty()) {
-                    if(!password.equals(passwordConfirm)) {
+                if (!password.isEmpty() && !passwordConfirm.isEmpty()) {
+                    if (!password.equals(passwordConfirm)) {
                         ti_input_confirm_password.setError("입력한 비밀번호가 서로 일치하지 않습니다.");
-                    } else if(!isValidPassword(s)) {
+                    } else if (!isValidPassword(s)) {
                         ti_input_confirm_password.setError("최소 4자리 이상 설정해주세요.");
                     } else {
                         ti_input_password.setError(null);
                         ti_input_confirm_password.setError(null);
                     }
-                } else if(!isValidPassword(s)) {
+                } else if (!isValidPassword(s)) {
                     ti_input_confirm_password.setError("최소 4자리 이상 설정해주세요.");
                 } else {
                     ti_input_confirm_password.setError(null);
@@ -210,7 +224,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                 // 이메일 입력창이 비어있고 패스워드와 패스워드 확인 입력창이 비어있지 않을 때
                 if (!email.isEmpty() && !password.isEmpty() && !passwordConfirm.isEmpty()) {
-                    if(password.equals(passwordConfirm)) {
+                    if (password.equals(passwordConfirm)) {
                         if (!isValidEmail(email)) {
                             inputEmail.setError("유효한 이메일을 입력해주세요!");
                             new AlertDialog.Builder(RegisterActivity.this)
@@ -223,7 +237,7 @@ public class RegisterActivity extends AppCompatActivity {
                                         }
                                     })
                                     .show();
-                        } else if(!isValidPassword(password)) {
+                        } else if (!isValidPassword(password)) {
                             inputPassword.setError("유효한 패스워드를 입력해주세요!");
                             new AlertDialog.Builder(RegisterActivity.this)
                                     .setTitle("입력 유효성 에러")
@@ -235,7 +249,7 @@ public class RegisterActivity extends AppCompatActivity {
                                         }
                                     })
                                     .show();
-                        } else if(!isValidPassword(passwordConfirm)) {
+                        } else if (!isValidPassword(passwordConfirm)) {
                             inputPasswordConfirm.setError("유효한 패스워드 확인를 입력해주세요!");
                             new AlertDialog.Builder(RegisterActivity.this)
                                     .setTitle("입력 유효성 에러")
@@ -247,9 +261,7 @@ public class RegisterActivity extends AppCompatActivity {
                                         }
                                     })
                                     .show();
-                        }
-
-                        else {
+                        } else {
                             registerUser(email, password);
                         }
 
@@ -267,22 +279,22 @@ public class RegisterActivity extends AppCompatActivity {
                     }
                 } else {
                     final StringBuffer sb = new StringBuffer();
-                    if(email.isEmpty()) {
+                    if (email.isEmpty()) {
                         inputEmail.setError("이메일을 입력해주세요.");
                         sb.append("이메일");
                         setShakeAnimation(ti_input_email);
                     }
-                    if(password.isEmpty()) {
+                    if (password.isEmpty()) {
                         inputPassword.setError("비밀번호를 4자 이상 입력해주세요.");
-                        if(!sb.toString().isEmpty()) {
+                        if (!sb.toString().isEmpty()) {
                             sb.append(", ");
                         }
                         sb.append("비밀번호");
 
                         setShakeAnimation(ti_input_password);
                     } else {
-                        if(!isValidPassword(password)) {
-                            if(!sb.toString().isEmpty()) {
+                        if (!isValidPassword(password)) {
+                            if (!sb.toString().isEmpty()) {
                                 sb.append(", ");
                             }
 
@@ -291,17 +303,17 @@ public class RegisterActivity extends AppCompatActivity {
                         }
                     }
 
-                    if(passwordConfirm.isEmpty()) {
+                    if (passwordConfirm.isEmpty()) {
                         inputPasswordConfirm.setError("비밀번호를 4자 이상 입력해주세요.");
-                        if(!sb.toString().isEmpty()) {
+                        if (!sb.toString().isEmpty()) {
                             sb.append(", ");
                         }
 
                         sb.append("비밀번호 확인");
                         setShakeAnimation(ti_input_confirm_password);
                     } else {
-                        if(!isValidPassword(passwordConfirm)) {
-                            if(!sb.toString().isEmpty()) {
+                        if (!isValidPassword(passwordConfirm)) {
+                            if (!sb.toString().isEmpty()) {
                                 sb.append(", ");
                             }
 
@@ -344,21 +356,6 @@ public class RegisterActivity extends AppCompatActivity {
                 finish();
             }
         });
-    }
-
-
-
-    /**
-     * 입력창이 흔들리는 애니메이션 (counts 횟수만큼)
-     * @param counts 애니메이션 횟수
-     * @return
-     */
-    public static Animation shakeAnimation(int counts) {
-        // 이동 애니메이션
-        Animation translateAnimation = new TranslateAnimation(0, 30, 0, 0);
-        translateAnimation.setInterpolator(new CycleInterpolator(counts));
-        translateAnimation.setDuration(100);
-        return translateAnimation;
     }
 
     /**

@@ -26,7 +26,7 @@ import java.util.HashMap;
 /**
  * Created by user on 2016-09-28.
  */
-public class WelcomeActivity extends AppCompatActivity{
+public class WelcomeActivity extends AppCompatActivity {
     private static final String TAG = WelcomeActivity.class.getSimpleName();
     private TextView textEmail;
     private Button btnLogout;
@@ -58,16 +58,16 @@ public class WelcomeActivity extends AppCompatActivity{
         // Fetching user details from sqlite
         HashMap<String, String> user = null;
         String email = null;
-        if(sessionManager.isLoggedIn()) {
+        if (sessionManager.isLoggedIn()) {
             user = db.getUserDetails(SQLiteHandler.UserType.BIKENAVI);
             email = user.get("email");
-        } else if(sessionManager.isGoogleLoggedIn()) {
+        } else if (sessionManager.isGoogleLoggedIn()) {
             user = db.getUserDetails(SQLiteHandler.UserType.GOOGLE);
             email = user.get("googleemail");
-        } else if(sessionManager.isFacebookIn()) {
+        } else if (sessionManager.isFacebookIn()) {
             user = db.getUserDetails(SQLiteHandler.UserType.FACEBOOK);
             email = user.get("facebookemail");
-        } else if(sessionManager.isKakaoLoggedIn()) {
+        } else if (sessionManager.isKakaoLoggedIn()) {
             Log.d(TAG, "카카오로긴");
             user = db.getUserDetails(SQLiteHandler.UserType.KAKAO);
             email = user.get("kakaoemail");
@@ -89,14 +89,6 @@ public class WelcomeActivity extends AppCompatActivity{
         mSplashLodingHandler.postDelayed(mSplashRunnable, 3000);
     }
 
-    // 로딩화면
-    private class SplashRunnable implements Runnable {
-        @Override
-        public void run() {
-            WelcomeActivity.this.finish();
-        }
-    }
-
     /**
      * Logging out the user. Will set isLoggedIn flag to false in shared
      * preferences Clears the user data from sqlite users table
@@ -104,13 +96,13 @@ public class WelcomeActivity extends AppCompatActivity{
     private void logoutUser() {
         db.deleteUsers();
         mSplashLodingHandler.removeCallbacks(mSplashRunnable);
-        if(sessionManager.isLoggedIn()) {
+        if (sessionManager.isLoggedIn()) {
             sessionManager.setLogin(false);
             redirectLoginActivity();
-        } else if(sessionManager.isGoogleLoggedIn()) {
+        } else if (sessionManager.isGoogleLoggedIn()) {
             sessionManager.setGoogleLogin(false);
             redirectLoginActivity();
-        } else if(sessionManager.isKakaoLoggedIn()) {
+        } else if (sessionManager.isKakaoLoggedIn()) {
             Log.d(TAG, "카카오로갓");
             sessionManager.setKakaoLogin(false);
             UserManagement.requestLogout(new LogoutResponseCallback() {
@@ -158,7 +150,7 @@ public class WelcomeActivity extends AppCompatActivity{
                 }
 
             });
-        } else if(sessionManager.isFacebookIn()) {
+        } else if (sessionManager.isFacebookIn()) {
             sessionManager.setFacebookLogin(false);
             redirectLoginActivity();
         } else {
@@ -170,5 +162,13 @@ public class WelcomeActivity extends AppCompatActivity{
         Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    // 로딩화면
+    private class SplashRunnable implements Runnable {
+        @Override
+        public void run() {
+            WelcomeActivity.this.finish();
+        }
     }
 }

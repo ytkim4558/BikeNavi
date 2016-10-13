@@ -57,7 +57,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".kakao.KakaoSignupActivity" />
-        <activity android:name=".kakao.KakaoLoginActivity"></activity>
     </application>
 
 </manifest>

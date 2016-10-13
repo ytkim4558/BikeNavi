@@ -13,22 +13,17 @@ import android.util.Log;
  * 서버 ip 설정 클래스
  */
 public class IPManager {
-    // LogCat tag
-    private static String TAG = IPManager.class.getSimpleName();
-
-    // Shared Preferences
-    SharedPreferences pref;
-
-    SharedPreferences.Editor editor;
-    Context _context;
-
-    // Shared pref mode
-    int PRIVATE_MODE = 0;
-
     // Shared preferences file name
     private static final String PREF_NAME = "BIKENAVIServerIP";
-
     private static final String KEY_SERVER_IP = "ServerIP";
+    // LogCat tag
+    private static String TAG = IPManager.class.getSimpleName();
+    // Shared Preferences
+    SharedPreferences pref;
+    SharedPreferences.Editor editor;
+    Context _context;
+    // Shared pref mode
+    int PRIVATE_MODE = 0;
 
     public IPManager(Context context) {
         this._context = context;

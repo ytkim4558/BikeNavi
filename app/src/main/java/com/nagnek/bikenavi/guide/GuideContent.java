@@ -19,6 +19,7 @@ public class GuideContent {
      * An array of sample (guide) items.
      */
     public static final List<GuideItem> ITEMS = new ArrayList<GuideItem>();
+
     private static String makeDetails(int position) {
         StringBuilder builder = new StringBuilder();
         builder.append("Details about Item: ").append(position);

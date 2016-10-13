@@ -87,11 +87,11 @@ public class KakaoSignupActivity extends AppCompatActivity {
                 hideDialog();
                 String message = "UserProfile : " + result;
                 Logger.d("UserProfile : " + result);
-                Toast.makeText(KakaoSignupActivity.this, message, Toast.LENGTH_LONG);
+                Log.d(TAG, message);
 
                 Log.d("test", "로그인 성공");
 
-                registerKakaoUser(result.getNickname());
+                registerKakaoUser(result.getNickname(), String.valueOf(result.getId()));
             }
 
             @Override
@@ -111,8 +111,7 @@ public class KakaoSignupActivity extends AppCompatActivity {
         });
     }
 
-    private void registerKakaoUser(final String nickname) {
-        // authcode 및 idToken을 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
+    private void registerKakaoUser(final String nickname, final String kakaoID) {
 
         String tag_string_req = "req_kakao_login";
 
@@ -135,13 +134,13 @@ public class KakaoSignupActivity extends AppCompatActivity {
 
                         // Now store the user in SQLite
                         JSONObject user = jsonObject.getJSONObject("user");
-                        String email = user.getString("kakaoemail");
+                        String nickname = user.getString("kakaonickname");
                         String created_at = user
                                 .getString("created_at");
 
                         // Inserting row in users table
-                        db.addUser(SQLiteHandler.UserType.KAKAO, email, created_at);
-                        Log.d(TAG, "email : " + email);
+                        db.addUser(SQLiteHandler.UserType.KAKAO, nickname, created_at);
+                        Log.d(TAG, "nickname : " + nickname);
                         Log.d(TAG, "created_at : " + created_at);
 
                         // Launch main activity
@@ -164,17 +163,17 @@ public class KakaoSignupActivity extends AppCompatActivity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                if(error instanceof TimeoutError) {
+                if (error instanceof TimeoutError) {
                     Log.e(TAG, "Login Error: 서버가 응답하지 않습니다." + error.getMessage());
                     VolleyLog.e(TAG, error.getMessage());
                     Toast.makeText(getApplicationContext(),
                             "Login Error: 서버가 응답하지 않습니다.", Toast.LENGTH_LONG).show();
-                } else if(error instanceof ServerError){
+                } else if (error instanceof ServerError) {
                     Log.e(TAG, "서버 에러래" + error.getMessage());
                     VolleyLog.e(TAG, error.getMessage());
                     Toast.makeText(getApplicationContext(),
                             "Login Error: 서버 Error.", Toast.LENGTH_LONG).show();
-                }else {
+                } else {
                     Log.e(TAG, error.getMessage());
                     VolleyLog.e(TAG, error.getMessage());
                     Toast.makeText(getApplicationContext(),
@@ -191,6 +190,7 @@ public class KakaoSignupActivity extends AppCompatActivity {
                 // Posting parameters to login url
                 Map<String, String> params = new HashMap<String, String>();
                 params.put("kakaoNickName", nickname);
+                params.put("kakaoID", kakaoID);
 
                 return params;
             }

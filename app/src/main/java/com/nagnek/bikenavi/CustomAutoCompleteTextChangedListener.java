@@ -17,7 +17,7 @@ public class CustomAutoCompleteTextChangedListener implements TextWatcher {
     public static final String TAG = "CustomAutoCompleteTextChangedListener.java";
     Context context;
 
-    public CustomAutoCompleteTextChangedListener(Context context){
+    public CustomAutoCompleteTextChangedListener(Context context) {
         this.context = context;
     }
 

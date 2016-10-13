@@ -93,22 +93,15 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
-    private static final String TAG = MainActivity.class.getSimpleName();
     static final LatLng SEOUL_STATION = new LatLng(37.555755, 126.970431);
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private final Handler mHandler = new Handler();
     TMapPoint mSource;
     TMapPoint mDest;
     DelayAutoCompleteTextView start_point, dest_point;
     ArrayList<TMapPoint> sourceAndDest;
-    private GoogleMap mGoogleMap;
-    private final Handler mHandler = new Handler();
-    private ArrayList<LatLng> pathStopPointList;    // 출발지 도착지를 포함한 경유지점(위도, 경도) 리스트
-    private ArrayList<MarkerOptions> markerOptionsArrayList;    // 출발지 도착지 사이에 마커 리스트
-    private List<Marker> descriptorMarkers = new ArrayList<Marker>(); //markers
-    private List<Marker> markers = new ArrayList<Marker>(); //markers
     boolean animating; //애니메이션 진행중인지
-    private SessionManager session; // 로그인했는지 확인용 변수
-    private SQLiteHandler db;   // sqlite
-    String[] serverIPs = new String[] {};
+    String[] serverIPs = new String[]{};
     /**
      * AutoCompleteTextView 대신 ClearableSQliteAutoCompleteTextView로 변경했다.
      * 왜냐하면 view를 커스터마이징하기 위해 확장시키고, 필터를 비활성화 시키기 위해서다.
@@ -119,6 +112,46 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     AlertDialog alertDialog;
     // 자동완성을 위한 어댑터
     ArrayAdapter<String> arrayAdapter;
+    private GoogleMap mGoogleMap;
+    private ArrayList<LatLng> pathStopPointList;    // 출발지 도착지를 포함한 경유지점(위도, 경도) 리스트
+    private ArrayList<MarkerOptions> markerOptionsArrayList;    // 출발지 도착지 사이에 마커 리스트
+    private List<Marker> descriptorMarkers = new ArrayList<Marker>(); //markers
+    private List<Marker> markers = new ArrayList<Marker>(); //markers
+    private SessionManager session; // 로그인했는지 확인용 변수
+    private SQLiteHandler db;   // sqlite
+    private Animator animator = new Animator();
+
+    public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
+        Drawable drawable = AppCompatDrawableManager.get().getDrawable(context, drawableId);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            drawable = (DrawableCompat.wrap(drawable)).mutate();
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),
+                drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+
+        return bitmap;
+    }
+
+    public static String docToString(Document doc) {
+        try {
+            StringWriter sw = new StringWriter();
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+
+            transformer.transform(new DOMSource(doc), new StreamResult(sw));
+            return sw.toString();
+        } catch (Exception ex) {
+            throw new RuntimeException("Error converting to String", ex);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,7 +170,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // SharedPreference에서 ip 가져오기
         IPManager ipManager = new IPManager(this);
         String savedIP = ipManager.loadServerIP();
-        if(savedIP != null) {
+        if (savedIP != null) {
             AppConfig.setServerIp(savedIP);
         }
 
@@ -182,10 +215,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     }
                 });
-         alertDialog = builder.create();
+        alertDialog = builder.create();
         Log.d(TAG, "세팅 버튼 누름");
 
-        if(toolbar != null) {
+        if (toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
             toolbar.setNavigationIcon(R.drawable.ic_directions_bike_red_24dp);
@@ -201,15 +234,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         session = new SessionManager(getApplicationContext());
 
         long end = System.currentTimeMillis();
-        Log.d(TAG, "db쪽 로딩 시간 : " + (end-start)/1000.0);
+        Log.d(TAG, "db쪽 로딩 시간 : " + (end - start) / 1000.0);
         start = System.currentTimeMillis();
 
         end = System.currentTimeMillis();
-        Log.d(TAG, "setContentView 시간 : " + (end-start)/1000.0);
+        Log.d(TAG, "setContentView 시간 : " + (end - start) / 1000.0);
         start = System.currentTimeMillis();
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
         end = System.currentTimeMillis();
-        Log.d(TAG, "strict 로딩 시간 : " + (end-start)/1000.0);
+        Log.d(TAG, "strict 로딩 시간 : " + (end - start) / 1000.0);
         start = System.currentTimeMillis();
 
         /**
@@ -220,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
 
         end = System.currentTimeMillis();
-        Log.d(TAG, "구글맵 로딩 시간 : " + (end-start)/1000.0);
+        Log.d(TAG, "구글맵 로딩 시간 : " + (end - start) / 1000.0);
         start = System.currentTimeMillis();
         new Handler().post(new Runnable() {
             @Override
@@ -236,11 +269,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
-        floatingActionButton.setOnClickListener(new View.OnClickListener(){
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // 이전에 애니메이션 시작했으면 중지 후 초기화
-                if(animating) {
+                if (animating) {
                     animator.stopAnimation();
                 }
                 animator.startAnimation(true);
@@ -248,12 +281,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         end = System.currentTimeMillis();
-        Log.d(TAG, "나머지 : " + (end-start)/1000.0);
+        Log.d(TAG, "나머지 : " + (end - start) / 1000.0);
 
     }
 
     // this function is used in CustomAutoCompleteTextChangedListener.java
-    public String[] getItemsFromDb(String searchTerm){
+    public String[] getItemsFromDb(String searchTerm) {
 
         // add items on the array dynamically
         List<String> products = db.read(searchTerm);
@@ -276,7 +309,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onStart();
 
         TextView textView = (TextView) findViewById(R.id.name);
-        if(session.isLoggedIn()) {
+        if (session.isLoggedIn()) {
             Log.d(TAG, "자체회원로긴");
 
             // Fetching user details from sqlite
@@ -286,7 +319,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             textView.setText(email);
             textView.setVisibility(View.VISIBLE);
-        } else if(session.isGoogleLoggedIn()) {
+        } else if (session.isGoogleLoggedIn()) {
             // Fetching user details from sqlite
             Log.d(TAG, "구글 자동로긴");
             HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.GOOGLE);
@@ -295,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             textView.setText(email);
             textView.setVisibility(View.VISIBLE);
-        } else if(session.isFacebookIn()) {
+        } else if (session.isFacebookIn()) {
             // Fetching user details from sqlite
             Log.d(TAG, "페북 자동로긴");
             HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.FACEBOOK);
@@ -304,7 +337,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             textView.setText(email);
             textView.setVisibility(View.VISIBLE);
-        } else if(session.isKakaoLoggedIn()) {
+        } else if (session.isKakaoLoggedIn()) {
             Log.d(TAG, "카카오로긴");
             // Fetching user details from sqlite
             HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.KAKAO);
@@ -313,7 +346,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             textView.setText(email);
             textView.setVisibility(View.VISIBLE);
-        } else{
+        } else {
             textView.setVisibility(View.GONE);
         }
     }
@@ -331,7 +364,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         Log.d(TAG, "opPrepareOptionsMenu - 옵션 메뉴가 " +
-        "화면에 보여질때마다 호출됨");
+                "화면에 보여질때마다 호출됨");
 
         if (session.isLoggedIn() || session.isGoogleLoggedIn()) { // 로그인 한 상태확인
             menu.getItem(1).setTitle("로그아웃");
@@ -356,7 +389,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.action_settings:
                 IPManager ipManager = new IPManager(this);
                 String savedIP = ipManager.loadServerIP();
-                if(savedIP != null) {
+                if (savedIP != null) {
                     AppConfig.setServerIp(savedIP);
                     serverIpAutoComplete.setText(savedIP);
                 } else {
@@ -373,45 +406,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return super.onOptionsItemSelected(item);
     }
 
-    public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
-        Drawable drawable = AppCompatDrawableManager.get().getDrawable(context, drawableId);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            drawable = (DrawableCompat.wrap(drawable)).mutate();
-        }
-
-        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),
-                drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-
-        return bitmap;
-    }
-
-    public static String docToString(Document doc) {
-        try {
-            StringWriter sw = new StringWriter();
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-
-            transformer.transform(new DOMSource(doc), new StreamResult(sw));
-            return sw.toString();
-        } catch (Exception ex) {
-            throw new RuntimeException("Error converting to String", ex);
-        }
-    }
-
     void performFindRoute() {
         // 키보드 감추기
         InputMethodManager immhide = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
         immhide.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
 
         // 이전에 애니메이션 시작했으면 중지 후 초기화
-        if(animating) {
+        if (animating) {
             animator.stopAnimation();
             clearMarkers();
         }
@@ -438,8 +439,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     @Override
                     public void onFindPathData(TMapPolyLine tMapPolyLine) {
                         pathStopPointList.clear();
-                        final ArrayList<TMapPoint>pointArrayList = tMapPolyLine.getLinePoint();
-                        for(TMapPoint point:pointArrayList) {
+                        final ArrayList<TMapPoint> pointArrayList = tMapPolyLine.getLinePoint();
+                        for (TMapPoint point : pointArrayList) {
                             LatLng latLng = new LatLng(point.getLatitude(), point.getLongitude());
                             Log.d("tag", "위도 : " + latLng.latitude + ", 경도 : " + latLng.longitude);
                             pathStopPointList.add(latLng);
@@ -450,10 +451,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             @Override
                             public void run() {
 
-                                if(mGoogleMap != null) {
+                                if (mGoogleMap != null) {
                                     // 경로 polyline 그리기
                                     addPolyLineUsingGoogleMap(pathStopPointList);
-                                    for(LatLng latLng : pathStopPointList) {
+                                    for (LatLng latLng : pathStopPointList) {
                                         Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(latLng).visible(false));
                                         markers.add(marker);
                                     }
@@ -539,10 +540,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                if(mGoogleMap != null) {
+                                if (mGoogleMap != null) {
                                     LatLngBounds.Builder builder = new LatLngBounds.Builder();
                                     // 경로 찾고나서 경로 지점들의 마커들 추가, 모든 마커들을 표시할 수 있는 줌레벨 계산
-                                    for(MarkerOptions markerOptions : markerOptionsArrayList) {
+                                    for (MarkerOptions markerOptions : markerOptionsArrayList) {
                                         Marker marker = mGoogleMap.addMarker(markerOptions);
                                         descriptorMarkers.add(marker);
                                         builder.include(markerOptions.getPosition());
@@ -631,7 +632,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     mGoogleMap.moveCamera(center);
 
                     // animateCamera는 근거리에선 부드럽게 변경한다.
-                    if(mGoogleMap != null) {
+                    if (mGoogleMap != null) {
                         mGoogleMap.animateCamera(zoom);
                         mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(wgs84_x, wgs84_y)).title(tMapPOIItem.getPOIName()).snippet(tMapPOIItem.getPOIAddress().replace("null", "")));
                     }
@@ -685,9 +686,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // 거리들 가져옴.
     public double getDistanceBetweenPoints(LatLng from, LatLng to) {
-        return SphericalUtil.computeDistanceBetween(from ,to);
+        return SphericalUtil.computeDistanceBetween(from, to);
     }
-
 
     /**
      * Highlight the marker by index.
@@ -696,8 +696,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean highLightMarker(int moveMarkerIndex, int descriptorMarkerIndex) {
         LatLng descriptorLatLng = descriptorMarkers.get(descriptorMarkerIndex).getPosition();
         LatLng usedForMovingMarkers = markers.get(moveMarkerIndex).getPosition();
-        Log.d("tag", "markerIndex :"+ moveMarkerIndex + ", descIndex : " + descriptorMarkerIndex);
-        if(descriptorLatLng.latitude == usedForMovingMarkers.latitude && descriptorLatLng.longitude == usedForMovingMarkers.longitude) {
+        Log.d("tag", "markerIndex :" + moveMarkerIndex + ", descIndex : " + descriptorMarkerIndex);
+        if (descriptorLatLng.latitude == usedForMovingMarkers.latitude && descriptorLatLng.longitude == usedForMovingMarkers.longitude) {
             highLightMarker(descriptorMarkers.get(descriptorMarkerIndex));
             return true;
         }
@@ -727,7 +727,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return beginLocation.bearingTo(endLocation);
     }
 
-    private Animator animator = new Animator();
+    private void resetMarkers() {
+        Log.d("tag", "초기화");
+        for (Marker marker : this.markers) {
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+            Log.d("tag", "색깔변함");
+        }
+    }
+
+    /**
+     * Logging out the user. Will set isLoggedIn flag to false in shared
+     * preferences Clears the user data from sqlite users table
+     */
+    private void logoutUser() {
+        session.setLogin(false);
+        db.deleteUsers();
+    }
 
     public class Animator implements Runnable {
 
@@ -742,7 +757,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         float tilt = 90;
         float zoom = 15.5f;
-        boolean upward=true;
+        boolean upward = true;
 
         long start = SystemClock.uptimeMillis();
 
@@ -752,6 +767,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         boolean showPolyline = false;
 
         private Marker trackingMarker;
+        private Polyline polyLine;
+        private PolylineOptions rectOptions;
 
         public void reset() {
             resetMarkers();
@@ -801,7 +818,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         private void setupCameraPositionForMovement(LatLng markerPos,
                                                     LatLng secondPos) {
 
-            float bearing = bearingBetweenLatLngs(markerPos,secondPos);
+            float bearing = bearingBetweenLatLngs(markerPos, secondPos);
 
             trackingMarker = mGoogleMap.addMarker(new MarkerOptions().position(markerPos)
                     .title("접니다")
@@ -813,7 +830,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             .target(markerPos)
                             .bearing(bearing + BEARING_OFFSET)
                             .tilt(90)
-                            .zoom(mGoogleMap.getCameraPosition().zoom >=16 ? mGoogleMap.getCameraPosition().zoom : 16)
+                            .zoom(mGoogleMap.getCameraPosition().zoom >= 16 ? mGoogleMap.getCameraPosition().zoom : 16)
                             .build();
 
             mGoogleMap.animateCamera(
@@ -839,16 +856,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             );
         }
 
-        private Polyline polyLine;
-        private PolylineOptions rectOptions;
-
-
         private Polyline initializePolyLine() {
             //polyLinePoints = new ArrayList<LatLng>();
-            if(polyLine != null) {
+            if (polyLine != null) {
                 polyLine.remove();
             }
-            rectOptions  = new PolylineOptions().geodesic(true).color(Color.CYAN);
+            rectOptions = new PolylineOptions().geodesic(true).color(Color.CYAN);
             rectOptions.add(markers.get(0).getPosition());
             return mGoogleMap.addPolyline(rectOptions);
         }
@@ -868,7 +881,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         public void startAnimation(boolean showPolyLine) {
-            if (markers.size()>2) {
+            if (markers.size() > 2) {
                 animator.initialize(showPolyLine);
             }
         }
@@ -878,13 +891,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         public void run() {
 
             long elapsed = SystemClock.uptimeMillis() - start;
-            double t = interpolator.getInterpolation((float)elapsed/ANIMATE_SPEEED);
+            double t = interpolator.getInterpolation((float) elapsed / ANIMATE_SPEEED);
 
 //			LatLng endLatLng = getEndLatLng();
 //			LatLng beginLatLng = getBeginLatLng();
 
-            double lat = t * endLatLng.latitude + (1-t) * beginLatLng.latitude;
-            double lng = t * endLatLng.longitude + (1-t) * beginLatLng.longitude;
+            double lat = t * endLatLng.latitude + (1 - t) * beginLatLng.latitude;
+            double lng = t * endLatLng.longitude + (1 - t) * beginLatLng.longitude;
             LatLng newPosition = new LatLng(lat, lng);
 
             trackingMarker.setPosition(newPosition);
@@ -897,13 +910,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //navigateToPoint(newPosition,tilt,bearing,currentZoom,false);
             //navigateToPoint(newPosition,false);
 
-            if (t< 1) {
+            if (t < 1) {
                 mHandler.postDelayed(this, 16);
             } else {
 
                 System.out.println("Move to next marker.... current = " + movingCurrentMarkerIndex + " and size = " + markers.size());
                 // imagine 5 elements -  0|1|2|3|4 currentindex must be smaller than 4
-                if (movingCurrentMarkerIndex <markers.size()-2) {
+                if (movingCurrentMarkerIndex < markers.size() - 2) {
 
                     movingCurrentMarkerIndex++;
 
@@ -919,14 +932,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     float bearingL = bearingBetweenLatLngs(begin, end);
 
                     boolean highLighted = highLightMarker(movingCurrentMarkerIndex, descriptorMarkerIndex);
-                    if(highLighted) {
+                    if (highLighted) {
                         ++descriptorMarkerIndex;
                     }
 
                     CameraPosition cameraPosition =
                             new CameraPosition.Builder()
                                     .target(end) // changed this...
-                                    .bearing(bearingL  + BEARING_OFFSET)
+                                    .bearing(bearingL + BEARING_OFFSET)
                                     .tilt(tilt)
                                     .zoom(mGoogleMap.getCameraPosition().zoom)
                                     .build();
@@ -951,10 +964,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
 
-
-
         private LatLng getEndLatLng() {
-            return markers.get(movingCurrentMarkerIndex +1).getPosition();
+            return markers.get(movingCurrentMarkerIndex + 1).getPosition();
         }
 
         private LatLng getBeginLatLng() {
@@ -967,38 +978,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             //System.out.println("zoom = " + zoom);
             if (upward) {
 
-                if (tilt<90) {
-                    tilt ++;
-                    zoom-=0.01f;
+                if (tilt < 90) {
+                    tilt++;
+                    zoom -= 0.01f;
                 } else {
-                    upward=false;
+                    upward = false;
                 }
 
             } else {
-                if (tilt>0) {
-                    tilt --;
-                    zoom+=0.01f;
+                if (tilt > 0) {
+                    tilt--;
+                    zoom += 0.01f;
                 } else {
-                    upward=true;
+                    upward = true;
                 }
             }
         }
-    }
-
-    private void resetMarkers() {
-        Log.d("tag", "초기화");
-        for (Marker marker : this.markers) {
-            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-            Log.d("tag", "색깔변함");
-        }
-    }
-
-    /**
-     * Logging out the user. Will set isLoggedIn flag to false in shared
-     * preferences Clears the user data from sqlite users table
-     */
-    private void logoutUser() {
-        session.setLogin(false);
-        db.deleteUsers();
     }
 }

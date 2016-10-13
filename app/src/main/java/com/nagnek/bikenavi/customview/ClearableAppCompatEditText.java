@@ -45,6 +45,20 @@ public class ClearableAppCompatEditText extends AppCompatEditText implements Tex
         init();
     }
 
+    /**
+     * 입력창이 흔들리는 애니메이션 (counts 횟수만큼)
+     *
+     * @param counts 애니메이션 횟수
+     * @return
+     */
+    public static Animation shakeAnimation(int counts) {
+        // 이동 애니메이션
+        Animation translateAnimation = new TranslateAnimation(0, 30, 0, 0);
+        translateAnimation.setInterpolator(new CycleInterpolator(counts));
+        translateAnimation.setDuration(100);
+        return translateAnimation;
+    }
+
     @Override
     public void setOnFocusChangeListener(OnFocusChangeListener onFocusChangeListener) {
         this.onFocusChangeListener = onFocusChangeListener;
@@ -55,12 +69,11 @@ public class ClearableAppCompatEditText extends AppCompatEditText implements Tex
         this.onTouchListener = onTouchListener;
     }
 
-
     private void init() {
 
         Drawable tempDrawable = ContextCompat.getDrawable(getContext(), R.drawable.abc_ic_clear_material);
         clearDrawable = DrawableCompat.wrap(tempDrawable);
-        DrawableCompat.setTintList(clearDrawable,getHintTextColors());
+        DrawableCompat.setTintList(clearDrawable, getHintTextColors());
         clearDrawable.setBounds(0, 0, clearDrawable.getIntrinsicWidth(), clearDrawable.getIntrinsicHeight());
 
         setClearIconVisible(false);
@@ -70,7 +83,6 @@ public class ClearableAppCompatEditText extends AppCompatEditText implements Tex
         super.setOnFocusChangeListener(this);
         addTextChangedListener(this);
     }
-
 
     @Override
     public void onFocusChange(final View view, final boolean hasFocus) {
@@ -84,7 +96,6 @@ public class ClearableAppCompatEditText extends AppCompatEditText implements Tex
             onFocusChangeListener.onFocusChange(view, hasFocus);
         }
     }
-
 
     @Override
     public boolean onTouch(final View view, final MotionEvent motionEvent) {
@@ -120,23 +131,9 @@ public class ClearableAppCompatEditText extends AppCompatEditText implements Tex
     public void afterTextChanged(Editable s) {
     }
 
-
     private void setClearIconVisible(boolean visible) {
         clearDrawable.setVisible(visible, false);
         setCompoundDrawables(null, null, visible ? clearDrawable : null, null);
-    }
-
-    /**
-     * 입력창이 흔들리는 애니메이션 (counts 횟수만큼)
-     * @param counts 애니메이션 횟수
-     * @return
-     */
-    public static Animation shakeAnimation(int counts) {
-        // 이동 애니메이션
-        Animation translateAnimation = new TranslateAnimation(0, 30, 0, 0);
-        translateAnimation.setInterpolator(new CycleInterpolator(counts));
-        translateAnimation.setDuration(100);
-        return translateAnimation;
     }
 
     /**

@@ -21,7 +21,7 @@ import com.nagnek.bikenavi.R;
 /**
  * Created by user on 2016-10-05.
  */
-public class ClearableAutoCompleteTextView extends AppCompatAutoCompleteTextView  implements TextWatcher, OnTouchListener, View.OnFocusChangeListener {
+public class ClearableAutoCompleteTextView extends AppCompatAutoCompleteTextView implements TextWatcher, OnTouchListener, View.OnFocusChangeListener {
 
     private Drawable clearDrawable;
     private OnFocusChangeListener onFocusChangeListener;
@@ -46,7 +46,7 @@ public class ClearableAutoCompleteTextView extends AppCompatAutoCompleteTextView
 
         Drawable tempDrawable = ContextCompat.getDrawable(getContext(), R.drawable.abc_ic_clear_material);
         clearDrawable = DrawableCompat.wrap(tempDrawable);
-        DrawableCompat.setTintList(clearDrawable,getHintTextColors());
+        DrawableCompat.setTintList(clearDrawable, getHintTextColors());
         clearDrawable.setBounds(0, 0, clearDrawable.getIntrinsicWidth(), clearDrawable.getIntrinsicHeight());
 
         setClearIconVisible(false);

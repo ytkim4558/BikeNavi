@@ -28,23 +28,22 @@ import com.nagnek.bikenavi.kakao.KakaoSDKAdapter;
 public class AppController extends Application {
 
     /**
+     * 자체로그인 위함.
+     */
+    public static final String TAG = AppController.class.getSimpleName();
+    public static Display mDisplay;
+    /**
      * 카카오톡 로그인 위한 소스추가
      */
     private static volatile AppController instance = null;
     private static volatile Activity currentActivity = null;
-    private ImageLoader imageLoader;
-
-    /**
-     * 자체로그인 위함.
-     */
-    public static final String TAG = AppController.class.getSimpleName();
-
-    private RequestQueue mRequestQueue;
-
     private static AppController mInstance;
+    private ImageLoader imageLoader;
+    private RequestQueue mRequestQueue;
 
     /**
      * 카카오톡
+     *
      * @param
      */
     public static Activity getCurrentActivity() {
@@ -57,12 +56,25 @@ public class AppController extends Application {
 
     /**
      * singleton 애플리케이션 객체를 얻는다.
+     *
      * @return singleton 애플리케이션 객체
      */
     public static AppController getGlobalApplicationContext() {
         if (instance == null)
             throw new IllegalStateException("this application does not inherit com.kakao.GlobalApplication");
         return instance;
+    }
+
+    public static int getDisplayWidth() {
+        return mDisplay.getWidth();
+    }
+
+    public static int getDisplayHeight() {
+        return mDisplay.getHeight();
+    }
+
+    public static synchronized AppController getInstance() {
+        return mInstance;
     }
 
     @Override
@@ -82,6 +94,7 @@ public class AppController extends Application {
 
         ImageLoader.ImageCache imageCache = new ImageLoader.ImageCache() {
             final LruCache<String, Bitmap> imageCache = new LruCache<String, Bitmap>(3);
+
             @Override
             public Bitmap getBitmap(String key) {
                 return imageCache.get(key);
@@ -98,6 +111,7 @@ public class AppController extends Application {
 
     /**
      * 이미지 로더를 반환한다.
+     *
      * @param 이미지 로더
      */
     public ImageLoader getImageLoader() {
@@ -113,28 +127,9 @@ public class AppController extends Application {
         instance = null;
     }
 
-    public static Display mDisplay;
-
-    public static int getDisplayWidth() {
-        return mDisplay.getWidth();
-    }
-
-    public static int getDisplayHeight() {
-        return mDisplay.getHeight();
-    }
-
     public int resize_Height(int width, int height, int resize_width) {
-        return (getDisplayHeight()*resize_width)/getDisplayWidth();
+        return (getDisplayHeight() * resize_width) / getDisplayWidth();
     }
-
-
-
-
-
-
-
-
-
 
     // 참고 : https://developer.android.com/reference/android/support/multidex/MultiDexApplication.html
     // multidex 에러 해결용
@@ -142,10 +137,6 @@ public class AppController extends Application {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         MultiDex.install(this);
-    }
-
-    public static synchronized AppController getInstance() {
-        return mInstance;
     }
 
     public RequestQueue getRequestQueue() {

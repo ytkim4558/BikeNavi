@@ -13,31 +13,23 @@ import android.util.Log;
  * Created by user on 2016-09-27.
  */
 public class SessionManager {
-    // LogCat tag
-    private static String TAG = SessionManager.class.getSimpleName();
-
-    // Shared Preferences
-    SharedPreferences pref;
-
-    Editor editor;
-    Context _context;
-
-    // Shared pref mode
-    int PRIVATE_MODE = 0;
-
     // Shared preferences file name
     private static final String PREF_NAME = "AndroidHiveLogin";
-
     private static final String KEY_IS_LOGGEDIN = "isLoggedIn";
-
     // 구글에 로그인 되어있는 상태
     private static final String KEY_IS_GOOGLE_LOGGEDIN = "isGoogleLoggedIn";
-
     // 카카오에 로그인 되어있는 상태
     private static final String KEY_IS_KAKAO_LOGGEDIN = "isKakaoLoggedIn";
-
     // 페북에 로그인 되어있는 상태
     private static final String KEY_IS_FACEBOOK_LOGGEDIN = "isFaceBookLoggedIn";
+    // LogCat tag
+    private static String TAG = SessionManager.class.getSimpleName();
+    // Shared Preferences
+    SharedPreferences pref;
+    Editor editor;
+    Context _context;
+    // Shared pref mode
+    int PRIVATE_MODE = 0;
 
     public SessionManager(Context context) {
         this._context = context;

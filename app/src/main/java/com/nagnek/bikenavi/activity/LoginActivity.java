@@ -67,9 +67,10 @@ import java.util.Map;
  * Created by user on 2016-09-27.
  * 자체 회원가입 및 구글 로그인용 가입 및 로그인
  */
-public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener{
+public class LoginActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
     private static final boolean GET_HASH_KEY = false; // 어플의 해쉬키 카카오톡 로그인 때문에 필요
     private static final String TAG = LoginActivity.class.getSimpleName();
+    private static final int RC_SIGN_IN = 9001; // 구글 로그인 요청 키
     private Button btnLogin; // 자체 로그인
     private SignInButton btnGoogleLogin; //구글 로그인
     private Button btnLinkToRegister; // 회원가입으로 가게하는 버튼
@@ -81,9 +82,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private SessionManager session;
     private SQLiteHandler db;
     private TextInputLayout ti_input_email;
-
-    private static final int RC_SIGN_IN = 9001; // 구글 로그인 요청 키
-
     /**
      * 카카오톡
      */
@@ -101,7 +99,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         // 페이스북
         FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(getApplication());
-
 
 
         setContentView(R.layout.activity_login);
@@ -228,7 +225,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
             @Override
             public void afterTextChanged(Editable s) {
-                if(s.length() > 0) {
+                if (s.length() > 0) {
                     if (!isValidEmail(s)) {
                         ti_input_email.setError("유효한 이메일을 입력해주세요.");
                     } else {
@@ -246,26 +243,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         callback = new SessionCallback();
         Session.getCurrentSession().addCallback(callback);
         Session.getCurrentSession().checkAndImplicitOpen();
-    }
-
-
-    private class SessionCallback implements ISessionCallback { // 카카오톡 콜백
-
-        // 	access token을 성공적으로 발급 받아 valid access token을 가지고 있는 상태. 일반적으로 로그인 후의 다음 activity로 이동한다.
-        @Override
-        public void onSessionOpened() {
-            redirectSignupActivity();
-        }
-
-        // 카카오톡 설명엔 : memory와 cache에 session 정보가 전혀 없는 상태. 일반적으로 로그인 버튼이 보이고 사용자가 클릭시 동의를 받아 access token 요청을 시도한다.
-        // 함수 설명엔 : 로그인을 실패한 상태. 세션이 만료된 경우와는 다르게 네트웤등 일반적인 에러로 오픈에 실패한경우 불린다.
-        // 아래 설명이 더 맞는것 같다.
-        @Override
-        public void onSessionOpenFailed(KakaoException exception) {
-            if(exception != null) {
-                Logger.e(exception);
-            }
-        }
     }
 
     protected void redirectSignupActivity() {
@@ -395,17 +372,17 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    if(error instanceof TimeoutError) {
+                    if (error instanceof TimeoutError) {
                         Log.e(TAG, "Login Error: 서버가 응답하지 않습니다." + error.getMessage());
                         VolleyLog.e(TAG, error.getMessage());
                         Toast.makeText(getApplicationContext(),
                                 "Login Error: 서버가 응답하지 않습니다.", Toast.LENGTH_LONG).show();
-                    } else if(error instanceof ServerError){
+                    } else if (error instanceof ServerError) {
                         Log.e(TAG, "서버 에러래" + error.getMessage());
                         VolleyLog.e(TAG, error.getMessage());
                         Toast.makeText(getApplicationContext(),
                                 "Login Error: 서버 Error.", Toast.LENGTH_LONG).show();
-                    }else {
+                    } else {
                         Log.e(TAG, error.getMessage());
                         VolleyLog.e(TAG, error.getMessage());
                         Toast.makeText(getApplicationContext(),
@@ -449,7 +426,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             // Signed out, show unauthenticated UI.
             Log.d(TAG, "fail~");
             String message = result.getStatus().getStatusMessage();
-            if( message != null) {
+            if (message != null) {
                 Log.d(TAG, result.getStatus().getStatusMessage());
             } else {
                 Log.d(TAG, "에러");
@@ -459,7 +436,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         }
 
     }
-
 
     /**
      * function to verify login details in mysql db
@@ -555,5 +531,24 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.d(TAG, "onConnectionFailed:" + connectionResult);
+    }
+
+    private class SessionCallback implements ISessionCallback { // 카카오톡 콜백
+
+        // 	access token을 성공적으로 발급 받아 valid access token을 가지고 있는 상태. 일반적으로 로그인 후의 다음 activity로 이동한다.
+        @Override
+        public void onSessionOpened() {
+            redirectSignupActivity();
+        }
+
+        // 카카오톡 설명엔 : memory와 cache에 session 정보가 전혀 없는 상태. 일반적으로 로그인 버튼이 보이고 사용자가 클릭시 동의를 받아 access token 요청을 시도한다.
+        // 함수 설명엔 : 로그인을 실패한 상태. 세션이 만료된 경우와는 다르게 네트웤등 일반적인 에러로 오픈에 실패한경우 불린다.
+        // 아래 설명이 더 맞는것 같다.
+        @Override
+        public void onSessionOpenFailed(KakaoException exception) {
+            if (exception != null) {
+                Logger.e(exception);
+            }
+        }
     }
 }
