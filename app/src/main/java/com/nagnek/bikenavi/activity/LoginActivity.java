@@ -44,6 +44,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.kakao.auth.AuthType;
 import com.kakao.auth.ISessionCallback;
 import com.kakao.auth.Session;
 import com.kakao.util.exception.KakaoException;
@@ -243,6 +244,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         callback = new SessionCallback();
         Session.getCurrentSession().addCallback(callback);
         Session.getCurrentSession().checkAndImplicitOpen();
+        Session.getCurrentSession().open(AuthType.KAKAO_TALK, this);
     }
 
     protected void redirectSignupActivity() {
