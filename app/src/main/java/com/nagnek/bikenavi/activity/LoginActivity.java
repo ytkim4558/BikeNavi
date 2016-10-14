@@ -40,6 +40,7 @@ import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
 import com.facebook.appevents.AppEventsLogger;
+import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.appindexing.AppIndex;
@@ -67,6 +68,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -114,10 +116,24 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 //            getAppKeyHash();
 //        }
 
+        // SQLite database handler
+        db = new SQLiteHandler(getApplicationContext());
+
+        // Session manager
+        session = new SessionManager(getApplicationContext());
+
+        // Progress dialog
+        pDialog = new ProgressDialog(this);
+        pDialog.setCancelable(false);
+
+        // 페이스북
         facebookCallbackManager = CallbackManager.Factory.create();
-        LoginButton facebookLoginButton = (LoginButton) findViewById(R.id.facebook_login_button);
-        facebookLoginButton.setReadPermissions("public_profile", "email");
-        facebookLoginButton.registerCallback(facebookCallbackManager, new FacebookCallback<LoginResult>() {
+        if(session.isFacebookIn()) {
+            pDialog.setMessage("페북 로그인 시도중 ...");
+            showDialog();
+            LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
+        }
+        LoginManager.getInstance().registerCallback(facebookCallbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d(TAG, "페북 로긴 성공");
@@ -166,16 +182,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         ti_input_email.setErrorEnabled(true);
 
         btnLinkToRegister = (Button) findViewById(R.id.btnLinkToRegisterScreen);
-
-        // Progress dialog
-        pDialog = new ProgressDialog(this);
-        pDialog.setCancelable(false);
-
-        // SQLite database handler
-        db = new SQLiteHandler(getApplicationContext());
-
-        // Session manager
-        session = new SessionManager(getApplicationContext());
 
         // Configure sign-in to request offline access to the user's ID, basic
         // profile, and Google Drive. The first time you request a code you will
@@ -290,12 +296,21 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         /**
          * 카카오톡
          */
+        com.kakao.usermgmt.LoginButton kakaoLoginButton = (com.kakao.usermgmt.LoginButton) findViewById(R.id.com_kakao_login);
+        kakaoLoginButton.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pDialog.setMessage("카카오톡 로그인 시도중...");
+                showDialog();
+            }
+        });
         callback = new SessionCallback();
         Session.getCurrentSession().addCallback(callback);
         Session.getCurrentSession().checkAndImplicitOpen();
     }
 
     protected void redirectSignupActivity() {
+        hideDialog();
         final Intent intent = new Intent(this, KakaoSignupActivity.class);
         startActivity(intent);
         finish();
@@ -350,6 +365,8 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         if (Session.getCurrentSession().handleActivityResult(requestCode, resultCode, data)) {  // 카카오톡 콜백.. 뭐하는거지? 처리?
             return;
         }
+
+        LoginButton facebookLoginButton = (LoginButton) findViewById(R.id.facebook_login_button);
 
         // 페북 콜백
         facebookCallbackManager.onActivityResult(requestCode, resultCode, data);
