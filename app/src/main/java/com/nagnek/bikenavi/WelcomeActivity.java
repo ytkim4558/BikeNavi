@@ -108,6 +108,7 @@ public class WelcomeActivity extends AppCompatActivity {
             UserManagement.requestLogout(new LogoutResponseCallback() {
                 @Override
                 public void onCompleteLogout() {
+                    Log.d(TAG, "로갓 성공");
                     redirectLoginActivity();
                 }
 
