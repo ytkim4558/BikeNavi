@@ -393,7 +393,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     AppConfig.setServerIp(savedIP);
                     serverIpAutoComplete.setText(savedIP);
                 } else {
-                    serverIpAutoComplete.setText("192.168.1.189");
+                    serverIpAutoComplete.setText(AppConfig.HOSTING_IP);
                 }
                 alertDialog.show();
                 return true;

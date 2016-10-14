@@ -129,28 +129,28 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         // 페이스북
         facebookCallbackManager = CallbackManager.Factory.create();
         if(session.isFacebookIn()) {
-            pDialog.setMessage("페북 로그인 시도중 ...");
-            showDialog();
             LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
         }
         LoginManager.getInstance().registerCallback(facebookCallbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
+                pDialog.setMessage("페북 로그인 시도중 ...");
+                showDialog();
                 Log.d(TAG, "페북 로긴 성공");
                 GraphRequest request = GraphRequest.newMeRequest(
-                        loginResult.getAccessToken(),
-                        new GraphRequest.GraphJSONObjectCallback() {
-                            @Override
-                            public void onCompleted(JSONObject object, GraphResponse response) {
-                                Log.v(TAG, response.toString());
+                    loginResult.getAccessToken(),
+                    new GraphRequest.GraphJSONObjectCallback() {
+                        @Override
+                        public void onCompleted(JSONObject object, GraphResponse response) {
+                            Log.v(TAG, response.toString());
 
-                                try {
-                                    handleFacebookSignResult(object.getString("id"), object.getString("name"));
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
+                            try {
+                                handleFacebookSignResult(object.getString("id"), object.getString("name"));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
                         }
+                    }
                 );
                 Bundle parameters = new Bundle();
                 parameters.putString("fields", "id, name");
