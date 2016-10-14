@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.facebook.login.LoginManager;
 import com.kakao.network.ErrorResult;
 import com.kakao.usermgmt.UserManagement;
 import com.kakao.usermgmt.callback.LogoutResponseCallback;
@@ -60,17 +61,17 @@ public class WelcomeActivity extends AppCompatActivity {
         String email = null;
         if (sessionManager.isLoggedIn()) {
             user = db.getUserDetails(SQLiteHandler.UserType.BIKENAVI);
-            email = user.get("email");
+            email = user.get(SQLiteHandler.KEY_EMAIL);
         } else if (sessionManager.isGoogleLoggedIn()) {
             user = db.getUserDetails(SQLiteHandler.UserType.GOOGLE);
-            email = user.get("googleemail");
+            email = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
         } else if (sessionManager.isFacebookIn()) {
             user = db.getUserDetails(SQLiteHandler.UserType.FACEBOOK);
-            email = user.get("facebookemail");
+            email = user.get(SQLiteHandler.KEY_FACEBOOK_NAME);
         } else if (sessionManager.isKakaoLoggedIn()) {
             Log.d(TAG, "카카오로긴");
             user = db.getUserDetails(SQLiteHandler.UserType.KAKAO);
-            email = user.get("kakaoemail");
+            email = user.get(SQLiteHandler.KEY_KAKAO_NICK_NAME);
         }
 
         // Displaying th euser details on the screen
@@ -153,6 +154,7 @@ public class WelcomeActivity extends AppCompatActivity {
             });
         } else if (sessionManager.isFacebookIn()) {
             sessionManager.setFacebookLogin(false);
+            LoginManager.getInstance().logOut();
             redirectLoginActivity();
         } else {
             redirectLoginActivity();

@@ -33,8 +33,15 @@ import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
 import com.facebook.appevents.AppEventsLogger;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -87,21 +94,64 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
      */
     private SessionCallback callback; // 콜백 선언
 
+    /**
+     * 페이스북
+     */
+    CallbackManager facebookCallbackManager;    // 페북 콜백매니저
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // 페이스북
+        FacebookSdk.sdkInitialize(getApplicationContext());
+        AppEventsLogger.activateApp(getApplication());
+
+        // facebook sdk 초기화부터 하고나서 setContentView를 해야한다.
+        setContentView(R.layout.activity_login);
 
         // 카카오톡 등록하기 위한 1회용 코드
 //        if(GET_HASH_KEY) {
 //            getAppKeyHash();
 //        }
 
-        // 페이스북
-        FacebookSdk.sdkInitialize(getApplicationContext());
-        AppEventsLogger.activateApp(getApplication());
+        facebookCallbackManager = CallbackManager.Factory.create();
+        LoginButton facebookLoginButton = (LoginButton) findViewById(R.id.facebook_login_button);
+        facebookLoginButton.setReadPermissions("public_profile", "email");
+        facebookLoginButton.registerCallback(facebookCallbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                Log.d(TAG, "페북 로긴 성공");
+                GraphRequest request = GraphRequest.newMeRequest(
+                        loginResult.getAccessToken(),
+                        new GraphRequest.GraphJSONObjectCallback() {
+                            @Override
+                            public void onCompleted(JSONObject object, GraphResponse response) {
+                                Log.v(TAG, response.toString());
 
+                                try {
+                                    handleFacebookSignResult(object.getString("id"), object.getString("name"));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                );
+                Bundle parameters = new Bundle();
+                parameters.putString("fields", "id, name");
+                request.setParameters(parameters);
+                request.executeAsync();
+            }
 
-        setContentView(R.layout.activity_login);
+            @Override
+            public void onCancel() {
+                Log.d(TAG, "onCancel");
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+                Log.d(TAG, "onError");
+            }
+        });
 
         inputEmail = (AppCompatEditText) findViewById(R.id.email);
         inputPassword = (AppCompatEditText) findViewById(R.id.password);
@@ -267,6 +317,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         }
     }
 
+
     /**
      * 이메일 인증 시스템
      */
@@ -299,13 +350,111 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         if (Session.getCurrentSession().handleActivityResult(requestCode, resultCode, data)) {  // 카카오톡 콜백.. 뭐하는거지? 처리?
             return;
         }
+
+        // 페북 콜백
+        facebookCallbackManager.onActivityResult(requestCode, resultCode, data);
     }
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
 
         Session.getCurrentSession().removeCallback(callback); // 카카오톡 콜백 제거
+    }
+
+    private void handleFacebookSignResult(final String id, final String name) {
+        // Tag used to cancel the request
+        String tag_string_req = "req_facebook_login";
+
+        // 성공적으로 로그인 하면 id 넘버와 이름을 가져온다.
+        Log.d(TAG, "fb usre id: " + id);
+        Log.d(TAG, "fb user name : " + name);
+
+        // id 와 이름을 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
+        StringRequest strReq = new StringRequest(Request.Method.POST,
+                AppConfig.URL_REGISTER, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "FB Register Response: " + response.toString());
+                hideDialog();
+
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    boolean error = jsonObject.getBoolean("error");
+
+                    // Check for error node in json
+                    if (!error) {
+                        //user successfully logged in
+                        // Create login session
+                        session.setFacebookLogin(true);
+
+                        // Now store the user in SQLite
+                        JSONObject user = jsonObject.getJSONObject("user");
+                        String name = user.getString("facebookName");
+                        String created_at = user
+                                .getString("created_at");
+
+                        // Inserting row in users table
+                        db.addUser(SQLiteHandler.UserType.FACEBOOK, name, created_at);
+                        Log.d(TAG, "name : " + name);
+                        Log.d(TAG, "created_at : " + created_at);
+
+                        // Launch main activity
+                        Intent intent = new Intent(LoginActivity.this,
+                                WelcomeActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        // Error in login. Get the error message
+                        String errorMsg = jsonObject.getString("error_msg");
+                        Toast.makeText(getApplicationContext(),
+                                errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                } catch (JSONException e) {
+                    // JSON error
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (error instanceof TimeoutError) {
+                    Log.e(TAG, "Login Error: 서버가 응답하지 않습니다." + error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            "Login Error: 서버가 응답하지 않습니다.", Toast.LENGTH_LONG).show();
+                } else if (error instanceof ServerError) {
+                    Log.e(TAG, "서버 에러래" + error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            "Login Error: 서버 Error.", Toast.LENGTH_LONG).show();
+                } else {
+                    Log.e(TAG, error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            error.getMessage(), Toast.LENGTH_LONG).show();
+                }
+
+                Toast.makeText(getApplicationContext(),
+                        error.getMessage(), Toast.LENGTH_LONG).show();
+                hideDialog();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                // Posting parameters to login url
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("facebookID", id);
+                params.put("facebookName", name);
+
+                return params;
+            }
+        };
+
+        // Adding request to request queue
+        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
     }
 
     // 구글 로그인 처리
