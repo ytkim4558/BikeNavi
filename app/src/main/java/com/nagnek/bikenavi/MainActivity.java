@@ -25,6 +25,8 @@ import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatDrawableManager;
@@ -120,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private SessionManager session; // 로그인했는지 확인용 변수
     private SQLiteHandler db;   // sqlite
     private Animator animator = new Animator();
+    ActionBarDrawerToggle actionBarDrawerToggle;
+    DrawerLayout drawerLayout;
 
     public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
         Drawable drawable = AppCompatDrawableManager.get().getDrawable(context, drawableId);
@@ -159,6 +163,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+        if (toolbar != null) {
+            setSupportActionBar(toolbar);
+            if(getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setDisplayShowHomeEnabled(true);
+                getSupportActionBar().setHomeButtonEnabled(true);
+            }
+            //toolbar.setNavigationIcon(R.drawable.ic_directions_bike_red_24dp);
+            actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.app_name, R.string.app_name);
+            drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        }
+
 
         // SqLite database handler 초기화
         db = new SQLiteHandler(getApplicationContext());
@@ -217,12 +235,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
         alertDialog = builder.create();
         Log.d(TAG, "세팅 버튼 누름");
-
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-            toolbar.setNavigationIcon(R.drawable.ic_directions_bike_red_24dp);
-        }
 
         sourceAndDest = new ArrayList<TMapPoint>();
         pathStopPointList = new ArrayList<LatLng>();

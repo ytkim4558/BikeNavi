@@ -13,8 +13,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="10dp"
-        android:text="이메일 뜨는 곳~"
-        android:textSize="20dp" />
+        android:text="@string/text_email"
+        android:textSize="20sp" />
 
     <Button
         android:id="@+id/btnLogout"
@@ -25,5 +25,5 @@
         android:text="@string/btn_logout"
         android:textAllCaps="false"
         android:textColor="@color/white"
-        android:textSize="15dp" />
+        android:textSize="15sp" />
 </LinearLayout>

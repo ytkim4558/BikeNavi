@@ -13,6 +13,7 @@
     <string name="btn_link_to_register">회원이 아닙니까? 지금 가입하세요.</string>
     <string name="btn_link_to_login">이미 회원이십니까? 로그인하세요! </string>
     <string name="welcome">환영합니다.</string>
+    <string name="text_email">이메일 뜨는 곳</string>
     <string name="btn_logout">로그아웃</string>
     <string name="menu_login">로그인</string>
     <string name="menu_logout">로그아웃</string>
@@ -23,4 +24,9 @@
     <string name="server_client_id">350817727456-nkfgl6mkjvs6lmlhfl7smlegfthup433.apps.googleusercontent.com</string>
     <string name="kakao_app_key">f05a9a9912388ce712ea3590ff8cde24</string>
     <string name="facebook_app_id">1781547618751472</string>
+    <string name="hint_start_point">출발 장소를 입력하세요</string>
+    <string name="hint_destination">도착 장소를 입력하세요</string>
+    <string name="detail_route">상세 경로</string>
+    <string name="descript_map_dummy_view">더미 지도 뷰</string>
+
 </resources>
