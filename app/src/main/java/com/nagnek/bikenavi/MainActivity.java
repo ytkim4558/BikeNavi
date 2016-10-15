@@ -166,13 +166,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 
         if (toolbar != null) {
+            toolbar.setLogo(R.drawable.ic_directions_bike_red_24dp);
             setSupportActionBar(toolbar);
             if(getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setDisplayUseLogoEnabled(true);
                 getSupportActionBar().setDisplayShowHomeEnabled(true);
                 getSupportActionBar().setHomeButtonEnabled(true);
             }
-            //toolbar.setNavigationIcon(R.drawable.ic_directions_bike_red_24dp);
             actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.app_name, R.string.app_name);
             drawerLayout.addDrawerListener(actionBarDrawerToggle);
         }
