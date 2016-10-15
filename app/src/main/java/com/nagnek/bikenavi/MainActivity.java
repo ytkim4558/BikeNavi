@@ -22,6 +22,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.StrictMode;
 import android.os.SystemClock;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
@@ -419,6 +420,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        // Sync the toggle state after onRestoreInstanceState has occured.
+
+    }
+
     void performFindRoute() {
         // 키보드 감추기
         InputMethodManager immhide = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
@@ -632,7 +641,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 double wgs84_y = tMapPoint.getLongitude();
 
                 // start 지점과 도착지점 모두 설정되었으면 경로를 찾는다.
-                if (start_point.getText().toString().equals("") != true && dest_point.getText().toString().equals("") != true) {
+                if (!start_point.getText().toString().equals("") && !dest_point.getText().toString().equals("")) {
                     performFindRoute();
                 } else {
                     Log.d("tag", "좌표위치 " + "Lat:" + wgs84_x + ", Long : " + wgs84_y);
