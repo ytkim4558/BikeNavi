@@ -5,6 +5,7 @@
 package com.nagnek.bikenavi;
 
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
@@ -24,6 +25,7 @@ import android.os.StrictMode;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -33,6 +35,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatDrawableManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,9 +43,7 @@ import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -70,7 +71,6 @@ import com.nagnek.bikenavi.helper.IPManager;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.helper.SessionManager;
 import com.skp.Tmap.TMapData;
-import com.skp.Tmap.TMapMarkerItem;
 import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
 import com.skp.Tmap.TMapPolyLine;
@@ -123,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private SessionManager session; // 로그인했는지 확인용 변수
     private SQLiteHandler db;   // sqlite
     private Animator animator = new Animator();
+    static final int SEARCH_INTEREST_POINT = 1; // 장소 검색 request code
     ActionBarDrawerToggle actionBarDrawerToggle;
     DrawerLayout drawerLayout;
 
@@ -269,16 +270,41 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         end = System.currentTimeMillis();
         Log.d(TAG, "구글맵 로딩 시간 : " + (end - start) / 1000.0);
         start = System.currentTimeMillis();
-        new Handler().post(new Runnable() {
-            @Override
-            public void run() {
-                start_point = (DelayAutoCompleteTextView) findViewById(R.id.start_point);
-                ProgressBar progressBar1 = (ProgressBar) findViewById(R.id.pb_loading_indicator1);
-                setupTmapPOIToGoogleMapAutoCompleteTextView(start_point, progressBar1, "출발");
-                dest_point = (DelayAutoCompleteTextView) findViewById(R.id.dest_point);
 
-                ProgressBar progressBar2 = (ProgressBar) findViewById(R.id.pb_loading_indicator2);
-                setupTmapPOIToGoogleMapAutoCompleteTextView(dest_point, progressBar2, "도착");
+        final TextInputLayout ti_start = (TextInputLayout)findViewById(R.id.ti_start_point);
+        final TextInputLayout ti_dest = (TextInputLayout)findViewById(R.id.ti_dest_point);
+        /**
+         * 출발지나 도착지 입력창을 클릭하면 검색 액티비티로 넘어간다.
+         */
+        start_point = (DelayAutoCompleteTextView) findViewById(R.id.start_point);
+        start_point.setKeyListener(null);
+        start_point.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+                intent.putExtra(getResources().getString(R.string.name_purpose_search_point), "출발");
+                intent.putExtra(getResources().getString(R.string.current_point_text_for_transition), dest_point.getText().toString());
+                // 화면전환 애니메이션을 생성한다. 트랜지션 이름은 양쪽 액티비티에 선언되어야한다.
+                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
+                        Pair.create((View)start_point, start_point.getTransitionName()),
+                        Pair.create((View)ti_start, ti_start.getTransitionName()));
+                startActivityForResult(intent, SEARCH_INTEREST_POINT, options.toBundle());
+            }
+        });
+
+        dest_point = (DelayAutoCompleteTextView) findViewById(R.id.dest_point);
+        dest_point.setKeyListener(null);
+        dest_point.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+                intent.putExtra(getResources().getString(R.string.name_purpose_search_point), "도착");
+                intent.putExtra(getResources().getString(R.string.current_point_text_for_transition), dest_point.getText().toString());
+                // 화면전환 애니메이션을 생성한다. 트랜지션 이름은 양쪽 액티비티에 선언되어야한다.
+                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
+                        Pair.create((View)dest_point, dest_point.getTransitionName()),
+                        Pair.create((View)ti_dest, ti_dest.getTransitionName()));
+                startActivityForResult(intent, SEARCH_INTEREST_POINT, options.toBundle());
             }
         });
 
@@ -616,51 +642,56 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Polyline polyline = mGoogleMap.addPolyline(new PolylineOptions().geodesic(true).color(Color.RED).width(5).addAll(list));
     }
 
-    // final ArrayList 는 new ArrayList() 형태로 새로 ArrayList를 만드는게 안될 뿐 add 나 remove는 가능하다.
-    private void setupTmapPOIToGoogleMapAutoCompleteTextView(final DelayAutoCompleteTextView locationName, final ProgressBar progressBar, final String markerTitle) {
-        locationName.setThreshold(1);
-        locationName.setAdapter(new TMapPOIAutoCompleteAdapter(this));
-        locationName.setLoadingIndicator(progressBar);
-        locationName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+    // 출발지 도착지 설정할때마다 불러옴.
+    // 둘다 설정한 경우는 경로를 탐색하고 한곳만 설정한 경우는 해당 좌표를 표시한다.
+    void reactionSearchResult(double wgs84_x, double wgs84_y, String poiName, String address) {
+        // start 지점과 도착지점 모두 설정되었으면 경로를 찾는다.
+        if (!start_point.getText().toString().equals("") && !dest_point.getText().toString().equals("")) {
+            performFindRoute();
+        } else {
+            Log.d("tag", "좌표위치 " + "Lat:" + wgs84_x + ", Long : " + wgs84_y);
+            LatLng latLng = new LatLng(wgs84_x, wgs84_y);
+            CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(wgs84_x, wgs84_y));
+            Log.d("tag", "좌표위치 가져옴" + "Lat:" + latLng.latitude + ", Long : " + latLng.longitude);
+            CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
 
+            // 카메라 좌표를 검색 지역으로 이동
+            mGoogleMap.moveCamera(center);
 
-                TMapPOIItem tMapPOIItem = (TMapPOIItem) parent.getItemAtPosition(position);
-                locationName.setText(tMapPOIItem.getPOIName());
-                TMapMarkerItem tItem = new TMapMarkerItem();
-                tItem.setTMapPoint(tMapPOIItem.getPOIPoint());
-                tItem.setName(markerTitle);
-
-                TMapPoint tMapPoint = tMapPOIItem.getPOIPoint();
-
-                // 위도를 반환
-                double wgs84_x = tMapPoint.getLatitude();
-
-                // 경도를 반환
-                double wgs84_y = tMapPoint.getLongitude();
-
-                // start 지점과 도착지점 모두 설정되었으면 경로를 찾는다.
-                if (!start_point.getText().toString().equals("") && !dest_point.getText().toString().equals("")) {
-                    performFindRoute();
-                } else {
-                    Log.d("tag", "좌표위치 " + "Lat:" + wgs84_x + ", Long : " + wgs84_y);
-                    LatLng latLng = new LatLng(wgs84_x, wgs84_y);
-                    CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(wgs84_x, wgs84_y));
-                    Log.d("tag", "좌표위치 가져옴" + "Lat:" + latLng.latitude + ", Long : " + latLng.longitude);
-                    CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
-
-                    // 카메라 좌표를 검색 지역으로 이동
-                    mGoogleMap.moveCamera(center);
-
-                    // animateCamera는 근거리에선 부드럽게 변경한다.
-                    if (mGoogleMap != null) {
-                        mGoogleMap.animateCamera(zoom);
-                        mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(wgs84_x, wgs84_y)).title(tMapPOIItem.getPOIName()).snippet(tMapPOIItem.getPOIAddress().replace("null", "")));
-                    }
-                }
+            // animateCamera는 근거리에선 부드럽게 변경한다.
+            if (mGoogleMap != null) {
+                mGoogleMap.animateCamera(zoom);
+                mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(wgs84_x, wgs84_y)).title(poiName).snippet(address));
             }
-        });
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "onActivityResult ");
+        if (requestCode == SEARCH_INTEREST_POINT) { // 장소검색 요청한게 돌아온 경우
+            Log.d(TAG, "SEARCH_INTEREST_POINT");
+            if (resultCode == RESULT_OK) {// 장소 검색 결과 리턴
+                String purposePoint = data.getStringExtra(getStringFromResources(R.string.name_purpose_search_point));
+                Log.d(TAG, "장소입력한 곳은? "  + purposePoint);
+                String selectPoint = data.getStringExtra(getStringFromResources(R.string.select_poi_name_for_transition));
+                String address = data.getStringExtra(getStringFromResources(R.string.select_poi_address_for_transition));
+                if(purposePoint.equals("출발")) {
+                    start_point.setText(selectPoint);
+                } else if(purposePoint.equals("도착")){
+                    dest_point.setText(selectPoint);
+                } else {
+                    Log.d(TAG, "purposePoint에 값이 없나? 아님 이상한가?");
+                }
+                double wgs84_x = data.getDoubleExtra(getStringFromResources(R.string.wgs_84_x), 0.0);
+                double wgs84_y = data.getDoubleExtra(getStringFromResources(R.string.wgs_84_y), 0.0);
+                reactionSearchResult(wgs84_x, wgs84_y, selectPoint, address);
+            }
+        }
+    }
+
+    private String getStringFromResources(final int id) {
+        return getResources().getString(id);
     }
 
     @Override
