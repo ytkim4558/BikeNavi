@@ -5,8 +5,10 @@
 package com.nagnek.bikenavi.kakao;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
@@ -20,6 +22,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.kakao.auth.ErrorCode;
+import com.kakao.kakaotalk.KakaoTalkService;
+import com.kakao.kakaotalk.callback.TalkResponseCallback;
+import com.kakao.kakaotalk.response.KakaoTalkProfile;
 import com.kakao.network.ErrorResult;
 import com.kakao.usermgmt.UserManagement;
 import com.kakao.usermgmt.callback.MeResponseCallback;
@@ -44,6 +49,7 @@ public class KakaoSignupActivity extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private SQLiteHandler db;
     private SessionManager session;
+    private String kakaoTalkNickname;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,17 +67,16 @@ public class KakaoSignupActivity extends AppCompatActivity {
         session = new SessionManager(getApplicationContext());
 
         Log.d(TAG, "kakao signup");
-        requestMe();
+
+        requestProfile();
     }
 
-    /**
-     * 사용자의 상태를 알아보기 위해 me API 호출을 한다.
-     */
-    protected void requestMe() { // 유저의 정보를 받아오는 함수
-        UserManagement.requestMe(new MeResponseCallback() {
+    public void requestProfile() {
+        KakaoTalkService.requestProfile(new TalkResponseCallback<KakaoTalkProfile>() {
             @Override
             public void onSessionClosed(ErrorResult errorResult) {
                 hideDialog();
+                showAlertDialogMessage("카카오톡 세션이 닫혔습니다.");
                 Log.d(TAG, errorResult.toString());
                 redirectLoginActivity();
             }
@@ -79,6 +84,58 @@ public class KakaoSignupActivity extends AppCompatActivity {
             @Override
             public void onNotSignedUp() {
                 hideDialog();
+                showAlertDialogMessage("카카오톡 회원이 아닙니다. 가입부터 하고 오세요");
+                // 카카오톡 회원이 아닐 시 showSignup(); 호출해야함.
+            }
+
+            @Override
+            public void onNotKakaoTalkUser() {
+                hideDialog();
+                Log.d(TAG, "카카오톡 유저 아님 버그");
+            }
+
+            @Override
+            public void onSuccess(KakaoTalkProfile result) {
+                final String nickName = result.getNickName();
+//                final String profileImageURL = result.getProfileImageUrl();
+//                final String thumbnailURL = result.getThumbnailUrl();
+//                final String countryISO = result.getCountryISO();
+                String message = "KakaoTalkProfile : " + result;
+                Logger.d("KakaoTalkProfile : " + result);
+                kakaoTalkNickname = nickName;
+                Log.d(TAG, message);
+                requestMe();
+            }
+        });
+    }
+
+    void showAlertDialogMessage(String message) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(KakaoSignupActivity.this);
+        alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();   // 닫기
+            }
+        });
+        alert.setMessage(message);
+    }
+    /**
+     * 사용자의 상태를 알아보기 위해 me API 호출을 한다.
+     */
+    protected void requestMe() { // 유저의 정보를 받아오는 함수 result.getNickname으로 받아오면 가입당시의 닉네임만 받아옴.
+        UserManagement.requestMe(new MeResponseCallback() {
+            @Override
+            public void onSessionClosed(ErrorResult errorResult) {
+                hideDialog();
+                showAlertDialogMessage("카카오톡 세션이 닫혔습니다.");
+                Log.d(TAG, errorResult.toString());
+                redirectLoginActivity();
+            }
+
+            @Override
+            public void onNotSignedUp() {
+                hideDialog();
+                showAlertDialogMessage("회원이 아닙니다.");
                 // 카카오톡 회원이 아닐 시 showSignup(); 호출해야함.
             }
 
@@ -91,7 +148,7 @@ public class KakaoSignupActivity extends AppCompatActivity {
 
                 Log.d("test", "로그인 성공");
 
-                registerKakaoUser(result.getNickname(), String.valueOf(result.getId()));
+                registerKakaoUser(kakaoTalkNickname, String.valueOf(result.getId()));
             }
 
             @Override
@@ -100,6 +157,7 @@ public class KakaoSignupActivity extends AppCompatActivity {
                 String message = "failured to get user info. msg=" + errorResult;
                 Toast.makeText(KakaoSignupActivity.this, message, Toast.LENGTH_LONG);
                 Logger.d(message);
+                showAlertDialogMessage(message);
 
                 ErrorCode result = ErrorCode.valueOf(errorResult.getErrorCode());
                 if (result == ErrorCode.CLIENT_ERROR_CODE) {
