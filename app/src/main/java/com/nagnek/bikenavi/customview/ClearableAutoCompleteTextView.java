@@ -90,9 +90,7 @@ public class ClearableAutoCompleteTextView extends AppCompatAutoCompleteTextView
 
     @Override
     public final void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
-        if (isFocused()) {
-            setClearIconVisible(s.length() > 0);
-        }
+        setClearIconVisible(s.length() > 0);
     }
 
     @Override
@@ -106,7 +104,9 @@ public class ClearableAutoCompleteTextView extends AppCompatAutoCompleteTextView
     }
 
     private void setClearIconVisible(boolean visible) {
-        clearDrawable.setVisible(visible, false);
-        setCompoundDrawables(null, null, visible ? clearDrawable : null, null);
+        if(clearDrawable != null) {
+            clearDrawable.setVisible(visible, false);
+            setCompoundDrawables(null, null, visible ? clearDrawable : null, null);
+        }
     }
 }

@@ -280,13 +280,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         start_point.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, SearchActivity.class);
-                intent.putExtra(getResources().getString(R.string.name_purpose_search_point), "출발");
-                intent.putExtra(getResources().getString(R.string.current_point_text_for_transition), start_point.getText().toString());
-                // 화면전환 애니메이션을 생성한다. 트랜지션 이름은 양쪽 액티비티에 선언되어야한다.
-                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
-                        start_point, start_point.getTransitionName());
-                startActivityForResult(intent, SEARCH_INTEREST_POINT, options.toBundle());
+                // Performing stop of activity that is not resumed: {com.nagnek.bikenavi/com.nagnek.bikenavi.MainActivity} 에러 방지
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+                        intent.putExtra(getResources().getString(R.string.name_purpose_search_point), "출발");
+                        intent.putExtra(getResources().getString(R.string.current_point_text_for_transition), start_point.getText().toString());
+                        // 화면전환 애니메이션을 생성한다. 트랜지션 이름은 양쪽 액티비티에 선언되어야한다.
+                        ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
+                                start_point, start_point.getTransitionName());
+                        startActivityForResult(intent, SEARCH_INTEREST_POINT, options.toBundle());
+                    }
+                }, 300);
             }
         });
 
@@ -295,13 +301,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         dest_point.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, SearchActivity.class);
-                intent.putExtra(getResources().getString(R.string.name_purpose_search_point), "도착");
-                intent.putExtra(getResources().getString(R.string.current_point_text_for_transition), dest_point.getText().toString());
-                // 화면전환 애니메이션을 생성한다. 트랜지션 이름은 양쪽 액티비티에 선언되어야한다.
-                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
-                        dest_point, dest_point.getTransitionName());
-                startActivityForResult(intent, SEARCH_INTEREST_POINT, options.toBundle());
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+                        intent.putExtra(getResources().getString(R.string.name_purpose_search_point), "도착");
+                        intent.putExtra(getResources().getString(R.string.current_point_text_for_transition), dest_point.getText().toString());
+                        // 화면전환 애니메이션을 생성한다. 트랜지션 이름은 양쪽 액티비티에 선언되어야한다.
+                        ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
+                                dest_point, dest_point.getTransitionName());
+                        startActivityForResult(intent, SEARCH_INTEREST_POINT, options.toBundle());
+                    }
+                }, 300);
             }
         });
 
