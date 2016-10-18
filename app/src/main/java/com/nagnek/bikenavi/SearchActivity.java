@@ -36,6 +36,7 @@ public class SearchActivity extends AppCompatActivity {
         if(intent != null) {
             String locationText = intent.getStringExtra(getStringFromResources(R.string.current_point_text_for_transition));
             searchPoint.setText(locationText);
+            searchPoint.setSelection(searchPoint.length()); // 커서를 마지막 위치로 넣음
             String search_purpose = intent.getStringExtra(getStringFromResources(R.string.name_purpose_search_point));
             if(search_purpose.equals("출발")) {
                 textInputLayout.setHint(getStringFromResources(R.string.hint_start_point));
