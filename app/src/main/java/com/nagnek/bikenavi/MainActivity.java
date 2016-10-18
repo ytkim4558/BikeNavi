@@ -35,7 +35,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatDrawableManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -283,11 +282,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, SearchActivity.class);
                 intent.putExtra(getResources().getString(R.string.name_purpose_search_point), "출발");
-                intent.putExtra(getResources().getString(R.string.current_point_text_for_transition), dest_point.getText().toString());
+                intent.putExtra(getResources().getString(R.string.current_point_text_for_transition), start_point.getText().toString());
                 // 화면전환 애니메이션을 생성한다. 트랜지션 이름은 양쪽 액티비티에 선언되어야한다.
                 ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
-                        Pair.create((View)start_point, start_point.getTransitionName()),
-                        Pair.create((View)ti_start, ti_start.getTransitionName()));
+                        start_point, start_point.getTransitionName());
                 startActivityForResult(intent, SEARCH_INTEREST_POINT, options.toBundle());
             }
         });
@@ -302,8 +300,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 intent.putExtra(getResources().getString(R.string.current_point_text_for_transition), dest_point.getText().toString());
                 // 화면전환 애니메이션을 생성한다. 트랜지션 이름은 양쪽 액티비티에 선언되어야한다.
                 ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
-                        Pair.create((View)dest_point, dest_point.getTransitionName()),
-                        Pair.create((View)ti_dest, ti_dest.getTransitionName()));
+                        dest_point, dest_point.getTransitionName());
                 startActivityForResult(intent, SEARCH_INTEREST_POINT, options.toBundle());
             }
         });

@@ -41,8 +41,7 @@
                 <android.support.design.widget.TextInputLayout
                     android:id="@+id/ti_start_point"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:transitionName="@string/TextInputlayout_transition_name">
+                    android:layout_height="wrap_content">
                     <!--flagNoExtractUtil : 입력창이 전체화면으로 가려지는것을 막음-->
                     <!--actionSearch : 키보드의 엔터가 검색으로 글자가 바뀜-->
                     <com.nagnek.bikenavi.customview.DelayAutoCompleteTextView
@@ -78,8 +77,7 @@
                 <android.support.design.widget.TextInputLayout
                     android:id="@+id/ti_dest_point"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:transitionName="@string/TextInputlayout_transition_name">
+                    android:layout_height="wrap_content">
 
                     <com.nagnek.bikenavi.customview.DelayAutoCompleteTextView
                         android:id="@+id/dest_point"

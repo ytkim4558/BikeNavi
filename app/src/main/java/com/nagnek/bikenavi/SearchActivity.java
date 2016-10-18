@@ -6,6 +6,7 @@ package com.nagnek.bikenavi;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -20,13 +21,15 @@ import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
 
 public class SearchActivity extends AppCompatActivity {
-
+    private static final String TAG = SearchActivity.class.getSimpleName();
     DelayAutoCompleteTextView searchPoint = null;
+    TextInputLayout textInputLayout = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         searchPoint = (DelayAutoCompleteTextView) findViewById(R.id.search_point);
+        textInputLayout = (TextInputLayout) findViewById(R.id.ti_layout);
         ProgressBar progressBar1 = (ProgressBar) findViewById(R.id.pb_loading_indicator1);
 
         Intent intent = getIntent();
@@ -35,9 +38,9 @@ public class SearchActivity extends AppCompatActivity {
             searchPoint.setText(locationText);
             String search_purpose = intent.getStringExtra(getStringFromResources(R.string.name_purpose_search_point));
             if(search_purpose.equals("출발")) {
-                searchPoint.setHint(getStringFromResources(R.string.hint_start_point));
+                textInputLayout.setHint(getStringFromResources(R.string.hint_start_point));
             } else if(search_purpose.equals("도착")) {
-                searchPoint.setHint(getStringFromResources(R.string.hint_destination));
+                textInputLayout.setHint(getStringFromResources(R.string.hint_destination));
             }
             setupTmapPOIToGoogleMapAutoCompleteTextView(searchPoint, progressBar1, search_purpose);
         }
@@ -79,9 +82,16 @@ public class SearchActivity extends AppCompatActivity {
                 intent.putExtra(getStringFromResources(R.string.wgs_84_y), wgs84_y);
                 intent.putExtra(getStringFromResources(R.string.name_purpose_search_point), searchPurpose);
                 setResult(RESULT_OK, intent);
+                textInputLayout.setHint(null);
                 finishAfterTransition();
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        textInputLayout.setHint(null);
+        super.onBackPressed();
     }
 
     private String getStringFromResources(final int id) {

@@ -32,7 +32,6 @@
     <string name="select_poi_address_for_transition">선택한 장소 주소</string>
     <string name="wgs_84_x">위도</string>
     <string name="wgs_84_y">경도</string>
-    <string name="TextInputlayout_transition_name">텍스트뷰레이아웃화면전환</string>
     <string name="searchview_transition_name">장소검색창전환</string>
 
     <!--지도 액티비티에 필요한 변수-->
