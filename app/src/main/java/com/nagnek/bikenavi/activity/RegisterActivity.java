@@ -92,7 +92,6 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister = (Button) findViewById(R.id.btnRegister);
         btnLinkToLogin = (Button) findViewById(R.id.btnLinkToLoginScreen);
 
-
         /**
          * textinputlayout 에러메시지 사용
          */

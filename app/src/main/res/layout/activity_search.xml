@@ -4,6 +4,7 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_search"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -12,7 +13,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.nagnek.bikenavi.SearchActivity"
-    android:orientation="horizontal">
+    android:orientation="vertical">
 
     <FrameLayout
         android:id="@+id/point_search_frame_layout"
@@ -45,4 +46,31 @@
             android:layout_marginEnd="10dp"
             android:visibility="gone" />
     </FrameLayout>
+
+    <android.support.design.widget.TabLayout
+        android:id="@+id/tab_layout"
+        app:tabMode="fixed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="6dp"
+        app:tabTextColor="#d3d3d3"
+        app:tabSelectedTextColor="#ffffff"
+        app:tabIndicatorColor="#ff00ff"
+        android:minHeight="?attr/actionBarSize"
+        />
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+    </android.support.v4.view.ViewPager>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recent_search_poi_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </android.support.v7.widget.RecyclerView>
 </LinearLayout>
