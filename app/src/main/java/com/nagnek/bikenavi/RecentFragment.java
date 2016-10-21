@@ -32,7 +32,7 @@ public class RecentFragment extends Fragment {
 
         RecyclerView rv = (RecyclerView) rootView.findViewById(R.id.recenet_search_poi_recyclerView);
         rv.setHasFixedSize(true);
-        RecentPOIAdapter adapter = new RecentPOIAdapter(new String[]{"test one", "test two", "test three", "test four", "test five" , "test six" , "test seven"});
+        RecentPOIListAdapter adapter = new RecentPOIListAdapter(new String[]{"test one", "test two", "test three", "test four", "test five" , "test six" , "test seven"});
         rv.setAdapter(adapter);
 
         LinearLayoutManager llm = new LinearLayoutManager(getActivity());

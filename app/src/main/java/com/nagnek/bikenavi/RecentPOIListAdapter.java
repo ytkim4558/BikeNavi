@@ -16,42 +16,42 @@ import android.widget.TextView;
  * 최근 장소 어댑터
  */
 
-public class RecentPOIAdapter extends RecyclerView.Adapter<RecentPOIAdapter.RecentPOIViewHolder> {
+public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdapter.RecentPOIListViewHolder> {
     private String[] mDataset;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
-    public static class RecentPOIViewHolder extends RecyclerView.ViewHolder {
+    public static class RecentPOIListViewHolder extends RecyclerView.ViewHolder {
         public CardView mCardView;
         public TextView mTextView;
-        public RecentPOIViewHolder(View v) {
+        public RecentPOIListViewHolder(View v) {
             super(v);
 
             mCardView = (CardView) v.findViewById(R.id.card_view);
-            mTextView = (TextView) v.findViewById(R.id.text_view);
+            mTextView = (TextView) v.findViewById(R.id.text_poi_name);
         }
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public RecentPOIAdapter(String[] myDataset) {
+    public RecentPOIListAdapter(String[] myDataset) {
         mDataset = myDataset;
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public RecentPOIAdapter.RecentPOIViewHolder onCreateViewHolder(ViewGroup parent,
-                                                     int viewType) {
+    public RecentPOIListViewHolder onCreateViewHolder(ViewGroup parent,
+                                                      int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.card_item, parent, false);
         // set the view's size, margins, paddings and layout parameters
-        RecentPOIViewHolder vh = new RecentPOIViewHolder(v);
+        RecentPOIListViewHolder vh = new RecentPOIListViewHolder(v);
         return vh;
     }
 
     @Override
-    public void onBindViewHolder(RecentPOIViewHolder holder, int position) {
+    public void onBindViewHolder(RecentPOIListViewHolder holder, int position) {
         holder.mTextView.setText(mDataset[position]);
     }
 
