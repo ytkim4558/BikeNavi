@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 /**
  * Created by user on 2016-10-21.
+ * 최근 장소 어댑터
  */
 
 public class RecentPOIAdapter extends RecyclerView.Adapter<RecentPOIAdapter.RecentPOIViewHolder> {

@@ -7,9 +7,12 @@ package com.nagnek.bikenavi.helper;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import com.nagnek.bikenavi.POI;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -47,7 +50,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     private static final String TABLE_TRACK = "TRACK";
 
     // 로그인시 통합되는 track table name 경로 로그 저장용 테이블
-    private static final String TABLE_TEMp_TRACK = "TEMP_TRACK";
+    private static final String TABLE_TEMP_TRACK = "TEMP_TRACK";
 
     // poi 즐겨찾기용 table name
     private static final String TABLE_BOOKMARK_POI = "BOOKMARK_POI";
@@ -83,7 +86,18 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     // Ip table Columns names
     private static final String KEY_IP = "ip";
 
-    public SQLiteHandler(Context context) {
+    private static SQLiteHandler mSqliteHandler;
+
+    public static synchronized SQLiteHandler getInstance(Context context) {
+        // application Context를 사용한다, 이것은 액티비티의 context를 뜻하지 않게 leak 되지 않게 한다.
+
+        if (mSqliteHandler == null) {
+            mSqliteHandler = new SQLiteHandler(context.getApplicationContext());
+        }
+        return mSqliteHandler;
+    }
+
+    private SQLiteHandler(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -154,7 +168,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         Log.d(TAG, "temp poi tables created");
 
         // 유저 로그인시 임시 경로 테이블 (로그아웃 하면 삭제됨)
-        String CREATE_TEMP_TRACK_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_TEMp_TRACK + "("
+        String CREATE_TEMP_TRACK_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_TEMP_TRACK + "("
                 + KEY_ID + " INTEGER PRIMARY KEY,"
                 + KEY_START_POI_NAME + " TEXT,"
                 + KEY_START_POI_LAT_LNG + " TEXT,"
@@ -172,12 +186,26 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Drop older table if existed
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER);
+        if (oldVersion != newVersion) {
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER);
 
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_IP);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_IP);
 
-        // Create tables again
-        onCreate(db);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_POI);
+
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRACK);
+
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_BOOKMARK_POI);
+
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_BOOKMARK_TRACK);
+
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_TEMP_POI);
+
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_TEMP_TRACK);
+
+            // Create tables again
+            onCreate(db);
+        }
     }
 
     /**
@@ -417,13 +445,13 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     /**
      * Storing poi detailes in database
      */
-    public void addPOI(String poiName, String poiLatLng) {
-        if (!checkIfIPExists(poiLatLng)) {
+    public void addPOI(POI poi) {
+        if (!checkIfPOIExists(poi.latLng)) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues values = new ContentValues();
-            values.put(KEY_POI_NAME, poiName); // 장소이름
-            Log.d(TAG, "values.put poiName : " + poiName);
+            values.put(KEY_POI_NAME, poi.name); // 장소이름
+            Log.d(TAG, "values.put poiName : " + poi.name);
 
             String created_at = getDateTime();
             values.put(KEY_CREATED_AT, created_at); // created_at
@@ -441,7 +469,82 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
             Log.d(TAG, "New poi inserted into sqlite: " + id);
         } else {
-            Log.d(TAG, "poiLatLng already existed in sqlite: " + poiLatLng);
+            Log.d(TAG, "poiLatLng already existed in sqlite: " + poi.latLng);
+        }
+    }
+
+    public boolean checkIfPOIExists(String latLng) {
+        return checkIfExists(KEY_ID, TABLE_POI, KEY_POI_LAT_LNG, latLng);
+    }
+
+    // 사용한 시각 업데이트 (좌표)
+    public void updateLastUsedAtPOI(String latLng) {
+        if (checkIfPOIExists(latLng)) {
+            SQLiteDatabase db = this.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+
+            String last_used_at = getDateTime();
+
+            values.put(KEY_LAST_USED_AT, last_used_at);
+            Log.d(TAG, "values.put last_used_at: " + last_used_at);
+
+            // Inserting Row
+            long id = db.update(TABLE_POI, values, KEY_POI_LAT_LNG+"="+latLng, null);
+            db.close(); // Closing database connection
+
+            Log.d(TAG, "New poi update on sqlite: " + id);
+        } else {
+            Log.d(TAG, "poiLatLng not existed in sqlite: " + latLng);
+        }
+    }
+
+    // 사용한 시각 내림차순으로 정렬됨.
+    public List<POI> getAllPOI() {
+
+        List<POI> poiDetails = new ArrayList<>();
+
+        String POI_DETAIL_SELECT_QUERY_ORDER_BY_LAST_USED_AT =
+                "SELECT * FROM " + TABLE_POI + " ORDER BY " + KEY_LAST_USED_AT + " DESC";
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(POI_DETAIL_SELECT_QUERY_ORDER_BY_LAST_USED_AT, null);
+
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    POI poi = new POI();
+                    poi.name = cursor.getString(cursor.getColumnIndex(KEY_POI_NAME));
+                    poi.latLng = cursor.getString(cursor.getColumnIndex(KEY_POI_LAT_LNG));
+
+                    poiDetails.add(poi);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.d (TAG, "Error while trying to get posts from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return poiDetails;
+    }
+
+    /**
+     * poi 정보 삭제
+     */
+    void deletePOIRow(String latLng) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        try {
+            db.beginTransaction();
+            db.execSQL("delete from " + TABLE_POI + " where " + KEY_POI_LAT_LNG + " ='" + latLng + "'");
+            db.setTransactionSuccessful();
+        } catch (SQLException e) {
+            Log.d(TAG, "Error while tryign to delete user detail");
+        } finally {
+            db.endTransaction();
         }
     }
 

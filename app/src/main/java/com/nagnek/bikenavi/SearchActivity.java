@@ -90,7 +90,7 @@ public class SearchActivity extends AppCompatActivity {
 
         session = new SessionManager(getApplicationContext());
         // SqLite database handler 초기화
-        db = new SQLiteHandler(getApplicationContext());
+        db = SQLiteHandler.getInstance(this);
 
         // ProgressDialog
         progressDialog = new ProgressDialog(this);

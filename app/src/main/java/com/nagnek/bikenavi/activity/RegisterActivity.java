@@ -110,7 +110,7 @@ public class RegisterActivity extends AppCompatActivity {
         sessionManager = new SessionManager(getApplicationContext());
 
         // SQLite database handler
-        db = new SQLiteHandler(getApplicationContext());
+        db = SQLiteHandler.getInstance(this);
 
         // Check if user is already logged in or not
         if (sessionManager.isLoggedIn()) {

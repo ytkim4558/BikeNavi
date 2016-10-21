@@ -61,7 +61,7 @@ public class KakaoSignupActivity extends AppCompatActivity {
         showDialog();
 
         // SQLite database handler
-        db = new SQLiteHandler(getApplicationContext());
+        db = SQLiteHandler.getInstance(this);
 
         // Session manager
         session = new SessionManager(getApplicationContext());

@@ -117,7 +117,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 //        }
 
         // SQLite database handler
-        db = new SQLiteHandler(getApplicationContext());
+        db = SQLiteHandler.getInstance(this);
 
         // Session manager
         session = new SessionManager(getApplicationContext());
