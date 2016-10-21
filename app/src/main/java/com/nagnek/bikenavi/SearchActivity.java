@@ -181,8 +181,12 @@ public class SearchActivity extends AppCompatActivity {
                 intent.putExtra(getStringFromResources(R.string.wgs_84_y), wgs84_y);
                 intent.putExtra(getStringFromResources(R.string.name_purpose_search_point), searchPurpose);
                 setResult(RESULT_OK, intent);
-                registerPOI(poiName, wgs84_x, wgs84_y);
+                //registerPOI(poiName, wgs84_x, wgs84_y);
+
                 textInputLayout.setHint(null);
+
+                // 메인 엑티비티로 돌아가기
+                finishAfterTransition();
             }
         });
     }
