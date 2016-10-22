@@ -74,12 +74,15 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
     // Poi Table Columns names (즐겨찾기 포함)
     public static final String KEY_POI_NAME = "poiName"; // 장소 이름
+    public static final String KEY_POI_ADDRESS = "poiAddress"; // 장소 이름
     public static final String KEY_POI_LAT_LNG = "poiLatLng";   // 장소 좌표
 
     // Track Table Columns names 경로 테이블
     public static final String KEY_START_POI_NAME = "start_poi_name"; // 출발 장소 이름
+    public static final String KEY_START_POI_ADDRESS = "start_poi_address"; // 출발 장소 주소
     public static final String KEY_START_POI_LAT_LNG = "start_poi_lat_lng"; // 출발 장소 좌표
     public static final String KEY_DEST_POI_NAME = "dest_poi_name"; // 도착 장소 이름
+    public static final String KEY_DEST_POI_ADDRESS = "dest_poi_address"; // 도착 장소 주소
     public static final String KEY_DEST_POI_LAT_LNG = "dest_poi_lat_lng"; // 도착 장소 좌표
 
 
@@ -132,6 +135,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         String CREATE_POI_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_POI + "("
                 + KEY_ID + " INTEGER PRIMARY KEY,"
                 + KEY_POI_NAME + " TEXT,"
+                + KEY_POI_ADDRESS + " TEXT,"
                 + KEY_POI_LAT_LNG + " TEXT UNIQUE,"
                 + KEY_CREATED_AT + " TEXT,"
                 + KEY_UPDATED_AT + " TEXT,"
@@ -145,8 +149,10 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         String CREATE_TRACK_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_TRACK + "("
                 + KEY_ID + " INTEGER PRIMARY KEY,"
                 + KEY_START_POI_NAME + " TEXT,"
+                + KEY_START_POI_ADDRESS + " TEXT,"
                 + KEY_START_POI_LAT_LNG + " TEXT,"
                 + KEY_DEST_POI_NAME + " TEXT,"
+                + KEY_DEST_POI_ADDRESS + " TEXT,"
                 + KEY_DEST_POI_LAT_LNG + " TEXT,"
                 + KEY_CREATED_AT + " TEXT,"
                 + KEY_UPDATED_AT + " TEXT,"
@@ -160,6 +166,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         String CREATE_TEMP_POI_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_TEMP_POI + "("
                 + KEY_ID + " INTEGER PRIMARY KEY,"
                 + KEY_POI_NAME + " TEXT,"
+                + KEY_POI_ADDRESS + " TEXT,"
                 + KEY_POI_LAT_LNG + " TEXT UNIQUE,"
                 + KEY_CREATED_AT + " TEXT,"
                 + KEY_UPDATED_AT + " TEXT,"
@@ -171,8 +178,10 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         String CREATE_TEMP_TRACK_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_TEMP_TRACK + "("
                 + KEY_ID + " INTEGER PRIMARY KEY,"
                 + KEY_START_POI_NAME + " TEXT,"
+                + KEY_START_POI_ADDRESS + " TEXT,"
                 + KEY_START_POI_LAT_LNG + " TEXT,"
                 + KEY_DEST_POI_NAME + " TEXT,"
+                + KEY_DEST_POI_ADDRESS + " TEXT,"
                 + KEY_DEST_POI_LAT_LNG + " TEXT,"
                 + KEY_CREATED_AT + " TEXT,"
                 + KEY_UPDATED_AT + " TEXT,"
@@ -453,7 +462,10 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             values.put(KEY_POI_NAME, poi.name); // 장소이름
             Log.d(TAG, "values.put poiName : " + poi.name);
 
-            values.put(KEY_POI_LAT_LNG, poi.latLng); // 장소이름
+            values.put(KEY_POI_ADDRESS, poi.address); // 장소주소
+            Log.d(TAG, "values.put poiName : " + poi.address);
+
+            values.put(KEY_POI_LAT_LNG, poi.latLng); // 장소좌표
             Log.d(TAG, "values.put poiLatLng : " + poi.latLng);
 
             String created_at = getDateTime();
@@ -492,8 +504,8 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             values.put(KEY_LAST_USED_AT, last_used_at);
             Log.d(TAG, "values.put last_used_at: " + last_used_at);
 
-            // Inserting Row
-            long id = db.update(TABLE_POI, values, KEY_POI_LAT_LNG+"="+latLng, null);
+            // Updating Row
+            long id = db.update(TABLE_POI, values, KEY_POI_LAT_LNG+" = '"+latLng + "'", null);
             db.close(); // Closing database connection
 
             Log.d(TAG, "New poi update on sqlite: " + id);
@@ -518,6 +530,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                 do {
                     POI poi = new POI();
                     poi.name = cursor.getString(cursor.getColumnIndex(KEY_POI_NAME));
+                    poi.address = cursor.getString(cursor.getColumnIndex(KEY_POI_ADDRESS));
                     poi.latLng = cursor.getString(cursor.getColumnIndex(KEY_POI_LAT_LNG));
 
                     poiDetails.add(poi);

@@ -33,12 +33,14 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
         ImageView iv_delete;
         CardView card_view;
         TextView poi_name; //poiName
+        TextView poi_address; //poiAddress
 
         public RecentPOIListViewHolder(View v) {
             super(v);
 
             card_view = (CardView) v.findViewById(R.id.card_view);
             poi_name = (TextView) v.findViewById(R.id.text_poi_name);
+            poi_address = (TextView) v.findViewById(R.id.text_poi_address);
             iv_delete = (ImageView) v.findViewById(R.id.iv_delete);
         }
     }
@@ -80,16 +82,26 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
 
         holder.iv_delete.setTag(position);
         holder.poi_name.setText(recentPOIList.get(position).name);
+        holder.poi_address.setText(recentPOIList.get(position).address);
+        holder.itemView.setTag(position);
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int select_position = (Integer)v.getTag();
+                listener.poiClickToSet(recentPOIList.get(select_position));
+            }
+        });
 
         holder.iv_delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                listener.latLngToDelete(recentPOIList.get((Integer)v.getTag()).latLng);
-                recentPOIList.remove(position);
-                notifyItemRemoved(position);
+                int delete_position = (Integer)v.getTag();
+                listener.latLngToDelete(recentPOIList.get(delete_position).latLng);
+                recentPOIList.remove(delete_position);
+                notifyItemRemoved(delete_position);
                 //this line below gives you the animation and also updates the
                 //list items after the deleted item
-                notifyItemRangeChanged(position, getItemCount());
+                notifyItemRangeChanged(delete_position, getItemCount());
             }
         });
     }

@@ -16,6 +16,12 @@ import android.view.ViewGroup;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 
 public class RecentFragment extends Fragment implements Listener{
+    OnPoiSelectedListener mCallback;
+
+    // 액티비티는 항상 이 인터페이스를 구현 해야한다
+    public interface  OnPoiSelectedListener {
+        void onRecentPOISelected(POI poi);
+    }
 
     private static final String TAG = RecentFragment.class.getSimpleName();
 
@@ -49,6 +55,12 @@ public class RecentFragment extends Fragment implements Listener{
         LinearLayoutManager llm = new LinearLayoutManager(getActivity().getApplicationContext());
         rv.setLayoutManager(llm);
 
+        try {
+            mCallback = (OnPoiSelectedListener) getActivity();
+        } catch (ClassCastException e) {
+            throw new ClassCastException(getActivity().toString() + "must implement OnPoiSelectedListener");
+        }
+
         return rootView;
     }
 
@@ -56,5 +68,10 @@ public class RecentFragment extends Fragment implements Listener{
     public void latLngToDelete(String latLng) {
         db.deletePOIRow(latLng);
         Log.d(TAG, "latLng : " + latLng);
+    }
+
+    @Override
+    public void poiClickToSet(POI poi) {
+        mCallback.onRecentPOISelected(poi);
     }
 }

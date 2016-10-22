@@ -45,13 +45,40 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SearchActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity implements RecentFragment.OnPoiSelectedListener {
     private static final String TAG = SearchActivity.class.getSimpleName();
     DelayAutoCompleteTextView searchPoint = null;
     TextInputLayout textInputLayout = null;
     private ProgressDialog progressDialog;
     private SessionManager session; // 로그인했는지 확인용 변수
     private SQLiteHandler db;   // sqlite
+    String search_purpose;
+
+    @Override
+    public void onRecentPOISelected(POI poi) {
+        if(db != null) {
+            db.updateLastUsedAtPOI(poi.latLng);
+            searchPoint.setText(poi.name);
+            Intent intent = new Intent();
+            intent.putExtra(getStringFromResources(R.string.current_point_text_for_transition), searchPoint.getText().toString());
+            intent.putExtra(getStringFromResources(R.string.select_poi_address_for_transition), poi.address);
+            intent.putExtra(getStringFromResources(R.string.select_poi_name_for_transition), poi.name);
+            String[] splitStr = poi.latLng.split(",");
+            Double wgs84_x = Double.parseDouble(splitStr[0]);
+            Double wgs84_y = Double.parseDouble(splitStr[1]);
+            intent.putExtra(getStringFromResources(R.string.wgs_84_x), wgs84_x);
+            intent.putExtra(getStringFromResources(R.string.wgs_84_y), wgs84_y);
+            intent.putExtra(getStringFromResources(R.string.name_purpose_search_point), search_purpose);
+            setResult(RESULT_OK, intent);
+            //registerPOI(poiName, wgs84_x, wgs84_y);
+
+            textInputLayout.setHint(null);
+
+            // 메인 엑티비티로 돌아가기
+            finishAfterTransition();
+        }
+    }
+
     enum UserType{
         GOOGLE,
         KAKAO,
@@ -101,7 +128,7 @@ public class SearchActivity extends AppCompatActivity {
             String locationText = intent.getStringExtra(getStringFromResources(R.string.current_point_text_for_transition));
             searchPoint.setText(locationText);
             searchPoint.setSelection(searchPoint.length()); // 커서를 마지막 위치로 넣음
-            String search_purpose = intent.getStringExtra(getStringFromResources(R.string.name_purpose_search_point));
+            search_purpose = intent.getStringExtra(getStringFromResources(R.string.name_purpose_search_point));
             if(search_purpose.equals("출발")) {
                 textInputLayout.setHint(getStringFromResources(R.string.hint_start_point));
             } else if(search_purpose.equals("도착")) {
@@ -175,6 +202,7 @@ public class SearchActivity extends AppCompatActivity {
 
                 POI poi = new POI();
                 poi.name = poiName;
+                poi.address = address;
                 poi.latLng = "" + wgs84_x + "," + wgs84_y;
                 db.addPOI(poi);
 
