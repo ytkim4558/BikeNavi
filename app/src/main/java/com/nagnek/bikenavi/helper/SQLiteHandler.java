@@ -532,6 +532,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                     poi.name = cursor.getString(cursor.getColumnIndex(KEY_POI_NAME));
                     poi.address = cursor.getString(cursor.getColumnIndex(KEY_POI_ADDRESS));
                     poi.latLng = cursor.getString(cursor.getColumnIndex(KEY_POI_LAT_LNG));
+                    poi.last_used_at = cursor.getString(cursor.getColumnIndex(KEY_LAST_USED_AT));
 
                     poiDetails.add(poi);
                 } while (cursor.moveToNext());

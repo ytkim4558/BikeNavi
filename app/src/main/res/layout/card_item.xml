@@ -40,9 +40,16 @@
                 android:id="@+id/iv_delete"
                 android:src="@drawable/ic_delete_black_24dp"
                 android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/text_poi_last_used_at"
+                android:layout_below="@id/iv_delete"
+                android:layout_alignParentRight="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"/>
 
         </RelativeLayout>
     </android.support.v7.widget.CardView>

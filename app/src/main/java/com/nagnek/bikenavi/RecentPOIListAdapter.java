@@ -13,6 +13,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.nagnek.bikenavi.time.Time;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,7 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
         CardView card_view;
         TextView poi_name; //poiName
         TextView poi_address; //poiAddress
+        TextView poi_last_used_at; //poiLastUsedAt
 
         public RecentPOIListViewHolder(View v) {
             super(v);
@@ -42,6 +45,7 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
             poi_name = (TextView) v.findViewById(R.id.text_poi_name);
             poi_address = (TextView) v.findViewById(R.id.text_poi_address);
             iv_delete = (ImageView) v.findViewById(R.id.iv_delete);
+            poi_last_used_at = (TextView) v.findViewById(R.id.text_poi_last_used_at);
         }
     }
 
@@ -83,6 +87,7 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
         holder.iv_delete.setTag(position);
         holder.poi_name.setText(recentPOIList.get(position).name);
         holder.poi_address.setText(recentPOIList.get(position).address);
+        holder.poi_last_used_at.setText(Time.formatTimeString(recentPOIList.get(position).last_used_at));
         holder.itemView.setTag(position);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
