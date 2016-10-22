@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         // SqLite database handler 초기화
-        db = SQLiteHandler.getInstance(this);
+        db = SQLiteHandler.getInstance(getApplicationContext());
 
         /**
          * ip 세팅화면

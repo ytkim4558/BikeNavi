@@ -90,7 +90,7 @@ public class SearchActivity extends AppCompatActivity {
 
         session = new SessionManager(getApplicationContext());
         // SqLite database handler 초기화
-        db = SQLiteHandler.getInstance(this);
+        db = SQLiteHandler.getInstance(getApplicationContext());
 
         // ProgressDialog
         progressDialog = new ProgressDialog(this);
@@ -172,6 +172,11 @@ public class SearchActivity extends AppCompatActivity {
 
                 String poiName = tMapPOIItem.getPOIName();
                 String address = tMapPOIItem.getPOIAddress().replace("null", "");
+
+                POI poi = new POI();
+                poi.name = poiName;
+                poi.latLng = "" + wgs84_x + "," + wgs84_y;
+                db.addPOI(poi);
 
                 Intent intent = new Intent();
                 intent.putExtra(getStringFromResources(R.string.current_point_text_for_transition), locationName.getText().toString());

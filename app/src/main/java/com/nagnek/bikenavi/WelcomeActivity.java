@@ -47,7 +47,7 @@ public class WelcomeActivity extends AppCompatActivity {
         btnLogout = (Button) findViewById(R.id.btnLogout);
 
         // SqLite database handler
-        db = SQLiteHandler.getInstance(this);
+        db = SQLiteHandler.getInstance(getApplicationContext());
 
         // session manager
         sessionManager = new SessionManager(getApplicationContext());

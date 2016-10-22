@@ -9,5 +9,5 @@ package com.nagnek.bikenavi;
  */
 
 public interface Listener {
-    void nameToDelete(String name);
+    void latLngToDelete(String name);
 }

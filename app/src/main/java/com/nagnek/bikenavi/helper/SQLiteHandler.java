@@ -453,6 +453,9 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             values.put(KEY_POI_NAME, poi.name); // 장소이름
             Log.d(TAG, "values.put poiName : " + poi.name);
 
+            values.put(KEY_POI_LAT_LNG, poi.latLng); // 장소이름
+            Log.d(TAG, "values.put poiLatLng : " + poi.latLng);
+
             String created_at = getDateTime();
             values.put(KEY_CREATED_AT, created_at); // created_at
             Log.d(TAG, "values.put created_at: " + created_at);
@@ -534,7 +537,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     /**
      * poi 정보 삭제
      */
-    void deletePOIRow(String latLng) {
+    public void deletePOIRow(String latLng) {
         SQLiteDatabase db = getWritableDatabase();
 
         try {
