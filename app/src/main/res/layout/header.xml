@@ -7,7 +7,8 @@
     android:layout_width="match_parent"
     android:layout_height="178dp"
     android:orientation="vertical"
-    android:weightSum="1">
+    android:weightSum="1"
+    android:background="@drawable/background_poly">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:layout_width="70dp"
@@ -23,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/text_margin"
         android:textColor="#ffffff"
-        android:text="Akash Bangad"
+        android:text="김용탁"
         android:textSize="14sp"
         android:textStyle="bold" />
 
