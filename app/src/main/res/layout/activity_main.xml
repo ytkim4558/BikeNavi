@@ -166,7 +166,7 @@
             </android.support.design.widget.CoordinatorLayout>
         </RelativeLayout>
 
-        <ListView
+        <android.support.v7.widget.RecyclerView
             android:id="@+id/left_drawer"
             android:layout_width="240dp"
             android:layout_height="match_parent"
@@ -174,7 +174,8 @@
             android:choiceMode="singleChoice"
             android:divider="@android:color/transparent"
             android:dividerHeight="0dp"
-            android:background="#111">
-        </ListView>
+            android:background="#ffffff"
+            android:scrollbars="vertical">
+        </android.support.v7.widget.RecyclerView>
     </android.support.v4.widget.DrawerLayout>
 </LinearLayout>

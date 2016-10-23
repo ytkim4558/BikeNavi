@@ -33,6 +33,8 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatDrawableManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -95,6 +97,23 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+
+    // 첫번째로 네비게이션 드로어 리스트뷰에 타이틀과 아이콘을 선언한다.
+    // 이 아아콘과 타이틀들은 배열에 담긴다
+
+    final String TITLES[] = {"길찾기","장소찾기"};
+    final int ICONS[] = {R.drawable.ic_directions_black_24dp, R.drawable.places_ic_search};
+
+    // 비슷하게 헤더뷰에 이름과 이메일을 위한 String 리소스를 생성한다.
+    // 그리고나서 proifle picture 리소스를 헤더뷰에 생성한다.
+    final int PROFILE = R.drawable.ic_account_circle_white_24dp;
+
+    RecyclerView mRecyclerView;
+    RecyclerView.Adapter mAdapter;
+    RecyclerView.LayoutManager mLayoutManager;
+
+    ActionBarDrawerToggle mDrawerToggle;
+
     static final LatLng SEOUL_STATION = new LatLng(37.555755, 126.970431);
     private static final String TAG = MainActivity.class.getSimpleName();
     private final Handler mHandler = new Handler();
@@ -164,7 +183,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        mRecyclerView = (RecyclerView) findViewById(R.id.left_drawer);
+        mRecyclerView.setHasFixedSize(true);
+        mAdapter = new MyAdapter(TITLES, ICONS, "김용탁", "ytkim4558@naver.com", PROFILE);
+        mRecyclerView.setAdapter(mAdapter);
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.openDrawer, R.string.closeDrawer) {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                // code here will execute once the drawer is opened( As I dont want anything happened whe drawer is
+                // open I am not going to put anything here)
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+                // Code here will execute once drawer is closed
+            }
+        }; // Drawer Toggle Object Made
+        drawerLayout.addDrawerListener(mDrawerToggle);
+        mDrawerToggle.syncState();
+
 
         if (toolbar != null) {
             toolbar.setLogo(R.drawable.ic_directions_bike_red_24dp);
