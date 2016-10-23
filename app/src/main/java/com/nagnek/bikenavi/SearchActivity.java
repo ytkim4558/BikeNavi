@@ -204,7 +204,11 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
                 poi.name = poiName;
                 poi.address = address;
                 poi.latLng = "" + wgs84_x + "," + wgs84_y;
-                db.addPOI(poi);
+                if(db.checkIfPOIExists(poi.latLng)) {
+                    db.updateLastUsedAtPOI(poi.latLng);
+                } else {
+                    db.addPOI(poi);
+                }
 
                 Intent intent = new Intent();
                 intent.putExtra(getStringFromResources(R.string.current_point_text_for_transition), locationName.getText().toString());
