@@ -45,6 +45,8 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -96,7 +98,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, MyAdapter.ProfileImageClickListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, MyAdapter.ClickListener {
 
     // 첫번째로 네비게이션 드로어 리스트뷰에 타이틀과 아이콘을 선언한다.
     // 이 아아콘과 타이틀들은 배열에 담긴다
@@ -175,6 +177,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } catch (Exception ex) {
             throw new RuntimeException("Error converting to String", ex);
         }
+    }
+
+    @Override
+    public void onLoginStateButtonClicked(Button loginStateButton) {
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
     }
 
     @Override
@@ -854,9 +862,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void onProfileImageClicked() {
-        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-        startActivity(intent);
+    public void onProfileImageClicked(ImageView profileImageView) {
+
     }
 
     public class Animator implements Runnable {

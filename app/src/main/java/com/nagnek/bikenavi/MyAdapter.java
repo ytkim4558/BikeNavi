@@ -8,6 +8,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -27,11 +28,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private int profileID;        //int Resource for header view profileID picture
     private String email;       //String Resource for header view email
 
-    private static ProfileImageClickListener mCallback;
+    private static ClickListener mCallback;
 
     // 액티비티는 항상 이 인터페이스를 구현해야 한다.
-    public interface ProfileImageClickListener {
-        void onProfileImageClicked();
+    public interface ClickListener {
+        void onProfileImageClicked(ImageView profileImage);
+        void onLoginStateButtonClicked(Button loginStateButton);
     }
 
     // Creating a ViewHolder which extends the RecyclerView View Holder
@@ -45,6 +47,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         ImageView profile;
         TextView name;
         TextView email;
+        Button loginStateButton;    // 비로그인 상태에서는 로그인 , 로그인 상태에서는 로그아웃이라고 표시되는 버튼
 
         public ViewHolder(View itemView, int viewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
             super(itemView);
@@ -62,7 +65,14 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                 profile.setOnClickListener(new View.OnClickListener(){
                     @Override
                     public void onClick(View v) {
-                        mCallback.onProfileImageClicked();
+                        mCallback.onProfileImageClicked(profile);
+                    }
+                });
+                loginStateButton = (Button) itemView.findViewById(R.id.btn_login);
+                loginStateButton.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View v) {
+                        mCallback.onLoginStateButtonClicked(loginStateButton);
                     }
                 });
                 holderId = 0;                                                // Setting holder id = 0 as the object being populated are of type header view
@@ -70,14 +80,14 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         }
     }
 
-    MyAdapter(String titles[], int icons[], String name, String email, int profileID, ProfileImageClickListener profileImageClickListener){ // MyAdapter Constructor with titles and icons parameter
+    MyAdapter(String titles[], int icons[], String name, String email, int profileID, ClickListener clickListener){ // MyAdapter Constructor with titles and icons parameter
         // titles, icons, name, email, profileID pic are passed from the main activity as we
         mNavTitles = titles;                //have seen earlier
         mIcons = icons;
         this.name = name;
         this.email = email;
         this.profileID = profileID;                     //here we assign those passed values to the values we declared here
-        mCallback = profileImageClickListener;
+        mCallback = clickListener;
         //in adapter
     }
 
