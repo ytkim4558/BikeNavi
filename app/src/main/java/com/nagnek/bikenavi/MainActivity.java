@@ -96,7 +96,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, MyAdapter.ProfileImageClickListener {
 
     // 첫번째로 네비게이션 드로어 리스트뷰에 타이틀과 아이콘을 선언한다.
     // 이 아아콘과 타이틀들은 배열에 담긴다
@@ -185,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         mRecyclerView = (RecyclerView) findViewById(R.id.left_drawer);
         mRecyclerView.setHasFixedSize(true);
-        mAdapter = new MyAdapter(TITLES, ICONS, null, null, PROFILE);
+        mAdapter = new MyAdapter(TITLES, ICONS, null, null, PROFILE, this);
         mRecyclerView.setAdapter(mAdapter);
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -851,6 +851,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void logoutUser() {
         session.setLogin(false);
         db.deleteUsers();
+    }
+
+    @Override
+    public void onProfileImageClicked() {
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
     }
 
     public class Animator implements Runnable {

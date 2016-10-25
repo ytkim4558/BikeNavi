@@ -27,6 +27,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private int profileID;        //int Resource for header view profileID picture
     private String email;       //String Resource for header view email
 
+    private static ProfileImageClickListener mCallback;
+
+    // 액티비티는 항상 이 인터페이스를 구현해야 한다.
+    public interface ProfileImageClickListener {
+        void onProfileImageClicked();
+    }
 
     // Creating a ViewHolder which extends the RecyclerView View Holder
     // ViewHolder are used to to store the inflated views in order to recycle them
@@ -53,18 +59,25 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                 name = (TextView) itemView.findViewById(R.id.name);         // Creating Text View object from header.xml for name
                 email = (TextView) itemView.findViewById(R.id.email);       // Creating Text View object from header.xml for email
                 profile = (ImageView) itemView.findViewById(R.id.circleView);// Creating Image view object from header.xml for profile pic
+                profile.setOnClickListener(new View.OnClickListener(){
+                    @Override
+                    public void onClick(View v) {
+                        mCallback.onProfileImageClicked();
+                    }
+                });
                 holderId = 0;                                                // Setting holder id = 0 as the object being populated are of type header view
             }
         }
     }
 
-    MyAdapter(String titles[], int icons[], String name, String email, int profileID){ // MyAdapter Constructor with titles and icons parameter
+    MyAdapter(String titles[], int icons[], String name, String email, int profileID, ProfileImageClickListener profileImageClickListener){ // MyAdapter Constructor with titles and icons parameter
         // titles, icons, name, email, profileID pic are passed from the main activity as we
         mNavTitles = titles;                //have seen earlier
         mIcons = icons;
         this.name = name;
         this.email = email;
         this.profileID = profileID;                     //here we assign those passed values to the values we declared here
+        mCallback = profileImageClickListener;
         //in adapter
     }
 
