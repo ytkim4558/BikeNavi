@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     final int PROFILE = R.drawable.ic_account_circle_white_24dp;
 
     RecyclerView mRecyclerView;
-    RecyclerView.Adapter mAdapter;
+    MyAdapter mAdapter;
     RecyclerView.LayoutManager mLayoutManager;
 
     ActionBarDrawerToggle mDrawerToggle;
@@ -409,6 +409,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             textView.setText(email);
             textView.setVisibility(View.VISIBLE);
+            mAdapter.swap(null, null, email );
         } else if (session.isGoogleLoggedIn()) {
             // Fetching user details from sqlite
             Log.d(TAG, "구글 자동로긴");
@@ -418,6 +419,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             textView.setText(email);
             textView.setVisibility(View.VISIBLE);
+            mAdapter.swap(null, null, email );
         } else if (session.isFacebookIn()) {
             // Fetching user details from sqlite
             Log.d(TAG, "페북 자동로긴");
@@ -427,6 +429,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             textView.setText(name);
             textView.setVisibility(View.VISIBLE);
+            mAdapter.swap(null, name, null );
         } else if (session.isKakaoLoggedIn()) {
             Log.d(TAG, "카카오로긴");
             // Fetching user details from sqlite
@@ -436,8 +439,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             textView.setText(email);
             textView.setVisibility(View.VISIBLE);
+
+            mAdapter.swap(null, null, email );
         } else {
             textView.setVisibility(View.GONE);
+            mAdapter.swap(null, "로그인", null);
         }
     }
 
