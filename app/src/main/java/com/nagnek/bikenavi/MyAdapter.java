@@ -24,7 +24,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private int mIcons[];       // Int Array to store the passed icons resource value from MainActivity.java
 
     private String name;        //String Resource for header View name
-    private int profile;        //int Resource for header view profile picture
+    private int profileID;        //int Resource for header view profileID picture
     private String email;       //String Resource for header view email
 
 
@@ -58,13 +58,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         }
     }
 
-    MyAdapter(String titles[], int icons[], String name, String email, int profile){ // MyAdapter Constructor with titles and icons parameter
-        // titles, icons, name, email, profile pic are passed from the main activity as we
+    MyAdapter(String titles[], int icons[], String name, String email, int profileID){ // MyAdapter Constructor with titles and icons parameter
+        // titles, icons, name, email, profileID pic are passed from the main activity as we
         mNavTitles = titles;                //have seen earlier
         mIcons = icons;
         this.name = name;
         this.email = email;
-        this.profile = profile;                     //here we assign those passed values to the values we declared here
+        this.profileID = profileID;                     //here we assign those passed values to the values we declared here
         //in adapter
     }
 
@@ -109,7 +109,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             holder.imageView.setImageResource(mIcons[position -1]);// Setting the image with array of our icons
         }
         else{
-            holder.profile.setImageResource(profile);           // Similarly we set the resources for header view
+            holder.profile.setImageResource(profileID);           // Similarly we set the resources for header view
             holder.name.setText(name);
             holder.email.setText(email);
         }
