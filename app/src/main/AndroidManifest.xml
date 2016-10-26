@@ -58,6 +58,7 @@
         </activity>
         <activity android:name=".kakao.KakaoSignupActivity" />
         <activity android:name=".SearchActivity" />
+        <activity android:name=".TrackActivity"></activity>
     </application>
 
 </manifest>
