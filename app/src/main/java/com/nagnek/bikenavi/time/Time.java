@@ -36,8 +36,11 @@ public class Time {
         } else if ((diffTime /= TIME_MAXIMUM.MIN) < TIME_MAXIMUM.HOUR) {
             // hour
             msg = (diffTime) + "시간 전";
-        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
+        } else if((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
             // day
+            msg = (diffTime) + "일 전";
+        } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
+            // month
             msg = (diffTime) + "달 전";
         } else {
             msg = (diffTime) + "년 전";
