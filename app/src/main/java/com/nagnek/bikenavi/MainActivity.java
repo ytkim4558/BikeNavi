@@ -47,8 +47,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
 
+import com.facebook.login.LoginManager;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -65,6 +65,9 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
+import com.kakao.network.ErrorResult;
+import com.kakao.usermgmt.UserManagement;
+import com.kakao.usermgmt.callback.LogoutResponseCallback;
 import com.nagnek.bikenavi.activity.LoginActivity;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.customview.ClearableSqliteAutoCompleteTextView;
@@ -181,19 +184,99 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onLoginStateButtonClicked(Button loginStateButton) {
+        if (session.isLoggedIn() || session.isGoogleLoggedIn() || session.isFacebookIn() || session.isKakaoLoggedIn()) {
+            logoutUser();
+            mAdapter.changeLoginState(false);
+        } else {
+            redirectLoginActivity();
+        }
+    }
+
+    private void redirectLoginActivity() { // Launching the login activity
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
+    }
+
+    /**
+     * Logging out the user. Will set isLoggedIn flag to false in shared
+     * preferences Clears the user data from sqlite users table
+     */
+    private void logoutUser() {
+        db.deleteUsers();
+        if (session.isLoggedIn()) {
+            session.setLogin(false);
+        } else if (session.isGoogleLoggedIn()) {
+            session.setGoogleLogin(false);
+        } else if (session.isKakaoLoggedIn()) {
+            Log.d(TAG, "카카오로갓");
+            session.setKakaoLogin(false);
+            UserManagement.requestLogout(new LogoutResponseCallback() {
+                @Override
+                public void onCompleteLogout() {
+                    Log.d(TAG, "로갓 성공");
+                }
+
+                @Override
+                public void onFailure(ErrorResult errorResult) {
+
+                    super.onFailure(errorResult);
+                }
+
+                @Override
+                public void onSessionClosed(ErrorResult errorResult) {
+
+                    super.onSessionClosed(errorResult);
+                }
+
+                @Override
+                public void onSuccess(Long result) {
+                    super.onSuccess(result);
+                }
+
+                @Override
+                public void onNotSignedUp() {
+                    super.onNotSignedUp();
+                }
+
+                @Override
+                public void onDidEnd() {
+                    super.onDidEnd();
+                }
+
+                @Override
+                public void onFailureForUiThread(ErrorResult errorResult) {
+                    super.onFailureForUiThread(errorResult);
+                }
+
+            });
+        } else if (session.isFacebookIn()) {
+            session.setFacebookLogin(false);
+            LoginManager.getInstance().logOut();
+        }
+        mAdapter.swap(null, "로그인 해주세요", null);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        long start = System.currentTimeMillis();
+        // SqLite database handler 초기화
+        db = SQLiteHandler.getInstance(getApplicationContext());
 
+        // Session manager
+        session = new SessionManager(getApplicationContext());
+        long end = System.currentTimeMillis();
+        Log.d(TAG, "db, session쪽 로딩 시간 : " + (end - start) / 1000.0);
+        start = System.currentTimeMillis();
+
+        setContentView(R.layout.activity_main);
+        end = System.currentTimeMillis();
+        Log.d(TAG, "setContentView 시간 : " + (end - start) / 1000.0);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
         mRecyclerView = (RecyclerView) findViewById(R.id.left_drawer);
         mRecyclerView.setHasFixedSize(true);
-        mAdapter = new MyAdapter(TITLES, ICONS, null, null, PROFILE, this);
+        mAdapter = new MyAdapter(TITLES, ICONS, null, null, PROFILE, this, session.isSessionLoggedIn());
         mRecyclerView.setAdapter(mAdapter);
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
@@ -228,10 +311,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.app_name, R.string.app_name);
             drawerLayout.addDrawerListener(actionBarDrawerToggle);
         }
-
-
-        // SqLite database handler 초기화
-        db = SQLiteHandler.getInstance(getApplicationContext());
 
         /**
          * ip 세팅화면
@@ -292,17 +371,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         pathStopPointList = new ArrayList<LatLng>();
         markerOptionsArrayList = new ArrayList<MarkerOptions>();
 
-        long start = System.currentTimeMillis();
-
-        // Session manager
-        session = new SessionManager(getApplicationContext());
-
-        long end = System.currentTimeMillis();
-        Log.d(TAG, "db쪽 로딩 시간 : " + (end - start) / 1000.0);
-        start = System.currentTimeMillis();
-
-        end = System.currentTimeMillis();
-        Log.d(TAG, "setContentView 시간 : " + (end - start) / 1000.0);
         start = System.currentTimeMillis();
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
         end = System.currentTimeMillis();
@@ -406,7 +474,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onStart() {
         super.onStart();
 
-        TextView textView = (TextView) findViewById(R.id.name);
         if (session.isLoggedIn()) {
             Log.d(TAG, "자체회원로긴");
 
@@ -415,9 +482,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             String email = user.get(SQLiteHandler.KEY_EMAIL);
 
-            textView.setText(email);
-            textView.setVisibility(View.VISIBLE);
             mAdapter.swap(null, null, email );
+            mAdapter.changeLoginState(true);
         } else if (session.isGoogleLoggedIn()) {
             // Fetching user details from sqlite
             Log.d(TAG, "구글 자동로긴");
@@ -425,9 +491,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             String email = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
 
-            textView.setText(email);
-            textView.setVisibility(View.VISIBLE);
             mAdapter.swap(null, null, email );
+            mAdapter.changeLoginState(true);
         } else if (session.isFacebookIn()) {
             // Fetching user details from sqlite
             Log.d(TAG, "페북 자동로긴");
@@ -435,9 +500,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             String name = user.get(SQLiteHandler.KEY_FACEBOOK_NAME);
 
-            textView.setText(name);
-            textView.setVisibility(View.VISIBLE);
             mAdapter.swap(null, name, null );
+            mAdapter.changeLoginState(true);
         } else if (session.isKakaoLoggedIn()) {
             Log.d(TAG, "카카오로긴");
             // Fetching user details from sqlite
@@ -445,13 +509,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             String email = user.get(SQLiteHandler.KEY_KAKAO_NICK_NAME);
 
-            textView.setText(email);
-            textView.setVisibility(View.VISIBLE);
-
             mAdapter.swap(null, null, email );
+            mAdapter.changeLoginState(true);
         } else {
-            textView.setVisibility(View.GONE);
-            mAdapter.swap(null, "로그인", null);
+            mAdapter.swap(null, "로그인 해주세요", null);
+            mAdapter.changeLoginState(false);
         }
     }
 
@@ -850,15 +912,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
             Log.d("tag", "색깔변함");
         }
-    }
-
-    /**
-     * Logging out the user. Will set isLoggedIn flag to false in shared
-     * preferences Clears the user data from sqlite users table
-     */
-    private void logoutUser() {
-        session.setLogin(false);
-        db.deleteUsers();
     }
 
     @Override

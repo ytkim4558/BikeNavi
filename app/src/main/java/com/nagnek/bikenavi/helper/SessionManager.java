@@ -88,4 +88,8 @@ public class SessionManager {
     public boolean isKakaoLoggedIn() {
         return pref.getBoolean(KEY_IS_KAKAO_LOGGEDIN, false);
     }
+
+    public boolean isSessionLoggedIn() {
+        return isLoggedIn() || isGoogleLoggedIn() || isFacebookIn() || isKakaoLoggedIn();
+    }
 }

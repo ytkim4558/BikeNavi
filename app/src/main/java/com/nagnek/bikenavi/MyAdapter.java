@@ -5,6 +5,7 @@
 package com.nagnek.bikenavi;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import android.widget.TextView;
  */
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
+    private static final String TAG = MyAdapter.class.getSimpleName();
     private static final int TYPE_HEADER = 0;  // Declaring variable to understand which view is being worked on
     // If the view under inflation and population is header or Item
     private static final int TYPE_ITEM = 1;
@@ -29,6 +31,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private String email;       //String Resource for header view email
 
     private static ClickListener mCallback;
+
+    private static boolean loginState;
 
     // 액티비티는 항상 이 인터페이스를 구현해야 한다.
     public interface ClickListener {
@@ -52,7 +56,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         public ViewHolder(View itemView, int viewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
             super(itemView);
             // Here we set the appropriate view in accordance with the the view type as passed when the holder object is created
-
+            Log.d(TAG, "ViewHolder");
             if(viewType == TYPE_ITEM) {
                 textView = (TextView) itemView.findViewById(R.id.rowText); // Creating TextView object with the id of textView from item_row.xml
                 imageView = (ImageView) itemView.findViewById(R.id.rowIcon);// Creating ImageView object with the id of ImageView from item_row.xml
@@ -80,7 +84,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         }
     }
 
-    MyAdapter(String titles[], int icons[], String name, String email, int profileID, ClickListener clickListener){ // MyAdapter Constructor with titles and icons parameter
+    MyAdapter(String titles[], int icons[], String name, String email, int profileID, ClickListener clickListener, boolean loginState){ // MyAdapter Constructor with titles and icons parameter
         // titles, icons, name, email, profileID pic are passed from the main activity as we
         mNavTitles = titles;                //have seen earlier
         mIcons = icons;
@@ -88,6 +92,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         this.email = email;
         this.profileID = profileID;                     //here we assign those passed values to the values we declared here
         mCallback = clickListener;
+        MyAdapter.loginState = loginState;
         //in adapter
     }
 
@@ -101,6 +106,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         notifyDataSetChanged();
     }
 
+    public void changeLoginState(boolean loginState) {
+        MyAdapter.loginState = loginState;
+    }
+
     // Below first we override the method onCreateViewHolder which is called when the ViewHolder is
     // Created, In this method we inflate the item_row.xml layout if the viewType is Type_ITEM or else we inflate header.xml
     // if the viewType is TYPE_HEADER
@@ -108,6 +117,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     @Override
     public MyAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        Log.d(TAG, "onCreateViewHolder");
         if (viewType == TYPE_ITEM) {
             View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_row,parent,false); //Inflating the layout
             ViewHolder vhItem = new ViewHolder(v,viewType); //Creating ViewHolder and passing the object of type view
@@ -126,6 +136,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     // which view type is being created 1 for item row
     @Override
     public void onBindViewHolder(MyAdapter.ViewHolder holder, int position) {
+        Log.d(TAG, "onBindViewHolder");
         if(holder.holderId ==1) {                              // as the list view is going to be called after the header view so we decrement the
             // position by 1 and pass it to the holder while setting the text and image
             holder.textView.setText(mNavTitles[position - 1]); // Setting the text with the array of our Titles
@@ -135,6 +146,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             holder.profile.setImageResource(profileID);           // Similarly we set the resources for header view
             holder.name.setText(name);
             holder.email.setText(email);
+            if(loginState) {
+                holder.loginStateButton.setText("로그아웃");
+            } else {
+                holder.loginStateButton.setText("로그인");
+            }
         }
     }
 
