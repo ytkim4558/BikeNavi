@@ -531,12 +531,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onPrepareOptionsMenu(Menu menu) {
         Log.d(TAG, "opPrepareOptionsMenu - 옵션 메뉴가 " +
                 "화면에 보여질때마다 호출됨");
-
-        if (session.isLoggedIn() || session.isGoogleLoggedIn()) { // 로그인 한 상태확인
-            menu.getItem(1).setTitle("로그아웃");
-        } else {
-            menu.getItem(1).setTitle("로그인");
-        }
+//
+//        if (session.isLoggedIn() || session.isGoogleLoggedIn()) { // 로그인 한 상태확인
+//            menu.getItem(1).setTitle("로그아웃");
+//        } else {
+//            menu.getItem(1).setTitle("로그인");
+//        }
 
         return super.onPrepareOptionsMenu(menu);
     }
@@ -562,11 +562,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     serverIpAutoComplete.setText(AppConfig.HOSTING_IP);
                 }
                 alertDialog.show();
-                return true;
-
-            case R.id.menu_login:
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                startActivity(intent);
                 return true;
         }
         return super.onOptionsItemSelected(item);
