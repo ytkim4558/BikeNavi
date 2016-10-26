@@ -38,6 +38,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     public interface ClickListener {
         void onProfileImageClicked(ImageView profileImage);
         void onLoginStateButtonClicked(Button loginStateButton);
+        void onNavItemClicked(int position);
     }
 
     // Creating a ViewHolder which extends the RecyclerView View Holder
@@ -45,7 +46,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         int holderId;
-
+        public final View itemView;
         TextView textView;
         ImageView imageView;
         ImageView profile;
@@ -55,6 +56,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
         public ViewHolder(View itemView, int viewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
             super(itemView);
+            this.itemView = itemView;
             // Here we set the appropriate view in accordance with the the view type as passed when the holder object is created
             Log.d(TAG, "ViewHolder");
             if(viewType == TYPE_ITEM) {
@@ -141,6 +143,15 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             // position by 1 and pass it to the holder while setting the text and image
             holder.textView.setText(mNavTitles[position - 1]); // Setting the text with the array of our Titles
             holder.imageView.setImageResource(mIcons[position -1]);// Setting the image with array of our icons
+            holder.itemView.setTag(position);
+            holder.itemView.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v) {
+                    int position = (Integer)v.getTag();
+                    Log.d(TAG, "position 클릭 : " + position);
+                    mCallback.onNavItemClicked(position);
+                }
+            });
         }
         else{
             holder.profile.setImageResource(profileID);           // Similarly we set the resources for header view

@@ -28,6 +28,8 @@
     <!--메인 엑티비티와 검색 액티비티간 화면전환 애니메이션에 필요한 변수 선언들-->
     <string name="name_purpose_search_point">장소 검색 목적</string>
     <string name="current_point_text_for_transition">현재입력된 장소 텍스트</string>
+    <string name="start_point_text_for_transition">출발 장소 이름</string>
+    <string name="dest_point_text_for_transition">도착 장소 이름</string>
     <string name="select_poi_name_for_transition">선택한 장소 이름</string>
     <string name="select_poi_address_for_transition">선택한 장소 주소</string>
     <string name="wgs_84_x">위도</string>

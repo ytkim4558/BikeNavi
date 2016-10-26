@@ -28,9 +28,6 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.LatLng;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.app.AppController;
 import com.nagnek.bikenavi.customview.DelayAutoCompleteTextView;
@@ -45,6 +42,8 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.nagnek.bikenavi.util.NagneUtil.getStringFromResources;
+
 public class SearchActivity extends AppCompatActivity implements RecentFragment.OnPoiSelectedListener {
     private static final String TAG = SearchActivity.class.getSimpleName();
     DelayAutoCompleteTextView searchPoint = null;
@@ -56,19 +55,19 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
 
     @Override
     public void onRecentPOISelected(POI poi) {
-        if(db != null) {
+        if (db != null) {
             db.updateLastUsedAtPOI(poi.latLng);
             searchPoint.setText(poi.name);
             Intent intent = new Intent();
-            intent.putExtra(getStringFromResources(R.string.current_point_text_for_transition), searchPoint.getText().toString());
-            intent.putExtra(getStringFromResources(R.string.select_poi_address_for_transition), poi.address);
-            intent.putExtra(getStringFromResources(R.string.select_poi_name_for_transition), poi.name);
+            intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.current_point_text_for_transition), searchPoint.getText().toString());
+            intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.select_poi_address_for_transition), poi.address);
+            intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.select_poi_name_for_transition), poi.name);
             String[] splitStr = poi.latLng.split(",");
             Double wgs84_x = Double.parseDouble(splitStr[0]);
             Double wgs84_y = Double.parseDouble(splitStr[1]);
-            intent.putExtra(getStringFromResources(R.string.wgs_84_x), wgs84_x);
-            intent.putExtra(getStringFromResources(R.string.wgs_84_y), wgs84_y);
-            intent.putExtra(getStringFromResources(R.string.name_purpose_search_point), search_purpose);
+            intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.wgs_84_x), wgs84_x);
+            intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.wgs_84_y), wgs84_y);
+            intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.name_purpose_search_point), search_purpose);
             setResult(RESULT_OK, intent);
             //registerPOI(poiName, wgs84_x, wgs84_y);
 
@@ -79,7 +78,7 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
         }
     }
 
-    enum UserType{
+    enum UserType {
         GOOGLE,
         KAKAO,
         FACEBOOK,
@@ -124,15 +123,15 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
         progressDialog.setCancelable(false);    // 백키로 캔슬 가능안하게끔 설정
 
         Intent intent = getIntent();
-        if(intent != null) {
-            String locationText = intent.getStringExtra(getStringFromResources(R.string.current_point_text_for_transition));
+        if (intent != null) {
+            String locationText = intent.getStringExtra(getStringFromResources(this.getApplicationContext(), R.string.current_point_text_for_transition));
             searchPoint.setText(locationText);
             searchPoint.setSelection(searchPoint.length()); // 커서를 마지막 위치로 넣음
-            search_purpose = intent.getStringExtra(getStringFromResources(R.string.name_purpose_search_point));
-            if(search_purpose.equals("출발")) {
-                textInputLayout.setHint(getStringFromResources(R.string.hint_start_point));
-            } else if(search_purpose.equals("도착")) {
-                textInputLayout.setHint(getStringFromResources(R.string.hint_destination));
+            search_purpose = intent.getStringExtra(getStringFromResources(this.getApplicationContext(), R.string.name_purpose_search_point));
+            if (search_purpose.equals("출발")) {
+                textInputLayout.setHint(getStringFromResources(this.getApplicationContext(), R.string.hint_start_point));
+            } else if (search_purpose.equals("도착")) {
+                textInputLayout.setHint(getStringFromResources(this.getApplicationContext(), R.string.hint_destination));
             }
 
             /**
@@ -192,10 +191,6 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
                 double wgs84_y = tMapPoint.getLongitude();
 
                 Log.d("tag", "좌표위치 " + "Lat:" + wgs84_x + ", Long : " + wgs84_y);
-                LatLng latLng = new LatLng(wgs84_x, wgs84_y);
-                CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(wgs84_x, wgs84_y));
-                Log.d("tag", "좌표위치 가져옴" + "Lat:" + latLng.latitude + ", Long : " + latLng.longitude);
-                CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
 
                 String poiName = tMapPOIItem.getPOIName();
                 String address = tMapPOIItem.getPOIAddress().replace("null", "");
@@ -204,19 +199,19 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
                 poi.name = poiName;
                 poi.address = address;
                 poi.latLng = "" + wgs84_x + "," + wgs84_y;
-                if(db.checkIfPOIExists(poi.latLng)) {
+                if (db.checkIfPOIExists(poi.latLng)) {
                     db.updateLastUsedAtPOI(poi.latLng);
                 } else {
                     db.addPOI(poi);
                 }
 
                 Intent intent = new Intent();
-                intent.putExtra(getStringFromResources(R.string.current_point_text_for_transition), locationName.getText().toString());
-                intent.putExtra(getStringFromResources(R.string.select_poi_address_for_transition), address);
-                intent.putExtra(getStringFromResources(R.string.select_poi_name_for_transition), poiName);
-                intent.putExtra(getStringFromResources(R.string.wgs_84_x), wgs84_x);
-                intent.putExtra(getStringFromResources(R.string.wgs_84_y), wgs84_y);
-                intent.putExtra(getStringFromResources(R.string.name_purpose_search_point), searchPurpose);
+                intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.current_point_text_for_transition), locationName.getText().toString());
+                intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.select_poi_address_for_transition), address);
+                intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.select_poi_name_for_transition), poiName);
+                intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.wgs_84_x), wgs84_x);
+                intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.wgs_84_y), wgs84_y);
+                intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.name_purpose_search_point), searchPurpose);
                 setResult(RESULT_OK, intent);
                 //registerPOI(poiName, wgs84_x, wgs84_y);
 
@@ -293,9 +288,6 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
         super.onBackPressed();
     }
 
-    private String getStringFromResources(final int id) {
-        return getResources().getString(id);
-    }
     private void showDialog() {
         if (!progressDialog.isShowing()) {
             progressDialog.show();
@@ -309,7 +301,7 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
     }
 
     class PagerAdatper extends FragmentPagerAdapter {
-        String tabTitles[] = new String[] { "최근 검색", "즐겨 찾기"};
+        String tabTitles[] = new String[]{"최근 검색", "즐겨 찾기"};
         Context context;
 
         public PagerAdatper(FragmentManager fm, Context context) {
@@ -345,7 +337,7 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
             View tab = LayoutInflater.from(SearchActivity.this).inflate(R.layout.custom_tab, null);
             TextView tv = (TextView) tab.findViewById(R.id.custom_text);
             tv.setText(tabTitles[position]);
-            return tab ;
+            return tab;
         }
     }
 }

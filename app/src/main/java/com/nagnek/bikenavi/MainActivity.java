@@ -4,29 +4,19 @@
 
 package com.nagnek.bikenavi;
 
-import android.app.Activity;
 import android.app.ActivityOptions;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.StrictMode;
-import android.os.SystemClock;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TextInputLayout;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -41,28 +31,12 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 
 import com.facebook.login.LoginManager;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.kakao.network.ErrorResult;
@@ -72,41 +46,31 @@ import com.nagnek.bikenavi.activity.LoginActivity;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.customview.ClearableSqliteAutoCompleteTextView;
 import com.nagnek.bikenavi.customview.DelayAutoCompleteTextView;
-import com.nagnek.bikenavi.guide.GuideContent;
 import com.nagnek.bikenavi.helper.IPManager;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.helper.SessionManager;
-import com.skp.Tmap.TMapData;
-import com.skp.Tmap.TMapPOIItem;
-import com.skp.Tmap.TMapPoint;
-import com.skp.Tmap.TMapPolyLine;
-import com.skp.Tmap.util.HttpConnect;
+import com.nagnek.bikenavi.util.NagneUtil;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, MyAdapter.ClickListener {
+public class MainActivity extends AppCompatActivity implements MyAdapter.ClickListener {
 
     // 첫번째로 네비게이션 드로어 리스트뷰에 타이틀과 아이콘을 선언한다.
     // 이 아아콘과 타이틀들은 배열에 담긴다
 
-    final String TITLES[] = {"길찾기","장소찾기"};
+    final String TITLES[] = {"길찾기", "장소찾기"};
     final int ICONS[] = {R.drawable.ic_directions_black_24dp, R.drawable.places_ic_search};
 
     // 비슷하게 헤더뷰에 이름과 이메일을 위한 String 리소스를 생성한다.
@@ -119,14 +83,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     ActionBarDrawerToggle mDrawerToggle;
 
-    static final LatLng SEOUL_STATION = new LatLng(37.555755, 126.970431);
     private static final String TAG = MainActivity.class.getSimpleName();
-    private final Handler mHandler = new Handler();
-    TMapPoint mSource;
-    TMapPoint mDest;
     DelayAutoCompleteTextView start_point, dest_point;
-    ArrayList<TMapPoint> sourceAndDest;
-    boolean animating; //애니메이션 진행중인지
     String[] serverIPs = new String[]{};
     /**
      * AutoCompleteTextView 대신 ClearableSQliteAutoCompleteTextView로 변경했다.
@@ -138,14 +96,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     AlertDialog alertDialog;
     // 자동완성을 위한 어댑터
     ArrayAdapter<String> arrayAdapter;
-    private GoogleMap mGoogleMap;
-    private ArrayList<LatLng> pathStopPointList;    // 출발지 도착지를 포함한 경유지점(위도, 경도) 리스트
-    private ArrayList<MarkerOptions> markerOptionsArrayList;    // 출발지 도착지 사이에 마커 리스트
-    private List<Marker> descriptorMarkers = new ArrayList<Marker>(); //markers
-    private List<Marker> markers = new ArrayList<Marker>(); //markers
     private SessionManager session; // 로그인했는지 확인용 변수
     private SQLiteHandler db;   // sqlite
-    private Animator animator = new Animator();
     static final int SEARCH_INTEREST_POINT = 1; // 장소 검색 request code
     ActionBarDrawerToggle actionBarDrawerToggle;
     DrawerLayout drawerLayout;
@@ -189,6 +141,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mAdapter.changeLoginState(false);
         } else {
             redirectLoginActivity();
+        }
+    }
+
+    @Override
+    public void onNavItemClicked(int position) {
+        Intent intent = null;
+        switch (position) {
+            // 첫번째 아이콘
+            case 1:
+                break;
+            //두번째 아이콘
+            case 2:
+                intent = new Intent(MainActivity.this, POISearchActivity.class);
+                break;
+        }
+        if(intent != null) {
+            startActivity(intent);
         }
     }
 
@@ -294,7 +263,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 super.onDrawerClosed(drawerView);
                 // Code here will execute once drawer is closed
             }
-        }; // Drawer Toggle Object Made
+        };
+        // Drawer Toggle Object Made
         drawerLayout.addDrawerListener(mDrawerToggle);
         mDrawerToggle.syncState();
 
@@ -302,7 +272,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (toolbar != null) {
             toolbar.setLogo(R.drawable.ic_directions_bike_red_24dp);
             setSupportActionBar(toolbar);
-            if(getSupportActionBar() != null) {
+            if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                 getSupportActionBar().setDisplayUseLogoEnabled(true);
                 getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -367,29 +337,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         alertDialog = builder.create();
         Log.d(TAG, "세팅 버튼 누름");
 
-        sourceAndDest = new ArrayList<TMapPoint>();
-        pathStopPointList = new ArrayList<LatLng>();
-        markerOptionsArrayList = new ArrayList<MarkerOptions>();
-
         start = System.currentTimeMillis();
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
         end = System.currentTimeMillis();
         Log.d(TAG, "strict 로딩 시간 : " + (end - start) / 1000.0);
         start = System.currentTimeMillis();
 
-        /**
-         * 구글맵 생성
-         */
-        // 구글맵 초기 상태를 설정
-        MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
 
         end = System.currentTimeMillis();
         Log.d(TAG, "구글맵 로딩 시간 : " + (end - start) / 1000.0);
         start = System.currentTimeMillis();
 
-        final TextInputLayout ti_start = (TextInputLayout)findViewById(R.id.ti_start_point);
-        final TextInputLayout ti_dest = (TextInputLayout)findViewById(R.id.ti_dest_point);
+        final TextInputLayout ti_start = (TextInputLayout) findViewById(R.id.ti_start_point);
+        final TextInputLayout ti_dest = (TextInputLayout) findViewById(R.id.ti_dest_point);
         /**
          * 출발지나 도착지 입력창을 클릭하면 검색 액티비티로 넘어간다.
          */
@@ -433,19 +393,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }, 300);
             }
         });
-
-        FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
-        floatingActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 이전에 애니메이션 시작했으면 중지 후 초기화
-                if (animating) {
-                    animator.stopAnimation();
-                }
-                animator.startAnimation(true);
-
-            }
-        });
         end = System.currentTimeMillis();
         Log.d(TAG, "나머지 : " + (end - start) / 1000.0);
 
@@ -482,7 +429,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             String email = user.get(SQLiteHandler.KEY_EMAIL);
 
-            mAdapter.swap(null, null, email );
+            mAdapter.swap(null, null, email);
             mAdapter.changeLoginState(true);
         } else if (session.isGoogleLoggedIn()) {
             // Fetching user details from sqlite
@@ -491,7 +438,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             String email = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
 
-            mAdapter.swap(null, null, email );
+            mAdapter.swap(null, null, email);
             mAdapter.changeLoginState(true);
         } else if (session.isFacebookIn()) {
             // Fetching user details from sqlite
@@ -500,7 +447,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             String name = user.get(SQLiteHandler.KEY_FACEBOOK_NAME);
 
-            mAdapter.swap(null, name, null );
+            mAdapter.swap(null, name, null);
             mAdapter.changeLoginState(true);
         } else if (session.isKakaoLoggedIn()) {
             Log.d(TAG, "카카오로긴");
@@ -509,7 +456,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             String email = user.get(SQLiteHandler.KEY_KAKAO_NICK_NAME);
 
-            mAdapter.swap(null, null, email );
+            mAdapter.swap(null, null, email);
             mAdapter.changeLoginState(true);
         } else {
             mAdapter.swap(null, "로그인 해주세요", null);
@@ -575,216 +522,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    void performFindRoute() {
-        // 키보드 감추기
-        InputMethodManager immhide = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-        immhide.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
-
-        // 이전에 애니메이션 시작했으면 중지 후 초기화
-        if (animating) {
-            animator.stopAnimation();
-            clearMarkers();
-        }
-        markers.clear();
-        descriptorMarkers.clear();
-        markerOptionsArrayList.clear();
-
-        // 시작위치. 도착지의 포커스 초기화.
-        start_point.clearFocus();
-        dest_point.clearFocus();
-        String start = start_point.getText().toString();
-        String destination = dest_point.getText().toString();
-        TMapData tmapData3 = new TMapData();
-
-        mGoogleMap.clear();
-
-        try {
-            ArrayList<TMapPOIItem> poiPositionOfStartItemArrayList = tmapData3.findAddressPOI(start);
-            ArrayList<TMapPOIItem> poiPositionOfDestItemArrayList = tmapData3.findAddressPOI(destination);
-            if (poiPositionOfStartItemArrayList != null && poiPositionOfDestItemArrayList != null) {
-                mSource = poiPositionOfStartItemArrayList.get(0).getPOIPoint();
-                mDest = poiPositionOfDestItemArrayList.get(0).getPOIPoint();
-                tmapData3.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
-                    @Override
-                    public void onFindPathData(TMapPolyLine tMapPolyLine) {
-                        pathStopPointList.clear();
-                        final ArrayList<TMapPoint> pointArrayList = tMapPolyLine.getLinePoint();
-                        for (TMapPoint point : pointArrayList) {
-                            LatLng latLng = new LatLng(point.getLatitude(), point.getLongitude());
-                            Log.d("tag", "위도 : " + latLng.latitude + ", 경도 : " + latLng.longitude);
-                            pathStopPointList.add(latLng);
-                        }
-
-                        Handler handler = new Handler(Looper.getMainLooper());
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                if (mGoogleMap != null) {
-                                    // 경로 polyline 그리기
-                                    addPolyLineUsingGoogleMap(pathStopPointList);
-                                    for (LatLng latLng : pathStopPointList) {
-                                        Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(latLng).visible(false));
-                                        markers.add(marker);
-                                    }
-                                } else {
-                                    Log.d("tag", "아직 맵이 준비안됬어");
-                                }
-                            }
-                        });
-                    }
-                });
-
-                tmapData3.findPathDataAllType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
-                    @Override
-                    public void onFindPathDataAll(Document document) {
-                        final NodeList list = document.getElementsByTagName("Placemark");
-//                        Log.d("count", "길이" + list.getLength());
-                        int guide_length = 0;
-                        GuideContent.ITEMS.clear();
-                        //마커추가예정 리스트 초기화
-                        markerOptionsArrayList.clear();
-                        //마커리스트 초기화
-                        markers.clear();
-
-                        for (int i = 0; i < list.getLength(); ++i) {
-                            Element item = (Element) list.item(i);
-                            String description = HttpConnect.getContentFromNode(item, "description");
-
-                            if (description != null) {
-//                                Log.d("description", description);
-                                GuideContent.GuideItem guideItem = new GuideContent.GuideItem(String.valueOf(guide_length), description);
-                                GuideContent.ITEMS.add(guideItem);
-                                ++guide_length;
-
-                                String pointIndex = HttpConnect.getContentFromNode(item, "tmap:pointIndex");
-                                if (pointIndex != null) {
-                                    String str = HttpConnect.getContentFromNode(item, "coordinates");
-                                    if (str != null) {
-                                        String[] str2 = str.split(" ");
-                                        for (int k = 0; k < str2.length; ++k) {
-                                            try {
-                                                String[] e1 = str2[k].split(",");
-                                                // 마커 및 path 포인트를 추가하기 위한 위도 경도 생성
-                                                LatLng latLng = new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
-                                                // 마커 생성
-                                                MarkerOptions marker = new MarkerOptions().title("지점").snippet(description).position(latLng);
-                                                // 마커리스트에 추가 (addmarker는 Main 스레드에서만 되므로 이 콜백함수에서 쓸수없다. 따라서 한번에 묶어서 핸들러로 호출한다.)
-                                                markerOptionsArrayList.add(marker);
-                                            } catch (Exception var13) {
-                                                Log.d("tag", "에러 : " + var13.getMessage());
-                                            }
-                                        }
-                                    }
-
-                                }
-
-                                String lineIndex = HttpConnect.getContentFromNode(item, "tmap:lineIndex");
-                                if (lineIndex != null) {
-                                    String str = HttpConnect.getContentFromNode(item, "coordinates");
-                                    if (str != null) {
-                                        String[] str2 = str.split(" ");
-                                        try {
-                                            String[] e1 = str2[str2.length / 2].split(",");
-                                            // 마커 및 path 포인트를 추가하기 위한 위도 경도 생성
-                                            LatLng latLng = new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
-                                            // 마커 생성
-                                            MarkerOptions marker = new MarkerOptions().title("지점").snippet(description).position(latLng);
-                                            // 마커리스트에 추가 (addmarker는 Main 스레드에서만 되므로 이 콜백함수에서 쓸수없다. 따라서 한번에 묶어서 핸들러로 호출한다.)
-                                            markerOptionsArrayList.add(marker);
-                                        } catch (Exception var13) {
-                                            Log.d("tag", "에러 : " + var13.getMessage());
-                                        }
-                                    }
-
-                                }
-
-
-                            } else {
-//                                Log.d("dd", "공백");
-                            }
-
-                        }
-                        Handler handler = new Handler(Looper.getMainLooper());
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mGoogleMap != null) {
-                                    LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                                    // 경로 찾고나서 경로 지점들의 마커들 추가, 모든 마커들을 표시할 수 있는 줌레벨 계산
-                                    for (MarkerOptions markerOptions : markerOptionsArrayList) {
-                                        Marker marker = mGoogleMap.addMarker(markerOptions);
-                                        descriptorMarkers.add(marker);
-                                        builder.include(markerOptions.getPosition());
-                                    }
-                                    LatLngBounds bounds = builder.build();
-
-                                    int padding = 0; // offset from edges of the map in pixels
-                                    CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-                                    mGoogleMap.moveCamera(cu);
-                                } else {
-                                    Log.d("tag", "아직 맵이 준비안됬어");
-                                }
-                            }
-                        });
-                        FragmentManager fragmentManager = getFragmentManager();
-                        ItemFragment fragment = new ItemFragment().newInstance(GuideContent.ITEMS.size(), GuideContent.ITEMS);
-                        Bundle mBundle = new Bundle();
-                        fragment.setArguments(mBundle);
-                        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                        fragmentTransaction.replace(R.id.fragment_container, fragment);
-//                        fragmentTransaction.addToBackStack(null);
-                        fragmentTransaction.commit();
-                        Log.d("count", "길이래" + list.getLength());
-                    }
-                });
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Clears all markers from the map.
-     */
-    public void clearMarkers() {
-        mGoogleMap.clear();
-        markers.clear();
-        descriptorMarkers.clear();
-        markerOptionsArrayList.clear();
-    }
-
-    private void addPolyLineUsingGoogleMap(ArrayList<LatLng> list) {
-        Polyline polyline = mGoogleMap.addPolyline(new PolylineOptions().geodesic(true).color(Color.RED).width(5).addAll(list));
-    }
-
     // 출발지 도착지 설정할때마다 불러옴.
     // 둘다 설정한 경우는 경로를 탐색하고 한곳만 설정한 경우는 해당 좌표를 표시한다.
-    void reactionSearchResult(double wgs84_x, double wgs84_y, String poiName, String address) {
+    void reactionSearchResult() {
         // start 지점과 도착지점 모두 설정되었으면 경로를 찾는다.
         if (!start_point.getText().toString().equals("") && !dest_point.getText().toString().equals("")) {
-            performFindRoute();
-        } else {
-            Log.d("tag", "좌표위치 " + "Lat:" + wgs84_x + ", Long : " + wgs84_y);
-            LatLng latLng = new LatLng(wgs84_x, wgs84_y);
-            CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(wgs84_x, wgs84_y));
-            Log.d("tag", "좌표위치 가져옴" + "Lat:" + latLng.latitude + ", Long : " + latLng.longitude);
-            CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
-
-            // 카메라 좌표를 검색 지역으로 이동
-            mGoogleMap.moveCamera(center);
-
-            // animateCamera는 근거리에선 부드럽게 변경한다.
-            if (mGoogleMap != null) {
-                mGoogleMap.animateCamera(zoom);
-                mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(wgs84_x, wgs84_y)).title(poiName).snippet(address));
-            }
+            redirectTrackActivity();
         }
+    }
+
+    void redirectTrackActivity() {
+        Intent intent = new Intent(MainActivity.this, TrackActivity.class);
+        intent.putExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.start_point_text_for_transition), start_point.getText().toString());
+        intent.putExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.dest_point_text_for_transition), dest_point.getText().toString());
+        startActivity(intent);
     }
 
     @Override
@@ -794,59 +545,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.d(TAG, "SEARCH_INTEREST_POINT");
             if (resultCode == RESULT_OK) {// 장소 검색 결과 리턴
                 String purposePoint = data.getStringExtra(getStringFromResources(R.string.name_purpose_search_point));
-                Log.d(TAG, "장소입력한 곳은? "  + purposePoint);
+                Log.d(TAG, "장소입력한 곳은? " + purposePoint);
                 String selectPoint = data.getStringExtra(getStringFromResources(R.string.select_poi_name_for_transition));
                 String address = data.getStringExtra(getStringFromResources(R.string.select_poi_address_for_transition));
-                if(purposePoint.equals("출발")) {
+                if (purposePoint.equals("출발")) {
                     start_point.setText(selectPoint);
-                } else if(purposePoint.equals("도착")){
+                } else if (purposePoint.equals("도착")) {
                     dest_point.setText(selectPoint);
                 } else {
                     Log.d(TAG, "purposePoint에 값이 없나? 아님 이상한가?");
                 }
-                double wgs84_x = data.getDoubleExtra(getStringFromResources(R.string.wgs_84_x), 0.0);
-                double wgs84_y = data.getDoubleExtra(getStringFromResources(R.string.wgs_84_y), 0.0);
-                reactionSearchResult(wgs84_x, wgs84_y, selectPoint, address);
+                reactionSearchResult();
             }
         }
     }
 
     private String getStringFromResources(final int id) {
         return getResources().getString(id);
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
-
-        // 카메라 좌표를 서울역 근처로 옮긴다.
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(SEOUL_STATION) //위도 경도
-        );
-
-        // 구글지도에서의 zoom 레벨은 1~23 까지 가능하다
-        CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
-        googleMap.animateCamera(zoom); // moveCamera는 바로 변경하지만, animateCamera()는 근거리에서는 부드럽게 변경합니다.
-
-        // marker 표시
-        // marker의 위치, 타이틀, 짧은 설명 추가
-        MarkerOptions marker = new MarkerOptions();
-        marker.position(SEOUL_STATION).title("서울역").snippet("Seoul Station");
-        googleMap.addMarker(marker).showInfoWindow(); // 마커 추가, 화면에 출력
-        googleMap.getUiSettings().setMapToolbarEnabled(false);
-        googleMap.setBuildingsEnabled(true);
-
-
-        // 위치 권한을 매니페스트에서 설정했는지 확인.
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            googleMap.setMyLocationEnabled(true);
-        } else {
-            // Show rationale and request permission.
-        }
-
-        // 내장 확대/축소 컨트롤을 제공
-        googleMap.getUiSettings().setZoomControlsEnabled(true);
-
-        mGoogleMap = googleMap;
     }
 
     // 기기의 현재 gps좌표가 polyline의 10m 내외로 있는지 확인
@@ -863,306 +578,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return SphericalUtil.computeDistanceBetween(from, to);
     }
 
-    /**
-     * Highlight the marker by index.
-     */
-    // moveMarkerIndex : 실제 애니메이션하기 위해 움직이는데 필요한 마커, descrioptorMarkerIndex : 풍선 띄우는 마커들 인덱스
-    private boolean highLightMarker(int moveMarkerIndex, int descriptorMarkerIndex) {
-        LatLng descriptorLatLng = descriptorMarkers.get(descriptorMarkerIndex).getPosition();
-        LatLng usedForMovingMarkers = markers.get(moveMarkerIndex).getPosition();
-        Log.d("tag", "markerIndex :" + moveMarkerIndex + ", descIndex : " + descriptorMarkerIndex);
-        if (descriptorLatLng.latitude == usedForMovingMarkers.latitude && descriptorLatLng.longitude == usedForMovingMarkers.longitude) {
-            highLightMarker(descriptorMarkers.get(descriptorMarkerIndex));
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Highlight the marker by marker.
-     */
-    private void highLightMarker(Marker marker) {
-        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-        marker.showInfoWindow();
-    }
-
-    // 카메라 베어링(각도 조정)에 필요한 Location을 latLng를 이용해 반환
-    private Location convertLatLngToLocation(LatLng latLng) {
-        Location location = new Location("someLoc");
-        location.setLatitude(latLng.latitude);
-        location.setLongitude(latLng.longitude);
-        return location;
-    }
-
-    // 카메라 각도 조정
-    private float bearingBetweenLatLngs(LatLng beginLatLng, LatLng endLatLng) {
-        Location beginLocation = convertLatLngToLocation(beginLatLng);
-        Location endLocation = convertLatLngToLocation(endLatLng);
-        return beginLocation.bearingTo(endLocation);
-    }
-
-    private void resetMarkers() {
-        Log.d("tag", "초기화");
-        for (Marker marker : this.markers) {
-            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-            Log.d("tag", "색깔변함");
-        }
-    }
-
     @Override
     public void onProfileImageClicked(ImageView profileImageView) {
 
-    }
-
-    public class Animator implements Runnable {
-
-        private static final int ANIMATE_SPEEED = 1500;
-        private static final int ANIMATE_SPEEED_TURN = 1000;
-        private static final int BEARING_OFFSET = -90;
-
-        private final Interpolator interpolator = new LinearInterpolator();
-
-        int movingCurrentMarkerIndex = 0;
-        int descriptorMarkerIndex = 0;
-
-        float tilt = 90;
-        float zoom = 15.5f;
-        boolean upward = true;
-
-        long start = SystemClock.uptimeMillis();
-
-        LatLng endLatLng = null;
-        LatLng beginLatLng = null;
-
-        boolean showPolyline = false;
-
-        private Marker trackingMarker;
-        private Polyline polyLine;
-        private PolylineOptions rectOptions;
-
-        public void reset() {
-            resetMarkers();
-            start = SystemClock.uptimeMillis();
-            movingCurrentMarkerIndex = 0;
-            descriptorMarkerIndex = 1;
-            endLatLng = getEndLatLng();
-            beginLatLng = getBeginLatLng();
-        }
-
-        public void stop() {
-            trackingMarker.remove();
-            mHandler.removeCallbacks(animator);
-
-        }
-
-        public void initialize(boolean showPolyLine) {
-            reset();
-            this.showPolyline = showPolyLine;
-
-            highLightMarker(0, 0);
-            Log.d("tag", "descriptorIndex :" + descriptorMarkerIndex);
-
-            if (showPolyLine) {
-                polyLine = initializePolyLine();
-            }
-
-            // We first need to put the camera in the correct position for the first run (we need 2 markers for this).....
-            LatLng markerPos = markers.get(0).getPosition();
-            LatLng secondPos = markers.get(1).getPosition();
-
-            setupCameraPositionForMovement(markerPos, secondPos);
-
-        }
-
-        private BitmapDescriptor getBitmapDescriptor(int id) {
-            Drawable vectorDrawable = MainActivity.this.getDrawable(id);
-            int h = vectorDrawable.getIntrinsicHeight();
-            int w = vectorDrawable.getIntrinsicWidth();
-            vectorDrawable.setBounds(0, 0, w, h);
-            Bitmap bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-            Canvas canvas = new Canvas(bm);
-            vectorDrawable.draw(canvas);
-            return BitmapDescriptorFactory.fromBitmap(bm);
-        }
-
-        private void setupCameraPositionForMovement(LatLng markerPos,
-                                                    LatLng secondPos) {
-
-            float bearing = bearingBetweenLatLngs(markerPos, secondPos);
-
-            trackingMarker = mGoogleMap.addMarker(new MarkerOptions().position(markerPos)
-                    .title("접니다")
-                    .snippet("자전거에요"));
-            trackingMarker.setIcon(getBitmapDescriptor(R.drawable.ic_directions_bike_red_24dp));
-
-            CameraPosition cameraPosition =
-                    new CameraPosition.Builder()
-                            .target(markerPos)
-                            .bearing(bearing + BEARING_OFFSET)
-                            .tilt(90)
-                            .zoom(mGoogleMap.getCameraPosition().zoom >= 16 ? mGoogleMap.getCameraPosition().zoom : 16)
-                            .build();
-
-            mGoogleMap.animateCamera(
-                    CameraUpdateFactory.newCameraPosition(cameraPosition),
-                    ANIMATE_SPEEED_TURN,
-                    new GoogleMap.CancelableCallback() {
-
-                        @Override
-                        public void onFinish() {
-                            System.out.println("finished camera");
-                            animator.reset();
-                            Handler handler = new Handler();
-                            handler.post(animator);
-                            animating = true;
-                        }
-
-                        @Override
-                        public void onCancel() {
-                            System.out.println("cancelling camera");
-                            animating = false;
-                        }
-                    }
-            );
-        }
-
-        private Polyline initializePolyLine() {
-            //polyLinePoints = new ArrayList<LatLng>();
-            if (polyLine != null) {
-                polyLine.remove();
-            }
-            rectOptions = new PolylineOptions().geodesic(true).color(Color.CYAN);
-            rectOptions.add(markers.get(0).getPosition());
-            return mGoogleMap.addPolyline(rectOptions);
-        }
-
-        /**
-         * Add the marker to the polyline.
-         */
-        private void updatePolyLine(LatLng latLng) {
-            List<LatLng> points = polyLine.getPoints();
-            points.add(latLng);
-            polyLine.setPoints(points);
-        }
-
-
-        public void stopAnimation() {
-            animator.stop();
-        }
-
-        public void startAnimation(boolean showPolyLine) {
-            if (markers.size() > 2) {
-                animator.initialize(showPolyLine);
-            }
-        }
-
-
-        @Override
-        public void run() {
-
-            long elapsed = SystemClock.uptimeMillis() - start;
-            double t = interpolator.getInterpolation((float) elapsed / ANIMATE_SPEEED);
-
-//			LatLng endLatLng = getEndLatLng();
-//			LatLng beginLatLng = getBeginLatLng();
-
-            double lat = t * endLatLng.latitude + (1 - t) * beginLatLng.latitude;
-            double lng = t * endLatLng.longitude + (1 - t) * beginLatLng.longitude;
-            LatLng newPosition = new LatLng(lat, lng);
-
-            trackingMarker.setPosition(newPosition);
-
-            if (showPolyline) {
-                updatePolyLine(newPosition);
-            }
-
-            // It's not possible to move the marker + center it through a cameraposition update while another camerapostioning was already happening.
-            //navigateToPoint(newPosition,tilt,bearing,currentZoom,false);
-            //navigateToPoint(newPosition,false);
-
-            if (t < 1) {
-                mHandler.postDelayed(this, 16);
-            } else {
-
-                System.out.println("Move to next marker.... current = " + movingCurrentMarkerIndex + " and size = " + markers.size());
-                // imagine 5 elements -  0|1|2|3|4 currentindex must be smaller than 4
-                if (movingCurrentMarkerIndex < markers.size() - 2) {
-
-                    movingCurrentMarkerIndex++;
-
-                    endLatLng = getEndLatLng();
-                    beginLatLng = getBeginLatLng();
-
-
-                    start = SystemClock.uptimeMillis();
-
-                    LatLng begin = getBeginLatLng();
-                    LatLng end = getEndLatLng();
-
-                    float bearingL = bearingBetweenLatLngs(begin, end);
-
-                    boolean highLighted = highLightMarker(movingCurrentMarkerIndex, descriptorMarkerIndex);
-                    if (highLighted) {
-                        ++descriptorMarkerIndex;
-                    }
-
-                    CameraPosition cameraPosition =
-                            new CameraPosition.Builder()
-                                    .target(end) // changed this...
-                                    .bearing(bearingL + BEARING_OFFSET)
-                                    .tilt(tilt)
-                                    .zoom(mGoogleMap.getCameraPosition().zoom)
-                                    .build();
-
-
-                    mGoogleMap.animateCamera(
-                            CameraUpdateFactory.newCameraPosition(cameraPosition),
-                            ANIMATE_SPEEED_TURN,
-                            null
-                    );
-
-                    start = SystemClock.uptimeMillis();
-                    mHandler.postDelayed(animator, 16);
-
-                } else {
-                    movingCurrentMarkerIndex++;
-                    highLightMarker(movingCurrentMarkerIndex, descriptorMarkerIndex);
-                    stopAnimation();
-                }
-
-            }
-        }
-
-
-        private LatLng getEndLatLng() {
-            return markers.get(movingCurrentMarkerIndex + 1).getPosition();
-        }
-
-        private LatLng getBeginLatLng() {
-            return markers.get(movingCurrentMarkerIndex).getPosition();
-        }
-
-        private void adjustCameraPosition() {
-            //System.out.println("tilt = " + tilt);
-            //System.out.println("upward = " + upward);
-            //System.out.println("zoom = " + zoom);
-            if (upward) {
-
-                if (tilt < 90) {
-                    tilt++;
-                    zoom -= 0.01f;
-                } else {
-                    upward = false;
-                }
-
-            } else {
-                if (tilt > 0) {
-                    tilt--;
-                    zoom += 0.01f;
-                } else {
-                    upward = true;
-                }
-            }
-        }
     }
 }

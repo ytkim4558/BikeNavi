@@ -5,7 +5,6 @@
 
 <!-- The main content view -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -99,71 +98,6 @@
                     android:layout_marginEnd="10dp"
                     android:visibility="gone" />
             </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/mapViewFrameLayout"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@id/dest_point_search_frame_layout"
-                android:layout_marginBottom="72dp">
-
-                <fragment
-                    android:id="@+id/map"
-                    android:name="com.google.android.gms.maps.MapFragment"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginTop="16dp"
-                    tools:layout="@layout/dummy_map_fragment">
-                </fragment>
-            </FrameLayout>
-
-            <android.support.design.widget.CoordinatorLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentTop="true">
-
-                <LinearLayout
-                    android:id="@+id/bottom_sheet"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#FFFFFF"
-                    android:orientation="vertical"
-                    android:paddingBottom="16dp"
-                    android:paddingLeft="16dp"
-                    android:paddingRight="16dp"
-                    app:behavior_hideable="false"
-                    app:behavior_peekHeight="72dp"
-                    app:layout_behavior="@string/bottom_sheet_behavior">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="72dp"
-                        android:ellipsize="end"
-                        android:gravity="center_vertical"
-                        android:lines="1"
-                        android:maxLines="1"
-                        android:text="@string/detail_route"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-
-                    <FrameLayout
-                        android:id="@+id/fragment_container"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                </LinearLayout>
-
-                <android.support.design.widget.FloatingActionButton
-                    android:id="@+id/fab"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    app:layout_anchor="@+id/bottom_sheet"
-                    app:layout_anchorGravity="top|right" />
-
-
-            </android.support.design.widget.CoordinatorLayout>
         </RelativeLayout>
 
         <android.support.v7.widget.RecyclerView
