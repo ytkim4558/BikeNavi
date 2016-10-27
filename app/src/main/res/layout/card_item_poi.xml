@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content" />
 
             <TextView
-                android:id="@+id/text_poi_last_used_at"
+                android:id="@+id/text_track_last_used_at"
                 android:layout_below="@id/iv_delete"
                 android:layout_alignParentRight="true"
                 android:layout_width="wrap_content"

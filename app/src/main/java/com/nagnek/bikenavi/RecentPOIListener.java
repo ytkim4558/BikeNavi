@@ -8,7 +8,7 @@ package com.nagnek.bikenavi;
  * Created by user on 2016-10-21.
  */
 
-public interface Listener {
+public interface RecentPOIListener {
     void latLngToDelete(String name);
     void poiClickToSet(POI poi);
 }

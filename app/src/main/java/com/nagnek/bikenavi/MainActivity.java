@@ -16,8 +16,10 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
 import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -65,7 +67,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-public class MainActivity extends AppCompatActivity implements MyAdapter.ClickListener {
+public class MainActivity extends AppCompatActivity implements MyAdapter.ClickListener, RecentTrackFragment.OnTrackSelectedListener {
 
     // 첫번째로 네비게이션 드로어 리스트뷰에 타이틀과 아이콘을 선언한다.
     // 이 아아콘과 타이틀들은 배열에 담긴다
@@ -85,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
 
     private static final String TAG = MainActivity.class.getSimpleName();
     DelayAutoCompleteTextView start_point, dest_point;
+    POI start_poi, dest_poi;
     String[] serverIPs = new String[]{};
     /**
      * AutoCompleteTextView 대신 ClearableSQliteAutoCompleteTextView로 변경했다.
@@ -228,6 +231,23 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Get the ViewPager and set it's RecentPOIPagerAdapter so that it can display items
+        ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
+        RecentTrackPagerAdapter recentTrackPagerAdapter = new RecentTrackPagerAdapter(getSupportFragmentManager(), MainActivity.this);
+        viewPager.setAdapter(recentTrackPagerAdapter);
+
+        // Give the TabLayout the ViewPager
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
+        tabLayout.setupWithViewPager(viewPager);
+
+        // Iterate over all tabs and set the custom view
+        for (int i = 0; i < tabLayout.getTabCount(); ++i) {
+            TabLayout.Tab tab = tabLayout.getTabAt(i);
+            tab.setCustomView(recentTrackPagerAdapter.getTabView(i));
+        }
+
         long start = System.currentTimeMillis();
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(getApplicationContext());
@@ -238,7 +258,6 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
         Log.d(TAG, "db, session쪽 로딩 시간 : " + (end - start) / 1000.0);
         start = System.currentTimeMillis();
 
-        setContentView(R.layout.activity_main);
         end = System.currentTimeMillis();
         Log.d(TAG, "setContentView 시간 : " + (end - start) / 1000.0);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -309,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
         // ip autocompletetextview is in activity_main.xml
         serverIpAutoComplete = (ClearableSqliteAutoCompleteTextView) view.findViewById(R.id.ip);
 
-        // add the listener so it will tries to suggest while the user types
+        // add the recentPOIListener so it will tries to suggest while the user types
         serverIpAutoComplete.addTextChangedListener(new CustomAutoCompleteTextChangedListener(this));
 
         // set adapter
@@ -527,6 +546,10 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     void reactionSearchResult() {
         // start 지점과 도착지점 모두 설정되었으면 경로를 찾는다.
         if (!start_point.getText().toString().equals("") && !dest_point.getText().toString().equals("")) {
+            RecentTrackFragment recentTrackFragment = (RecentTrackFragment) getSupportFragmentManager().findFragmentById(R.id.recenet_search_recyclerView);
+            if(recentTrackFragment != null) {
+                recentTrackFragment.updateTrackList();
+            }
             redirectTrackActivity();
         }
     }
@@ -550,10 +573,24 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
                 String address = data.getStringExtra(getStringFromResources(R.string.select_poi_address_for_transition));
                 if (purposePoint.equals("출발")) {
                     start_point.setText(selectPoint);
+                    start_poi = (POI)data.getSerializableExtra(getStringFromResources(R.string.current_point_poi_for_transition));
                 } else if (purposePoint.equals("도착")) {
                     dest_point.setText(selectPoint);
+                    dest_poi = (POI)data.getSerializableExtra(getStringFromResources(R.string.current_point_poi_for_transition));
                 } else {
                     Log.d(TAG, "purposePoint에 값이 없나? 아님 이상한가?");
+                }
+                if (start_poi != null && dest_poi != null) {
+                    Thread thread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Track track = new Track();
+                            track.start_poi = start_poi;
+                            track.dest_poi = dest_poi;
+                            db.addTrack(track);
+                        }
+                    });
+                    thread.start();
                 }
                 reactionSearchResult();
             }
@@ -581,5 +618,13 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     @Override
     public void onProfileImageClicked(ImageView profileImageView) {
 
+    }
+
+    @Override
+    public void onRecentTrackSelected(Track track) {
+        start_point.setText(track.start_poi.name);
+        dest_point.setText(track.dest_poi.name);
+        db.updateLastUsedAtTrack(track);
+        reactionSearchResult();
     }
 }

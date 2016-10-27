@@ -4,11 +4,16 @@
 
 package com.nagnek.bikenavi.app;
 
+import android.content.Context;
+
+import com.skp.Tmap.TMapTapi;
+
 /**
  * Created by user on 2016-09-27.
  */
 public class AppConfig {
     public static String HOSTING_IP = "43.224.34.5";
+    private static TMapTapi tMapTapi = null;
 
     // Server user login url
     public static String URL_LOGIN = "http://"+HOSTING_IP+"/android_login_api/login.php";   // 회원 로그인 (카카오톡, 구글, 페이스북은 여기서 가입도 한다)
@@ -36,5 +41,12 @@ public class AppConfig {
         poiRegisterURLBuffer.append(serverIp);
         poiRegisterURLBuffer.append("/android_login_api/register_poi.php");
         URL_POI_REGISTER = poiRegisterURLBuffer.toString().trim();
+    }
+
+    public static void initializeTMapTapi(Context context) {
+        if(tMapTapi == null) {
+            tMapTapi = new TMapTapi(context);
+            tMapTapi.setSKPMapAuthentication("d2bc2636-c213-3bad-9058-7d46cf9f8039");
+        }
     }
 }

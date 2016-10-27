@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.time.Time;
 
 import java.util.ArrayList;
@@ -28,7 +29,8 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
     Context context;
     List<POI> recentPOIList = new ArrayList<>();
     LayoutInflater inflater;
-    Listener listener;
+    RecentPOIListener recentPOIListener;
+    private SQLiteHandler db;   // sqlite
 
     class RecentPOIListViewHolder extends RecyclerView.ViewHolder {
 
@@ -45,18 +47,19 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
             poi_name = (TextView) v.findViewById(R.id.text_poi_name);
             poi_address = (TextView) v.findViewById(R.id.text_poi_address);
             iv_delete = (ImageView) v.findViewById(R.id.iv_delete);
-            poi_last_used_at = (TextView) v.findViewById(R.id.text_poi_last_used_at);
+            poi_last_used_at = (TextView) v.findViewById(R.id.text_track_last_used_at);
         }
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public RecentPOIListAdapter(Context context, List<POI> poiList, Listener listener) {
+    public RecentPOIListAdapter(Context context, List<POI> poiList, RecentPOIListener recentPOIListener) {
 
         this.context = context;
         this.recentPOIList = poiList;
-        this.listener = listener;
+        this.recentPOIListener = recentPOIListener;
         inflater = LayoutInflater.from(context);
-
+        // SqLite database handler 초기화
+        db = SQLiteHandler.getInstance(context.getApplicationContext());
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
@@ -64,7 +67,7 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
 
         this.context = context;
         this.recentPOIList = poiList;
-        this.listener = (Listener) context;
+        this.recentPOIListener = (RecentPOIListener) context;
         inflater = LayoutInflater.from(context);
 
     }
@@ -75,7 +78,7 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
                                                       int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.card_item, parent, false);
+                .inflate(R.layout.card_item_poi, parent, false);
         // set the view's size, margins, paddings and layout parameters
         RecentPOIListViewHolder vh = new RecentPOIListViewHolder(v);
         return vh;
@@ -87,13 +90,13 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
         holder.iv_delete.setTag(position);
         holder.poi_name.setText(recentPOIList.get(position).name);
         holder.poi_address.setText(recentPOIList.get(position).address);
-        holder.poi_last_used_at.setText(Time.formatTimeString(recentPOIList.get(position).last_used_at));
+        holder.poi_last_used_at.setText(Time.formatTimeString(db.getLastUsedAtUsingPOI(recentPOIList.get(position).latLng)));
         holder.itemView.setTag(position);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int select_position = (Integer)v.getTag();
-                listener.poiClickToSet(recentPOIList.get(select_position));
+                recentPOIListener.poiClickToSet(recentPOIList.get(select_position));
             }
         });
 
@@ -101,7 +104,7 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
             @Override
             public void onClick(View v) {
                 int delete_position = (Integer)v.getTag();
-                listener.latLngToDelete(recentPOIList.get(delete_position).latLng);
+                recentPOIListener.latLngToDelete(recentPOIList.get(delete_position).latLng);
                 recentPOIList.remove(delete_position);
                 notifyItemRemoved(delete_position);
                 //this line below gives you the animation and also updates the

@@ -41,6 +41,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.guide.GuideContent;
 import com.nagnek.bikenavi.util.NagneUtil;
 import com.skp.Tmap.TMapData;
@@ -116,6 +117,8 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         descriptorMarkers.clear();
         markerOptionsArrayList.clear();
 
+        AppConfig.initializeTMapTapi(TrackActivity.this);
+
         TMapData tmapData3 = new TMapData();
 
         mGoogleMap.clear();
@@ -133,7 +136,6 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                         final ArrayList<TMapPoint> pointArrayList = tMapPolyLine.getLinePoint();
                         for (TMapPoint point : pointArrayList) {
                             LatLng latLng = new LatLng(point.getLatitude(), point.getLongitude());
-                            Log.d("tag", "위도 : " + latLng.latitude + ", 경도 : " + latLng.longitude);
                             pathStopPointList.add(latLng);
                         }
 

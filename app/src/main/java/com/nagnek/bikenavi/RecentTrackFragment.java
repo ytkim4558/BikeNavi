@@ -13,23 +13,28 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.gson.Gson;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 
-public class RecentFragment extends Fragment implements Listener{
-    OnPoiSelectedListener mCallback;
+/**
+ * Created by user on 2016-10-27.
+ */
+
+public class RecentTrackFragment extends Fragment implements RecentTrackListener {
+    OnTrackSelectedListener mCallback;
 
     // 액티비티는 항상 이 인터페이스를 구현 해야한다
-    public interface  OnPoiSelectedListener {
-        void onRecentPOISelected(POI poi);
+    public interface  OnTrackSelectedListener {
+        void onRecentTrackSelected(Track track);
     }
 
-    private static final String TAG = RecentFragment.class.getSimpleName();
+    private static final String TAG = RecentTrackFragment.class.getSimpleName();
 
     SQLiteHandler db;
-    RecentPOIListAdapter adapter;
+    RecentTrackListAdapter adapter;
     RecyclerView rv;
 
-    public RecentFragment() {
+    public RecentTrackFragment() {
         // Required empty public constructor
     }
 
@@ -42,36 +47,45 @@ public class RecentFragment extends Fragment implements Listener{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView");
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_recent, container, false);
 
         db = SQLiteHandler.getInstance(getActivity().getApplicationContext());
 
-        rv = (RecyclerView) rootView.findViewById(R.id.recenet_search_poi_recyclerView);
+        rv = (RecyclerView) rootView.findViewById(R.id.recenet_search_recyclerView);
         rv.setHasFixedSize(true);
-        adapter = new RecentPOIListAdapter(getActivity(), db.getAllPOI(), this);
+        adapter = new RecentTrackListAdapter(getActivity(), db.getAllTrack(), this);
         rv.setAdapter(adapter);
 
         LinearLayoutManager llm = new LinearLayoutManager(getActivity().getApplicationContext());
         rv.setLayoutManager(llm);
 
         try {
-            mCallback = (OnPoiSelectedListener) getActivity();
+            mCallback = (OnTrackSelectedListener) getActivity();
         } catch (ClassCastException e) {
-            throw new ClassCastException(getActivity().toString() + "must implement OnPoiSelectedListener");
+            throw new ClassCastException(getActivity().toString() + "must implement OnTrackSelectedListener");
         }
 
         return rootView;
     }
 
     @Override
-    public void latLngToDelete(String latLng) {
-        db.deletePOIRow(latLng);
-        Log.d(TAG, "latLng : " + latLng);
+    public void trackClickToDelete(Track track) {
+        Gson gson = new Gson();
+        Log.d(TAG, "delete track : " + gson.toJson(track));
+        db.deleteTrackRow(track);
     }
 
     @Override
-    public void poiClickToSet(POI poi) {
-        mCallback.onRecentPOISelected(poi);
+    public void trackClickToSet(Track track) {
+        Gson gson = new Gson();
+        Log.d(TAG, "click track : " + gson.toJson(track));
+        mCallback.onRecentTrackSelected(track);
+    }
+
+    public void updateTrackList() {
+        adapter.swap(db.getAllTrack());
+        Log.d(TAG, "recentTrackList 갱신 시도");
     }
 }

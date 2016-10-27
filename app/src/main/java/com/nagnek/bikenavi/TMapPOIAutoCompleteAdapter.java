@@ -14,9 +14,9 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
 
+import com.nagnek.bikenavi.app.AppConfig;
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapPOIItem;
-import com.skp.Tmap.TMapTapi;
 
 import org.xml.sax.SAXException;
 
@@ -32,17 +32,11 @@ import javax.xml.parsers.ParserConfigurationException;
 public class TMapPOIAutoCompleteAdapter extends BaseAdapter implements Filterable {
     private static final int MAX_RESULTS = 10;
     private static final String TAG = TMapPOIAutoCompleteAdapter.class.getSimpleName();
-    TMapTapi tMapTapi = null;
     private Context mContext;
     private List<TMapPOIItem> poiList = new ArrayList<TMapPOIItem>();
 
     public TMapPOIAutoCompleteAdapter(Context context) {
         mContext = context;
-    }
-
-    void initializeTMapTapi() {
-        tMapTapi = new TMapTapi(mContext);
-        tMapTapi.setSKPMapAuthentication("d2bc2636-c213-3bad-9058-7d46cf9f8039");
     }
 
     @Override
@@ -93,9 +87,7 @@ public class TMapPOIAutoCompleteAdapter extends BaseAdapter implements Filterabl
             protected FilterResults performFiltering(CharSequence constraint) {
                 FilterResults filterResults = new FilterResults();
                 if (constraint != null) {
-                    if (tMapTapi == null) {
-                        initializeTMapTapi();
-                    }
+                    AppConfig.initializeTMapTapi(mContext);
                     List<TMapPOIItem> tMapPOIItems = findAddressList(mContext, constraint.toString());
 
                     filterResults.values = tMapPOIItems;

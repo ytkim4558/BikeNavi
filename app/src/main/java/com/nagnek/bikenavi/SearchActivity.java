@@ -5,22 +5,16 @@
 package com.nagnek.bikenavi;
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -44,7 +38,7 @@ import java.util.Map;
 
 import static com.nagnek.bikenavi.util.NagneUtil.getStringFromResources;
 
-public class SearchActivity extends AppCompatActivity implements RecentFragment.OnPoiSelectedListener {
+public class SearchActivity extends AppCompatActivity implements RecentPOIFragment.OnPoiSelectedListener {
     private static final String TAG = SearchActivity.class.getSimpleName();
     DelayAutoCompleteTextView searchPoint = null;
     TextInputLayout textInputLayout = null;
@@ -68,6 +62,7 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
             intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.wgs_84_x), wgs84_x);
             intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.wgs_84_y), wgs84_y);
             intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.name_purpose_search_point), search_purpose);
+            intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.current_point_poi_for_transition), poi);
             setResult(RESULT_OK, intent);
             //registerPOI(poiName, wgs84_x, wgs84_y);
 
@@ -96,10 +91,10 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
-        // Get the ViewPager and set it's PagerAdapter so that it can display items
+        // Get the ViewPager and set it's RecentPOIPagerAdapter so that it can display items
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
-        PagerAdatper pagerAdapter = new PagerAdatper(getSupportFragmentManager(), SearchActivity.this);
-        viewPager.setAdapter(pagerAdapter);
+        RecentPOIPagerAdapter recentPOIPagerAdapter = new RecentPOIPagerAdapter(getSupportFragmentManager(), SearchActivity.this);
+        viewPager.setAdapter(recentPOIPagerAdapter);
 
         // Give the TabLayout the ViewPager
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
@@ -108,7 +103,7 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
         // Iterate over all tabs and set the custom view
         for (int i = 0; i < tabLayout.getTabCount(); ++i) {
             TabLayout.Tab tab = tabLayout.getTabAt(i);
-            tab.setCustomView(pagerAdapter.getTabView(i));
+            tab.setCustomView(recentPOIPagerAdapter.getTabView(i));
         }
         searchPoint = (DelayAutoCompleteTextView) findViewById(R.id.search_point);
         textInputLayout = (TextInputLayout) findViewById(R.id.ti_layout);
@@ -212,6 +207,7 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
                 intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.wgs_84_x), wgs84_x);
                 intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.wgs_84_y), wgs84_y);
                 intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.name_purpose_search_point), searchPurpose);
+                intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.current_point_poi_for_transition), poi);
                 setResult(RESULT_OK, intent);
                 //registerPOI(poiName, wgs84_x, wgs84_y);
 
@@ -297,47 +293,6 @@ public class SearchActivity extends AppCompatActivity implements RecentFragment.
     private void hideDialog() {
         if (progressDialog.isShowing()) {
             progressDialog.dismiss();
-        }
-    }
-
-    class PagerAdatper extends FragmentPagerAdapter {
-        String tabTitles[] = new String[]{"최근 검색", "즐겨 찾기"};
-        Context context;
-
-        public PagerAdatper(FragmentManager fm, Context context) {
-            super(fm);
-            this.context = context;
-        }
-
-        @Override
-        public int getCount() {
-            return tabTitles.length;
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-
-            switch (position) {
-                case 0:
-                    return new RecentFragment();
-                case 1:
-                    return new RecentFragment();
-            }
-
-            return null;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            // item 위치에 따른 title 생성
-            return tabTitles[position];
-        }
-
-        public View getTabView(int position) {
-            View tab = LayoutInflater.from(SearchActivity.this).inflate(R.layout.custom_tab, null);
-            TextView tv = (TextView) tab.findViewById(R.id.custom_text);
-            tv.setText(tabTitles[position]);
-            return tab;
         }
     }
 }
