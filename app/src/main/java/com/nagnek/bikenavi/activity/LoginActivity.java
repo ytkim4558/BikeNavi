@@ -80,6 +80,10 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     private static final boolean GET_HASH_KEY = false; // 어플의 해쉬키 카카오톡 로그인 때문에 필요
     private static final String TAG = LoginActivity.class.getSimpleName();
     private static final int RC_SIGN_IN = 9001; // 구글 로그인 요청 키
+    /**
+     * 페이스북
+     */
+    CallbackManager facebookCallbackManager;    // 페북 콜백매니저
     private Button btnLogin; // 자체 로그인
     private SignInButton btnGoogleLogin; //구글 로그인
     private Button btnLinkToRegister; // 회원가입으로 가게하는 버튼
@@ -95,11 +99,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
      * 카카오톡
      */
     private SessionCallback callback; // 콜백 선언
-
-    /**
-     * 페이스북
-     */
-    CallbackManager facebookCallbackManager;    // 페북 콜백매니저
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -128,7 +127,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
         // 페이스북
         facebookCallbackManager = CallbackManager.Factory.create();
-        if(session.isFacebookIn()) {
+        if (session.isFacebookIn()) {
             LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
         }
         LoginManager.getInstance().registerCallback(facebookCallbackManager, new FacebookCallback<LoginResult>() {
@@ -138,19 +137,19 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 showDialog();
                 Log.d(TAG, "페북 로긴 성공");
                 GraphRequest request = GraphRequest.newMeRequest(
-                    loginResult.getAccessToken(),
-                    new GraphRequest.GraphJSONObjectCallback() {
-                        @Override
-                        public void onCompleted(JSONObject object, GraphResponse response) {
-                            Log.v(TAG, response.toString());
+                        loginResult.getAccessToken(),
+                        new GraphRequest.GraphJSONObjectCallback() {
+                            @Override
+                            public void onCompleted(JSONObject object, GraphResponse response) {
+                                Log.v(TAG, response.toString());
 
-                            try {
-                                handleFacebookSignResult(object.getString("id"), object.getString("name"));
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                                try {
+                                    handleFacebookSignResult(object.getString("id"), object.getString("name"));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
-                    }
                 );
                 Bundle parameters = new Bundle();
                 parameters.putString("fields", "id, name");

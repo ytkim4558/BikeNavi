@@ -16,7 +16,7 @@ import android.widget.TextView;
  * Created by user on 2016-10-27.
  */
 
-public class RecentTrackPagerAdapter  extends FragmentPagerAdapter {
+public class RecentTrackPagerAdapter extends FragmentPagerAdapter {
     String tabTitles[] = new String[]{"최근 검색", "즐겨 찾기"};
     Context context;
 

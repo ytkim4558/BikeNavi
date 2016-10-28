@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
                 intent = new Intent(MainActivity.this, POISearchActivity.class);
                 break;
         }
-        if(intent != null) {
+        if (intent != null) {
             startActivity(intent);
         }
     }
@@ -241,7 +241,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
         // Iterate over all tabs and set the custom view
         for (int i = 0; i < tabLayout.getTabCount(); ++i) {
             TabLayout.Tab tab = tabLayout.getTabAt(i);
-            if(tab != null) {
+            if (tab != null) {
                 tab.setCustomView(recentTrackPagerAdapter.getTabView(i));
             } else {
                 Log.d(TAG, "tab이 null이네?");
@@ -569,10 +569,10 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
                 String address = data.getStringExtra(getStringFromResources(R.string.select_poi_address_for_transition));
                 if (purposePoint.equals("출발")) {
                     start_point.setText(selectPoint);
-                    start_poi = (POI)data.getSerializableExtra(getStringFromResources(R.string.current_point_poi_for_transition));
+                    start_poi = (POI) data.getSerializableExtra(getStringFromResources(R.string.current_point_poi_for_transition));
                 } else if (purposePoint.equals("도착")) {
                     dest_point.setText(selectPoint);
-                    dest_poi = (POI)data.getSerializableExtra(getStringFromResources(R.string.current_point_poi_for_transition));
+                    dest_poi = (POI) data.getSerializableExtra(getStringFromResources(R.string.current_point_poi_for_transition));
                 } else {
                     Log.d(TAG, "purposePoint에 값이 없나? 아님 이상한가?");
                 }

@@ -13,14 +13,6 @@ import java.util.Date;
  */
 
 public class Time {
-    private static class TIME_MAXIMUM {
-        public static final int SEC = 60;
-        public static final int MIN = 60;
-        public static final int HOUR = 24;
-        public static final int DAY = 30;
-        public static final int MONTH = 12;
-    }
-
     public static String formatTimeString(Date tempDate) {
         long curTime = System.currentTimeMillis();
         long regTime = tempDate.getTime();
@@ -36,7 +28,7 @@ public class Time {
         } else if ((diffTime /= TIME_MAXIMUM.MIN) < TIME_MAXIMUM.HOUR) {
             // hour
             msg = (diffTime) + "시간 전";
-        } else if((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
+        } else if ((diffTime /= TIME_MAXIMUM.HOUR) < TIME_MAXIMUM.DAY) {
             // day
             msg = (diffTime) + "일 전";
         } else if ((diffTime /= TIME_MAXIMUM.DAY) < TIME_MAXIMUM.MONTH) {
@@ -53,10 +45,18 @@ public class Time {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String msg = null;
         try {
-             msg = formatTimeString(format.parse(stringDate));
+            msg = formatTimeString(format.parse(stringDate));
         } catch (ParseException e) {
             e.printStackTrace();
         }
         return msg;
+    }
+
+    private static class TIME_MAXIMUM {
+        public static final int SEC = 60;
+        public static final int MIN = 60;
+        public static final int HOUR = 24;
+        public static final int DAY = 30;
+        public static final int MONTH = 12;
     }
 }

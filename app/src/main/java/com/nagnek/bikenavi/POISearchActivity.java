@@ -32,11 +32,11 @@ import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
 
 public class POISearchActivity extends AppCompatActivity implements OnMapReadyCallback {
-    private static final String TAG = POISearchActivity.class.getSimpleName();
     static final LatLng SEOUL_STATION = new LatLng(37.555755, 126.970431);
-    private GoogleMap mGoogleMap;
+    private static final String TAG = POISearchActivity.class.getSimpleName();
     DelayAutoCompleteTextView searchPoint = null;
     TextInputLayout textInputLayout = null;
+    private GoogleMap mGoogleMap;
     private ProgressDialog progressDialog;
     private SessionManager session; // 로그인했는지 확인용 변수
     private SQLiteHandler db;   // sqlite

@@ -27,8 +27,8 @@
             android:layout_marginBottom="10dp"
             android:hint="@string/hint_email"
             android:inputType="textEmailAddress"
-            android:padding="10dp"
             android:maxLines="1"
+            android:padding="10dp"
             android:textColor="@color/input_login"
             android:textColorHint="@color/input_login_hint" />
 
@@ -50,8 +50,8 @@
             android:inputType="textPassword"
 
 
-            android:padding="10dp"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:padding="10dp" />
     </android.support.design.widget.TextInputLayout>
 
     <!-- Login Button -->

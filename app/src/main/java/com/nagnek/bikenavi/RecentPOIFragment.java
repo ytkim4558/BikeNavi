@@ -16,19 +16,11 @@ import android.view.ViewGroup;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 
 public class RecentPOIFragment extends Fragment implements RecentPOIListener {
-    OnPoiSelectedListener mCallback;
-
-    // 액티비티는 항상 이 인터페이스를 구현 해야한다
-    public interface  OnPoiSelectedListener {
-        void onRecentPOISelected(POI poi);
-    }
-
     private static final String TAG = RecentPOIFragment.class.getSimpleName();
-
+    OnPoiSelectedListener mCallback;
     SQLiteHandler db;
     RecentPOIListAdapter adapter;
     RecyclerView rv;
-
     public RecentPOIFragment() {
         // Required empty public constructor
     }
@@ -73,5 +65,10 @@ public class RecentPOIFragment extends Fragment implements RecentPOIListener {
     @Override
     public void poiClickToSet(POI poi) {
         mCallback.onRecentPOISelected(poi);
+    }
+
+    // 액티비티는 항상 이 인터페이스를 구현 해야한다
+    public interface OnPoiSelectedListener {
+        void onRecentPOISelected(POI poi);
     }
 }

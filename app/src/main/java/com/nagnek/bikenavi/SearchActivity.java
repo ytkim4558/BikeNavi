@@ -42,10 +42,10 @@ public class SearchActivity extends AppCompatActivity implements RecentPOIFragme
     private static final String TAG = SearchActivity.class.getSimpleName();
     DelayAutoCompleteTextView searchPoint = null;
     TextInputLayout textInputLayout = null;
+    String search_purpose;
     private ProgressDialog progressDialog;
     private SessionManager session; // 로그인했는지 확인용 변수
     private SQLiteHandler db;   // sqlite
-    String search_purpose;
 
     @Override
     public void onRecentPOISelected(POI poi) {
@@ -71,14 +71,6 @@ public class SearchActivity extends AppCompatActivity implements RecentPOIFragme
             // 메인 엑티비티로 돌아가기
             finishAfterTransition();
         }
-    }
-
-    enum UserType {
-        GOOGLE,
-        KAKAO,
-        FACEBOOK,
-        BIKENAVI,
-        NONLOGIN
     }
 
     @Override
@@ -294,5 +286,13 @@ public class SearchActivity extends AppCompatActivity implements RecentPOIFragme
         if (progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
+    }
+
+    enum UserType {
+        GOOGLE,
+        KAKAO,
+        FACEBOOK,
+        BIKENAVI,
+        NONLOGIN
     }
 }

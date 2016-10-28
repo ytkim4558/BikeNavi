@@ -104,7 +104,7 @@ public class ClearableAutoCompleteTextView extends AppCompatAutoCompleteTextView
     }
 
     private void setClearIconVisible(boolean visible) {
-        if(clearDrawable != null) {
+        if (clearDrawable != null) {
             clearDrawable.setVisible(visible, false);
             setCompoundDrawables(null, null, visible ? clearDrawable : null, null);
         }

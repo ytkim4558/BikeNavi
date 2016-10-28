@@ -9,5 +9,6 @@ package com.nagnek.bikenavi;
  */
 public interface RecentTrackListener {
     void trackClickToDelete(Track track);
+
     void trackClickToSet(Track track);
 }

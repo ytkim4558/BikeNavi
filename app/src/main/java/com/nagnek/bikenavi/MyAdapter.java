@@ -22,71 +22,15 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private static final int TYPE_HEADER = 0;  // Declaring variable to understand which view is being worked on
     // If the view under inflation and population is header or Item
     private static final int TYPE_ITEM = 1;
-
+    private static ClickListener mCallback;
+    private static boolean loginState;
     private String mNavTitles[]; // String Array to store the passed titles Value from MainActivity.java
     private int mIcons[];       // Int Array to store the passed icons resource value from MainActivity.java
-
     private String name;        //String Resource for header View name
     private int profileID;        //int Resource for header view profileID picture
     private String email;       //String Resource for header view email
 
-    private static ClickListener mCallback;
-
-    private static boolean loginState;
-
-    // 액티비티는 항상 이 인터페이스를 구현해야 한다.
-    public interface ClickListener {
-        void onProfileImageClicked(ImageView profileImage);
-        void onLoginStateButtonClicked(Button loginStateButton);
-        void onNavItemClicked(int position);
-    }
-
-    // Creating a ViewHolder which extends the RecyclerView View Holder
-    // ViewHolder are used to to store the inflated views in order to recycle them
-
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        int holderId;
-        public final View itemView;
-        TextView textView;
-        ImageView imageView;
-        ImageView profile;
-        TextView name;
-        TextView email;
-        Button loginStateButton;    // 비로그인 상태에서는 로그인 , 로그인 상태에서는 로그아웃이라고 표시되는 버튼
-
-        public ViewHolder(View itemView, int viewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
-            super(itemView);
-            this.itemView = itemView;
-            // Here we set the appropriate view in accordance with the the view type as passed when the holder object is created
-            Log.d(TAG, "ViewHolder");
-            if(viewType == TYPE_ITEM) {
-                textView = (TextView) itemView.findViewById(R.id.rowText); // Creating TextView object with the id of textView from item_row.xml
-                imageView = (ImageView) itemView.findViewById(R.id.rowIcon);// Creating ImageView object with the id of ImageView from item_row.xml
-                holderId = 1;                                               // Setting holder id as 1 as the object being populated are of type item row
-            }
-            else{
-                name = (TextView) itemView.findViewById(R.id.name);         // Creating Text View object from header.xml for name
-                email = (TextView) itemView.findViewById(R.id.email);       // Creating Text View object from header.xml for email
-                profile = (ImageView) itemView.findViewById(R.id.circleView);// Creating Image view object from header.xml for profile pic
-                profile.setOnClickListener(new View.OnClickListener(){
-                    @Override
-                    public void onClick(View v) {
-                        mCallback.onProfileImageClicked(profile);
-                    }
-                });
-                loginStateButton = (Button) itemView.findViewById(R.id.btn_login);
-                loginStateButton.setOnClickListener(new View.OnClickListener(){
-                    @Override
-                    public void onClick(View v) {
-                        mCallback.onLoginStateButtonClicked(loginStateButton);
-                    }
-                });
-                holderId = 0;                                                // Setting holder id = 0 as the object being populated are of type header view
-            }
-        }
-    }
-
-    MyAdapter(String titles[], int icons[], String name, String email, int profileID, ClickListener clickListener, boolean loginState){ // MyAdapter Constructor with titles and icons parameter
+    MyAdapter(String titles[], int icons[], String name, String email, int profileID, ClickListener clickListener, boolean loginState) { // MyAdapter Constructor with titles and icons parameter
         // titles, icons, name, email, profileID pic are passed from the main activity as we
         mNavTitles = titles;                //have seen earlier
         mIcons = icons;
@@ -98,8 +42,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         //in adapter
     }
 
+    // Creating a ViewHolder which extends the RecyclerView View Holder
+    // ViewHolder are used to to store the inflated views in order to recycle them
+
     public void swap(int icons[], String name, String email) {
-        if(icons != null) {
+        if (icons != null) {
             mIcons = icons;
         }
 
@@ -112,22 +59,17 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         MyAdapter.loginState = loginState;
     }
 
-    // Below first we override the method onCreateViewHolder which is called when the ViewHolder is
-    // Created, In this method we inflate the item_row.xml layout if the viewType is Type_ITEM or else we inflate header.xml
-    // if the viewType is TYPE_HEADER
-    // and pass it to the view holder
-
     @Override
     public MyAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         Log.d(TAG, "onCreateViewHolder");
         if (viewType == TYPE_ITEM) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_row,parent,false); //Inflating the layout
-            ViewHolder vhItem = new ViewHolder(v,viewType); //Creating ViewHolder and passing the object of type view
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_row, parent, false); //Inflating the layout
+            ViewHolder vhItem = new ViewHolder(v, viewType); //Creating ViewHolder and passing the object of type view
             return vhItem; // Returning the created object
             //inflate your layout and pass it to view holder
         } else if (viewType == TYPE_HEADER) {
-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.header,parent,false); //Inflating the layout
-            ViewHolder vhHeader = new ViewHolder(v,viewType); //Creating ViewHolder and passing the object of type view
+            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.header, parent, false); //Inflating the layout
+            ViewHolder vhHeader = new ViewHolder(v, viewType); //Creating ViewHolder and passing the object of type view
             return vhHeader; //returning the object created
         }
         return null;
@@ -139,25 +81,24 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(MyAdapter.ViewHolder holder, int position) {
         Log.d(TAG, "onBindViewHolder");
-        if(holder.holderId ==1) {                              // as the list view is going to be called after the header view so we decrement the
+        if (holder.holderId == 1) {                              // as the list view is going to be called after the header view so we decrement the
             // position by 1 and pass it to the holder while setting the text and image
             holder.textView.setText(mNavTitles[position - 1]); // Setting the text with the array of our Titles
-            holder.imageView.setImageResource(mIcons[position -1]);// Setting the image with array of our icons
+            holder.imageView.setImageResource(mIcons[position - 1]);// Setting the image with array of our icons
             holder.itemView.setTag(position);
-            holder.itemView.setOnClickListener(new View.OnClickListener(){
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    int position = (Integer)v.getTag();
+                    int position = (Integer) v.getTag();
                     Log.d(TAG, "position 클릭 : " + position);
                     mCallback.onNavItemClicked(position);
                 }
             });
-        }
-        else{
+        } else {
             holder.profile.setImageResource(profileID);           // Similarly we set the resources for header view
             holder.name.setText(name);
             holder.email.setText(email);
-            if(loginState) {
+            if (loginState) {
                 holder.loginStateButton.setText("로그아웃");
             } else {
                 holder.loginStateButton.setText("로그인");
@@ -165,12 +106,16 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         }
     }
 
+    // Below first we override the method onCreateViewHolder which is called when the ViewHolder is
+    // Created, In this method we inflate the item_row.xml layout if the viewType is Type_ITEM or else we inflate header.xml
+    // if the viewType is TYPE_HEADER
+    // and pass it to the view holder
+
     // This method returns the number of items present in the list
     @Override
     public int getItemCount() {
         return mNavTitles.length + 1; // the number of items in the list will be +1 the titles including the header view.
     }
-
 
     // With the following method we check what type of view is being passed
     @Override
@@ -183,5 +128,56 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     private boolean isPositionHeader(int position) {
         return position == 0;
+    }
+
+
+    // 액티비티는 항상 이 인터페이스를 구현해야 한다.
+    public interface ClickListener {
+        void onProfileImageClicked(ImageView profileImage);
+
+        void onLoginStateButtonClicked(Button loginStateButton);
+
+        void onNavItemClicked(int position);
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        public final View itemView;
+        int holderId;
+        TextView textView;
+        ImageView imageView;
+        ImageView profile;
+        TextView name;
+        TextView email;
+        Button loginStateButton;    // 비로그인 상태에서는 로그인 , 로그인 상태에서는 로그아웃이라고 표시되는 버튼
+
+        public ViewHolder(View itemView, int viewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
+            super(itemView);
+            this.itemView = itemView;
+            // Here we set the appropriate view in accordance with the the view type as passed when the holder object is created
+            Log.d(TAG, "ViewHolder");
+            if (viewType == TYPE_ITEM) {
+                textView = (TextView) itemView.findViewById(R.id.rowText); // Creating TextView object with the id of textView from item_row.xml
+                imageView = (ImageView) itemView.findViewById(R.id.rowIcon);// Creating ImageView object with the id of ImageView from item_row.xml
+                holderId = 1;                                               // Setting holder id as 1 as the object being populated are of type item row
+            } else {
+                name = (TextView) itemView.findViewById(R.id.name);         // Creating Text View object from header.xml for name
+                email = (TextView) itemView.findViewById(R.id.email);       // Creating Text View object from header.xml for email
+                profile = (ImageView) itemView.findViewById(R.id.circleView);// Creating Image view object from header.xml for profile pic
+                profile.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mCallback.onProfileImageClicked(profile);
+                    }
+                });
+                loginStateButton = (Button) itemView.findViewById(R.id.btn_login);
+                loginStateButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mCallback.onLoginStateButtonClicked(loginStateButton);
+                    }
+                });
+                holderId = 0;                                                // Setting holder id = 0 as the object being populated are of type header view
+            }
+        }
     }
 }

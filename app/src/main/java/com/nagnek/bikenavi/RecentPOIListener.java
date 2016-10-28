@@ -10,5 +10,6 @@ package com.nagnek.bikenavi;
 
 public interface RecentPOIListener {
     void latLngToDelete(String name);
+
     void poiClickToSet(POI poi);
 }

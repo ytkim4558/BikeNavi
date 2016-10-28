@@ -21,19 +21,11 @@ import com.nagnek.bikenavi.helper.SQLiteHandler;
  */
 
 public class RecentTrackFragment extends Fragment implements RecentTrackListener {
-    OnTrackSelectedListener mCallback;
-
-    // 액티비티는 항상 이 인터페이스를 구현 해야한다
-    public interface  OnTrackSelectedListener {
-        void onRecentTrackSelected(Track track);
-    }
-
     private static final String TAG = RecentTrackFragment.class.getSimpleName();
-
+    OnTrackSelectedListener mCallback;
     SQLiteHandler db;
     RecentTrackListAdapter adapter;
     RecyclerView rv;
-
     public RecentTrackFragment() {
         // Required empty public constructor
     }
@@ -82,5 +74,10 @@ public class RecentTrackFragment extends Fragment implements RecentTrackListener
         Gson gson = new Gson();
         Log.d(TAG, "click track : " + gson.toJson(track));
         mCallback.onRecentTrackSelected(track);
+    }
+
+    // 액티비티는 항상 이 인터페이스를 구현 해야한다
+    public interface OnTrackSelectedListener {
+        void onRecentTrackSelected(Track track);
     }
 }

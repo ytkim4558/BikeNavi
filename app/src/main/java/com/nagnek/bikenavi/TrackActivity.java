@@ -63,21 +63,21 @@ import javax.xml.parsers.ParserConfigurationException;
 
 public class TrackActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    private static final String TAG = TrackActivity.class.getSimpleName();
     static final LatLng SEOUL_STATION = new LatLng(37.555755, 126.970431);
-    private Animator animator = new Animator();
+    private static final String TAG = TrackActivity.class.getSimpleName();
+    private final Handler mHandler = new Handler();
     ArrayList<TMapPoint> sourceAndDest;
     boolean animating; //애니메이션 진행중인지
+    TMapPoint mSource;
+    TMapPoint mDest;
+    String start_poi_name;
+    String dest_poi_name;
+    private Animator animator = new Animator();
     private GoogleMap mGoogleMap;
     private ArrayList<LatLng> pathStopPointList;    // 출발지 도착지를 포함한 경유지점(위도, 경도) 리스트
     private ArrayList<MarkerOptions> markerOptionsArrayList;    // 출발지 도착지 사이에 마커 리스트
     private List<Marker> descriptorMarkers = new ArrayList<Marker>(); //markers
     private List<Marker> markers = new ArrayList<Marker>(); //markers
-    private final Handler mHandler = new Handler();
-    TMapPoint mSource;
-    TMapPoint mDest;
-    String start_poi_name;
-    String dest_poi_name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

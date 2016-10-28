@@ -32,25 +32,6 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
     RecentPOIListener recentPOIListener;
     private SQLiteHandler db;   // sqlite
 
-    class RecentPOIListViewHolder extends RecyclerView.ViewHolder {
-
-        ImageView iv_delete;
-        CardView card_view;
-        TextView poi_name; //poiName
-        TextView poi_address; //poiAddress
-        TextView poi_last_used_at; //poiLastUsedAt
-
-        public RecentPOIListViewHolder(View v) {
-            super(v);
-
-            card_view = (CardView) v.findViewById(R.id.card_view);
-            poi_name = (TextView) v.findViewById(R.id.text_poi_name);
-            poi_address = (TextView) v.findViewById(R.id.text_poi_address);
-            iv_delete = (ImageView) v.findViewById(R.id.iv_delete);
-            poi_last_used_at = (TextView) v.findViewById(R.id.text_track_last_used_at);
-        }
-    }
-
     // Provide a suitable constructor (depends on the kind of dataset)
     public RecentPOIListAdapter(Context context, List<POI> poiList, RecentPOIListener recentPOIListener) {
 
@@ -95,7 +76,7 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int select_position = (Integer)v.getTag();
+                int select_position = (Integer) v.getTag();
                 recentPOIListener.poiClickToSet(recentPOIList.get(select_position));
             }
         });
@@ -103,7 +84,7 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
         holder.iv_delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int delete_position = (Integer)v.getTag();
+                int delete_position = (Integer) v.getTag();
                 recentPOIListener.latLngToDelete(recentPOIList.get(delete_position).latLng);
                 recentPOIList.remove(delete_position);
                 notifyItemRemoved(delete_position);
@@ -117,5 +98,24 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
     @Override
     public int getItemCount() {
         return recentPOIList.size();
+    }
+
+    class RecentPOIListViewHolder extends RecyclerView.ViewHolder {
+
+        ImageView iv_delete;
+        CardView card_view;
+        TextView poi_name; //poiName
+        TextView poi_address; //poiAddress
+        TextView poi_last_used_at; //poiLastUsedAt
+
+        public RecentPOIListViewHolder(View v) {
+            super(v);
+
+            card_view = (CardView) v.findViewById(R.id.card_view);
+            poi_name = (TextView) v.findViewById(R.id.text_poi_name);
+            poi_address = (TextView) v.findViewById(R.id.text_poi_address);
+            iv_delete = (ImageView) v.findViewById(R.id.iv_delete);
+            poi_last_used_at = (TextView) v.findViewById(R.id.text_track_last_used_at);
+        }
     }
 }

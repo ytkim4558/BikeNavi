@@ -28,45 +28,11 @@ import java.util.Locale;
  * Created by user on 2016-09-27.
  */
 public class SQLiteHandler extends SQLiteOpenHelper {
-    private static final String TAG = SQLiteHandler.class.getSimpleName();
-
-    // All Static variables
-    // Database Version
-    private static final int DATABASE_VERSION = 1;
-
-    // Database Name;
-    private static final String DATABASE_NAME = "android_api";
-
-    // Login table name
-    private static final String TABLE_USER = "USERS";
-
-    // Ip table name
-    private static final String TABLE_IP = "IPS";
-
-    // poi table name 장소 검색 기록 저장용 테이블
-    private static final String TABLE_POI = "POI";
-
-    // 로그인시 통합되는 poi table name 장소 검색 기록 저장용 테이블
-    private static final String TABLE_TEMP_POI = "TEMP_POI";
-
-    // track table name 경로 로그 저장용 테이블
-    private static final String TABLE_TRACK = "TRACK";
-
-    // 로그인시 통합되는 track table name 경로 로그 저장용 테이블
-    private static final String TABLE_TEMP_TRACK = "TEMP_TRACK";
-
-    // poi 즐겨찾기용 table name
-    private static final String TABLE_BOOKMARK_POI = "BOOKMARK_POI";
-
-    // track 즐겨찾기용 table name , 유저가 즐겨찾기한 경로들 저장용 테이블
-    private static final String TABLE_BOOKMARK_TRACK = "BOOKMARK_TRACK";
-
     // 테이블 공통 컬럼
     public static final String KEY_ID = "id";
     public static final String KEY_CREATED_AT = "created_at";   // 생성한 시각
     public static final String KEY_UPDATED_AT = "updated_at";   // 수정한 시각
     public static final String KEY_LAST_USED_AT = "last_used_at";   // 마지막으로 사용한 시각
-
     // Login Table Columns names
     public static final String KEY_EMAIL = "email";
     public static final String KEY_GOOGLE_EMAIL = "googleemail";
@@ -74,21 +40,44 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     public static final String KEY_KAKAO_NICK_NAME = "kakaoNickName";   // 카카오 닉네임
     public static final String KEY_FACEBOOK_ID = "facebookID"; // 페이스북 유저 아이디 (숫자)
     public static final String KEY_FACEBOOK_NAME = "facebookname";  // 페이스북에서 쓰는 사용자 이름
-
     // Poi Table Columns names (즐겨찾기 포함)
     public static final String KEY_POI_NAME = "poiName"; // 장소 이름
     public static final String KEY_POI_ADDRESS = "poiAddress"; // 장소 이름
     public static final String KEY_POI_LAT_LNG = "poiLatLng";   // 장소 좌표
-
     // Track Table Columns names 경로 테이블
     public static final String KEY_JSON_START_POI = "json_start_poi"; // 출발 장소 json
     public static final String KEY_JSON_DEST_POI = "json_dest_poi"; // 도착 장소 json
     public static final String KEY_JSON_STOP_POI_ARRAY = "json_stop_poi_list"; // 경유지 장소 리스트 json
-
+    private static final String TAG = SQLiteHandler.class.getSimpleName();
+    // All Static variables
+    // Database Version
+    private static final int DATABASE_VERSION = 1;
+    // Database Name;
+    private static final String DATABASE_NAME = "android_api";
+    // Login table name
+    private static final String TABLE_USER = "USERS";
+    // Ip table name
+    private static final String TABLE_IP = "IPS";
+    // poi table name 장소 검색 기록 저장용 테이블
+    private static final String TABLE_POI = "POI";
+    // 로그인시 통합되는 poi table name 장소 검색 기록 저장용 테이블
+    private static final String TABLE_TEMP_POI = "TEMP_POI";
+    // track table name 경로 로그 저장용 테이블
+    private static final String TABLE_TRACK = "TRACK";
+    // 로그인시 통합되는 track table name 경로 로그 저장용 테이블
+    private static final String TABLE_TEMP_TRACK = "TEMP_TRACK";
+    // poi 즐겨찾기용 table name
+    private static final String TABLE_BOOKMARK_POI = "BOOKMARK_POI";
+    // track 즐겨찾기용 table name , 유저가 즐겨찾기한 경로들 저장용 테이블
+    private static final String TABLE_BOOKMARK_TRACK = "BOOKMARK_TRACK";
     // Ip table Columns names
     private static final String KEY_IP = "ip";
 
     private static SQLiteHandler mSqliteHandler;
+
+    private SQLiteHandler(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
 
     public static synchronized SQLiteHandler getInstance(Context context) {
         // application Context를 사용한다, 이것은 액티비티의 context를 뜻하지 않게 leak 되지 않게 한다.
@@ -97,10 +86,6 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             mSqliteHandler = new SQLiteHandler(context.getApplicationContext());
         }
         return mSqliteHandler;
-    }
-
-    private SQLiteHandler(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     // Creating Tables
@@ -321,7 +306,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = null;
-        if(objectName3 != null) {
+        if (objectName3 != null) {
             cursor = db.rawQuery("SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
                     + fieldObjectName1 + " = '" + objectName1 + "'" + " AND " + fieldObjectName2 + " = '" + objectName2 + "'" + " AND " + fieldObjectName3 + " = '" + objectName3 + "'", null);
             Log.d(TAG, "SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
@@ -529,7 +514,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             Log.d(TAG, "values.put last_used_at: " + last_used_at);
 
             // Updating Row
-            long id = db.update(TABLE_POI, values, KEY_POI_LAT_LNG+" = '"+latLng + "'", null);
+            long id = db.update(TABLE_POI, values, KEY_POI_LAT_LNG + " = '" + latLng + "'", null);
             db.close(); // Closing database connection
 
             Log.d(TAG, "New poi update on sqlite: " + id);
@@ -553,7 +538,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                 lastUsedAt = cursor.getString(cursor.getColumnIndex(KEY_LAST_USED_AT));
             }
         } catch (Exception e) {
-            Log.d (TAG, "Error while trying to get posts from database");
+            Log.d(TAG, "Error while trying to get posts from database");
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -586,7 +571,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {
-            Log.d (TAG, "Error while trying to get posts from database");
+            Log.d(TAG, "Error while trying to get posts from database");
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -663,7 +648,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         String gsonDestPOI = gson.toJson(track.dest_poi);   // 도착장소 POI
         Log.d(TAG, "Json으로 변환된 도착장소 POI : " + gsonDestPOI);
         String gsonStopPOIList;
-        if(track.stop_list == null) {
+        if (track.stop_list == null) {
             gsonStopPOIList = null;
         } else {
             gsonStopPOIList = gson.toJson(track.stop_list); // 경유지 POI 리스트
@@ -686,7 +671,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             Log.d(TAG, "values.put last_used_at: " + last_used_at);
             long id = -1;
             // Updating Row
-            if(track.stop_list != null) {
+            if (track.stop_list != null) {
                 id = db.update(TABLE_TRACK, values,
                         KEY_JSON_START_POI + " = '" + gson.toJson(track.start_poi) + "'" + " AND " + KEY_JSON_DEST_POI + " = '" + gson.toJson(track.dest_poi) + "'" + " AND " + KEY_JSON_STOP_POI_ARRAY + " = '" + gson.toJson(track.stop_list) + "'", null);
             } else {
@@ -708,7 +693,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         Gson gson = new Gson();
 
         String TRACK_LAST_USED_AT_SELECT_QUERY = null;
-        if(track.stop_list != null) {
+        if (track.stop_list != null) {
             TRACK_LAST_USED_AT_SELECT_QUERY =
                     "SELECT " + KEY_LAST_USED_AT + " FROM " + TABLE_TRACK + " WHERE " + KEY_JSON_START_POI + " = '" + gson.toJson(track.start_poi) + "'" + " AND " +
                             KEY_JSON_DEST_POI + " = '" + gson.toJson(track.dest_poi) + "'" + " AND " + KEY_JSON_STOP_POI_ARRAY + " = '" + gson.toJson(track.stop_list) + "'";
@@ -726,7 +711,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                 lastUsedAt = cursor.getString(cursor.getColumnIndex(KEY_LAST_USED_AT));
             }
         } catch (Exception e) {
-            Log.d (TAG, "Error while trying to get posts from database");
+            Log.d(TAG, "Error while trying to get posts from database");
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -753,13 +738,14 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                     Track track = new Track();
                     track.start_poi = gson.fromJson(cursor.getString(cursor.getColumnIndex(KEY_JSON_START_POI)), POI.class);
                     track.dest_poi = gson.fromJson(cursor.getString(cursor.getColumnIndex(KEY_JSON_DEST_POI)), POI.class);
-                    track.stop_list = gson.fromJson(cursor.getString(cursor.getColumnIndex(KEY_JSON_STOP_POI_ARRAY)), new TypeToken<List<POI>>(){}.getType());
+                    track.stop_list = gson.fromJson(cursor.getString(cursor.getColumnIndex(KEY_JSON_STOP_POI_ARRAY)), new TypeToken<List<POI>>() {
+                    }.getType());
 
                     trackDetails.add(track);
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {
-            Log.d (TAG, "Error while trying to get posts from database");
+            Log.d(TAG, "Error while trying to get posts from database");
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -778,7 +764,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
         try {
             db.beginTransaction();
-            if(track.stop_list != null) {
+            if (track.stop_list != null) {
                 db.execSQL("delete from " + TABLE_TRACK + " where " + KEY_JSON_START_POI + " = '" + gson.toJson(track.start_poi) + "'" + " AND " +
                         KEY_JSON_DEST_POI + " = '" + gson.toJson(track.dest_poi) + "'" + " AND " + KEY_JSON_STOP_POI_ARRAY + " = '" + gson.toJson(track.stop_list) + "'");
             } else {

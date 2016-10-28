@@ -119,6 +119,7 @@ public class KakaoSignupActivity extends AppCompatActivity {
         });
         alert.setMessage(message);
     }
+
     /**
      * 사용자의 상태를 알아보기 위해 me API 호출을 한다.
      */
