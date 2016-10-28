@@ -70,22 +70,19 @@ import javax.xml.transform.stream.StreamResult;
 public class MainActivity extends AppCompatActivity implements MyAdapter.ClickListener, RecentTrackFragment.OnTrackSelectedListener {
 
     // 첫번째로 네비게이션 드로어 리스트뷰에 타이틀과 아이콘을 선언한다.
-    // 이 아아콘과 타이틀들은 배열에 담긴다
+    // 이 아이콘과 타이틀들은 배열에 담긴다
 
+    static final int SEARCH_INTEREST_POINT = 1; // 장소 검색 request code
+    private static final String TAG = MainActivity.class.getSimpleName();
     final String TITLES[] = {"길찾기", "장소찾기"};
     final int ICONS[] = {R.drawable.ic_directions_black_24dp, R.drawable.places_ic_search};
-
     // 비슷하게 헤더뷰에 이름과 이메일을 위한 String 리소스를 생성한다.
     // 그리고나서 proifle picture 리소스를 헤더뷰에 생성한다.
     final int PROFILE = R.drawable.ic_account_circle_white_24dp;
-
     RecyclerView mRecyclerView;
     MyAdapter mAdapter;
     RecyclerView.LayoutManager mLayoutManager;
-
     ActionBarDrawerToggle mDrawerToggle;
-
-    private static final String TAG = MainActivity.class.getSimpleName();
     DelayAutoCompleteTextView start_point, dest_point;
     POI start_poi, dest_poi;
     String[] serverIPs = new String[]{};
@@ -99,11 +96,10 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     AlertDialog alertDialog;
     // 자동완성을 위한 어댑터
     ArrayAdapter<String> arrayAdapter;
-    private SessionManager session; // 로그인했는지 확인용 변수
-    private SQLiteHandler db;   // sqlite
-    static final int SEARCH_INTEREST_POINT = 1; // 장소 검색 request code
     ActionBarDrawerToggle actionBarDrawerToggle;
     DrawerLayout drawerLayout;
+    private SessionManager session; // 로그인했는지 확인용 변수
+    private SQLiteHandler db;   // sqlite
 
     public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
         Drawable drawable = AppCompatDrawableManager.get().getDrawable(context, drawableId);
