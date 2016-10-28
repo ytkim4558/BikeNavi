@@ -165,6 +165,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     private void redirectLoginActivity() { // Launching the login activity
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
+        finish();
     }
 
     /**
@@ -230,12 +231,11 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//
-//        FragmentManager fragmentManager = getSupportFragmentManager();
-//        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-//        TrackSettingFragment trackSettingFragment = new TrackSettingFragment();
-//        fragmentTransaction.add(R.id.track_fragment_setting_container, trackSettingFragment);
-//        fragmentTransaction.commit();
+        Fragment fragment = new TrackSettingFragment();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.content_frame, fragment)
+                .commit();
 
         long start = System.currentTimeMillis();
         // SqLite database handler 초기화
@@ -360,31 +360,10 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
         end = System.currentTimeMillis();
         Log.d(TAG, "나머지 : " + (end - start) / 1000.0);
 
+        displayNIckName();
     }
 
-    // this function is used in CustomAutoCompleteTextChangedListener.java
-    public String[] getItemsFromDb(String searchTerm) {
-
-        // add items on the array dynamically
-        List<String> products = db.read(searchTerm);
-        int rowCount = products.size();
-
-        String[] item = new String[rowCount];
-        int x = 0;
-
-        for (String record : products) {
-
-            item[x] = record;
-            x++;
-        }
-
-        return item;
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
+    void displayNIckName() {
         if (session.isLoggedIn()) {
             Log.d(TAG, "자체회원로긴");
 
@@ -426,6 +405,25 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
             mAdapter.swap(null, "로그인 해주세요", null);
             mAdapter.changeLoginState(false);
         }
+    }
+
+    // this function is used in CustomAutoCompleteTextChangedListener.java
+    public String[] getItemsFromDb(String searchTerm) {
+
+        // add items on the array dynamically
+        List<String> products = db.read(searchTerm);
+        int rowCount = products.size();
+
+        String[] item = new String[rowCount];
+        int x = 0;
+
+        for (String record : products) {
+
+            item[x] = record;
+            x++;
+        }
+
+        return item;
     }
 
     @Override
