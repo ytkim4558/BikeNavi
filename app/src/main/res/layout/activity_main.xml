@@ -22,14 +22,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <fragment
-            android:id="@+id/track_fragment_setting_container"
-            android:name="com.nagnek.bikenavi.TrackSettingFragment"
+        <!-- The main content view -->
+        <FrameLayout
+            android:id="@+id/content_frame"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="16dp"
-            tools:layout="@layout/dummy_map_fragment"></fragment>
-
+            android:layout_height="match_parent" />
+        <!-- The navigation drawer -->
         <android.support.v7.widget.RecyclerView
             android:id="@+id/left_drawer"
             android:layout_width="240dp"

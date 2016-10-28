@@ -14,6 +14,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -65,13 +67,14 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     // 첫번째로 네비게이션 드로어 리스트뷰에 타이틀과 아이콘을 선언한다.
     // 이 아이콘과 타이틀들은 배열에 담긴다
 
+    static final int SEARCH_INTEREST_POINT = 1; // 장소 검색 request code
     private static final String TAG = MainActivity.class.getSimpleName();
     final String TITLES[] = {"길찾기", "장소찾기"};
     final int ICONS[] = {R.drawable.ic_directions_black_24dp, R.drawable.places_ic_search};
     // 비슷하게 헤더뷰에 이름과 이메일을 위한 String 리소스를 생성한다.
     // 그리고나서 proifle picture 리소스를 헤더뷰에 생성한다.
     final int PROFILE = R.drawable.ic_account_circle_white_24dp;
-    RecyclerView mRecyclerView;
+    RecyclerView mDrawerRecyclerView;
     MyAdapter mAdapter;
     RecyclerView.LayoutManager mLayoutManager;
     ActionBarDrawerToggle mDrawerToggle;
@@ -135,19 +138,28 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
 
     @Override
     public void onNavItemClicked(int position) {
-        Intent intent = null;
         switch (position) {
-            // 첫번째 아이콘
-            case 1:
+            // 길찾기 아이콘 클릭했을 때
+            case 1: {
+                Fragment fragment = new TrackSettingFragment();
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                fragmentManager.beginTransaction()
+                        .replace(R.id.content_frame, fragment)
+                        .commit();
+            }
                 break;
-            //두번째 아이콘
-            case 2:
-                intent = new Intent(MainActivity.this, POISearchActivity.class);
+            // 장소찾기 아이콘 클릭했을 때
+            case 2: {
+                Fragment fragment = new POISearchFragment();
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                fragmentManager.beginTransaction()
+                        .replace(R.id.content_frame, fragment)
+                        .commit();
+            }
                 break;
         }
-        if (intent != null) {
-            startActivity(intent);
-        }
+        // HIghlight the selected item, update the title, and close the drawer
+        drawerLayout.closeDrawer(mDrawerRecyclerView);
     }
 
     private void redirectLoginActivity() { // Launching the login activity
@@ -239,12 +251,12 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
         Log.d(TAG, "setContentView 시간 : " + (end - start) / 1000.0);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.left_drawer);
-        mRecyclerView.setHasFixedSize(true);
+        mDrawerRecyclerView = (RecyclerView) findViewById(R.id.left_drawer);
+        mDrawerRecyclerView.setHasFixedSize(true);
         mAdapter = new MyAdapter(TITLES, ICONS, null, null, PROFILE, this, session.isSessionLoggedIn());
-        mRecyclerView.setAdapter(mAdapter);
+        mDrawerRecyclerView.setAdapter(mAdapter);
         mLayoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(mLayoutManager);
+        mDrawerRecyclerView.setLayoutManager(mLayoutManager);
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.openDrawer, R.string.closeDrawer) {
             @Override
@@ -476,10 +488,15 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(TAG, "onActivityResult : requestcode = " + requestCode);
-        TrackSettingFragment trackSettingFragment = (TrackSettingFragment) getSupportFragmentManager().findFragmentById(R.id.track_fragment_setting_container);
+        if (requestCode == SEARCH_INTEREST_POINT) { // 장소검색 요청한게 돌아온 경우
+            Log.d(TAG, "SEARCH_INTEREST_POINT");
+            if (resultCode == RESULT_OK) {// 장소 검색 결과 리턴
+                TrackSettingFragment trackSettingFragment = (TrackSettingFragment) getSupportFragmentManager().findFragmentById(R.id.content_frame);
 
-        if (trackSettingFragment != null) {
-            trackSettingFragment.onActivityResult(requestCode, resultCode, data);
+                if (trackSettingFragment != null) {
+                    trackSettingFragment.onActivityResult(requestCode, resultCode, data);
+                }
+            }
         }
     }
 
@@ -509,7 +526,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     @Override
     public void onRecentTrackSelected(Track track) {
         // TODO : tracksettingfragmnet로 보내주기
-        TrackSettingFragment trackSettingFragment = (TrackSettingFragment) getSupportFragmentManager().findFragmentById(R.id.track_fragment_setting_container);
+        TrackSettingFragment trackSettingFragment = (TrackSettingFragment) getSupportFragmentManager().findFragmentById(R.id.content_frame);
 
         if (trackSettingFragment != null) {
             trackSettingFragment.onRecentTrackSelected(track);

@@ -119,6 +119,8 @@ public class SearchActivity extends AppCompatActivity implements RecentPOIFragme
                 textInputLayout.setHint(getStringFromResources(this.getApplicationContext(), R.string.hint_start_point));
             } else if (search_purpose.equals("도착")) {
                 textInputLayout.setHint(getStringFromResources(this.getApplicationContext(), R.string.hint_destination));
+            } else {
+                textInputLayout.setHint(getStringFromResources(this.getApplicationContext(), R.string.hint_search_point));
             }
 
             /**
