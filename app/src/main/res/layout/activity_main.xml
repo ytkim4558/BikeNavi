@@ -5,7 +5,6 @@
 
 <!-- The main content view -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -23,105 +22,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <RelativeLayout
+        <fragment
+            android:id="@+id/track_fragment_setting_container"
+            android:name="com.nagnek.bikenavi.TrackSettingFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:descendantFocusability="beforeDescendants"
-            android:focusableInTouchMode="true"
-            android:paddingBottom="@dimen/activity_vertical_margin"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin">
-
-            <FrameLayout
-                android:id="@+id/start_point_search_frame_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <android.support.design.widget.TextInputLayout
-                    android:id="@+id/ti_start_point"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                    <!--flagNoExtractUtil : 입력창이 전체화면으로 가려지는것을 막음-->
-                    <!--actionSearch : 키보드의 엔터가 검색으로 글자가 바뀜-->
-                    <com.nagnek.bikenavi.customview.DelayAutoCompleteTextView
-                        android:id="@+id/start_point"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:focusable="false"
-                        android:hint="@string/hint_start_point"
-                        android:imeOptions="flagNoExtractUi|actionSearch"
-                        android:inputType="textCapSentences"
-                        android:transitionName="@string/searchview_transition_name" />
-
-                </android.support.design.widget.TextInputLayout>
-
-
-                <ProgressBar
-                    android:id="@+id/pb_loading_indicator1"
-                    style="?android:attr/progressBarStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end"
-                    android:layout_marginEnd="10dp"
-                    android:visibility="gone" />
-            </FrameLayout>
-
-
-            <FrameLayout
-                android:id="@+id/dest_point_search_frame_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/start_point_search_frame_layout">
-
-                <android.support.design.widget.TextInputLayout
-                    android:id="@+id/ti_dest_point"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <com.nagnek.bikenavi.customview.DelayAutoCompleteTextView
-                        android:id="@+id/dest_point"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:focusable="false"
-                        android:hint="@string/hint_destination"
-                        android:imeOptions="flagNoExtractUi|actionSearch"
-                        android:inputType="textCapSentences"
-                        android:transitionName="@string/searchview_transition_name" />
-                </android.support.design.widget.TextInputLayout>
-
-                <ProgressBar
-                    android:id="@+id/pb_loading_indicator2"
-                    style="?android:attr/progressBarStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end"
-                    android:layout_marginEnd="10dp"
-                    android:visibility="gone" />
-            </FrameLayout>
-
-            <android.support.design.widget.TabLayout
-                android:id="@+id/tab_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/dest_point_search_frame_layout"
-                android:background="?attr/colorPrimary"
-                android:elevation="6dp"
-                android:minHeight="?attr/actionBarSize"
-                app:tabIndicatorColor="#ff00ff"
-                app:tabMode="fixed"
-                app:tabSelectedTextColor="#ffffff"
-                app:tabTextColor="#d3d3d3" />
-
-            <android.support.v4.view.ViewPager
-                android:id="@+id/viewPager"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_below="@+id/tab_layout">
-
-
-            </android.support.v4.view.ViewPager>
-        </RelativeLayout>
+            android:layout_marginTop="16dp"
+            tools:layout="@layout/dummy_map_fragment"></fragment>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/left_drawer"
