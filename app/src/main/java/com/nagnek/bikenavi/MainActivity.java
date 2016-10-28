@@ -245,7 +245,11 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
         // Iterate over all tabs and set the custom view
         for (int i = 0; i < tabLayout.getTabCount(); ++i) {
             TabLayout.Tab tab = tabLayout.getTabAt(i);
-            tab.setCustomView(recentTrackPagerAdapter.getTabView(i));
+            if(tab != null) {
+                tab.setCustomView(recentTrackPagerAdapter.getTabView(i));
+            } else {
+                Log.d(TAG, "tab이 null이네?");
+            }
         }
 
         long start = System.currentTimeMillis();
@@ -546,10 +550,6 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     void reactionSearchResult() {
         // start 지점과 도착지점 모두 설정되었으면 경로를 찾는다.
         if (!start_point.getText().toString().equals("") && !dest_point.getText().toString().equals("")) {
-            RecentTrackFragment recentTrackFragment = (RecentTrackFragment) getSupportFragmentManager().findFragmentById(R.id.recenet_search_recyclerView);
-            if(recentTrackFragment != null) {
-                recentTrackFragment.updateTrackList();
-            }
             redirectTrackActivity();
         }
     }

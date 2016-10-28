@@ -130,10 +130,4 @@ public class RecentTrackListAdapter  extends RecyclerView.Adapter<RecentTrackLis
     public int getItemCount() {
         return recentTrackList.size();
     }
-
-    public void swap(List<Track> recentTrackList) {
-        recentTrackList.clear();
-        recentTrackList.addAll(recentTrackList);
-        notifyDataSetChanged();
-    }
 }

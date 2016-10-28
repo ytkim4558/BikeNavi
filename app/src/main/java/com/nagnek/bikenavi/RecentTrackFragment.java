@@ -83,9 +83,4 @@ public class RecentTrackFragment extends Fragment implements RecentTrackListener
         Log.d(TAG, "click track : " + gson.toJson(track));
         mCallback.onRecentTrackSelected(track);
     }
-
-    public void updateTrackList() {
-        adapter.swap(db.getAllTrack());
-        Log.d(TAG, "recentTrackList 갱신 시도");
-    }
 }
