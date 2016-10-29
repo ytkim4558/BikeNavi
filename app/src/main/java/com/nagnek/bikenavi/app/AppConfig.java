@@ -42,7 +42,7 @@ public class AppConfig {
 
     public static void initializeTMapTapi(Context context) {
         if (tMapTapi == null) {
-            tMapTapi = new TMapTapi(context);
+            tMapTapi = new TMapTapi(context.getApplicationContext());
             tMapTapi.setSKPMapAuthentication("d2bc2636-c213-3bad-9058-7d46cf9f8039");
         }
     }
