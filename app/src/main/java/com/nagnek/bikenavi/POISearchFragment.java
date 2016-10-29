@@ -47,12 +47,13 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
+        Log.d(TAG, "onCreateView");
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_poisearch, container, false);
 
@@ -102,6 +103,7 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        Log.d(TAG, "onMapReady");
         googleMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
 
         // 카메라 좌표를 서울역 근처로 옮긴다.

@@ -723,6 +723,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
     // 사용한 시각 내림차순으로 정렬됨.
     public List<Track> getAllTrack() {
+        Log.d(TAG, "getAllTrack()");
         Gson gson = new Gson();
         List<Track> trackDetails = new ArrayList<>();
 

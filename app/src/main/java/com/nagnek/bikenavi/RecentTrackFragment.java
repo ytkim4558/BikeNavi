@@ -42,21 +42,27 @@ public class RecentTrackFragment extends Fragment implements RecentTrackListener
         Log.d(TAG, "onCreateView");
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_recent, container, false);
-
-        db = SQLiteHandler.getInstance(getActivity().getApplicationContext());
+        Log.d(TAG, "inflater.inflate");
+        db = SQLiteHandler.getInstance(getContext().getApplicationContext());
+        Log.d(TAG, "SQLiteHandler.getInstance");
 
         rv = (RecyclerView) rootView.findViewById(R.id.recenet_search_recyclerView);
         rv.setHasFixedSize(true);
-        adapter = new RecentTrackListAdapter(getActivity(), db.getAllTrack(), this);
+
+        Log.d(TAG, "rootView.findViewById(R.id.recenet_search_recyclerView");
+        adapter = new RecentTrackListAdapter(getContext().getApplicationContext(), db.getAllTrack(), this);
         rv.setAdapter(adapter);
 
-        LinearLayoutManager llm = new LinearLayoutManager(getActivity().getApplicationContext());
+        LinearLayoutManager llm = new LinearLayoutManager(getContext().getApplicationContext());
         rv.setLayoutManager(llm);
 
         try {
-            mCallback = (OnTrackSelectedListener) getActivity();
+            mCallback = (OnTrackSelectedListener) getParentFragment();
+            if (mCallback == null) {
+                Log.d(TAG, "mCallback은 null이야 ㅠ");
+            }
         } catch (ClassCastException e) {
-            throw new ClassCastException(getActivity().toString() + "must implement OnTrackSelectedListener");
+            throw new ClassCastException(getParentFragment().toString() + "must implement OnTrackSelectedListener");
         }
 
         return rootView;
@@ -76,7 +82,7 @@ public class RecentTrackFragment extends Fragment implements RecentTrackListener
         mCallback.onRecentTrackSelected(track);
     }
 
-    // 액티비티는 항상 이 인터페이스를 구현 해야한다
+    // 부모 프래그먼트는 항상 이 인터페이스를 구현 해야한다
     public interface OnTrackSelectedListener {
         void onRecentTrackSelected(Track track);
     }

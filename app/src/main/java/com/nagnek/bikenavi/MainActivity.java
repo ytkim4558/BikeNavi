@@ -62,7 +62,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-public class MainActivity extends AppCompatActivity implements MyAdapter.ClickListener, RecentTrackFragment.OnTrackSelectedListener {
+public class MainActivity extends AppCompatActivity implements MyAdapter.ClickListener {
 
     // 첫번째로 네비게이션 드로어 리스트뷰에 타이틀과 아이콘을 선언한다.
     // 이 아이콘과 타이틀들은 배열에 담긴다
@@ -519,15 +519,5 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     @Override
     public void onProfileImageClicked(ImageView profileImageView) {
 
-    }
-
-    @Override
-    public void onRecentTrackSelected(Track track) {
-        // TODO : tracksettingfragmnet로 보내주기
-        TrackSettingFragment trackSettingFragment = (TrackSettingFragment) getSupportFragmentManager().findFragmentById(R.id.content_frame);
-
-        if (trackSettingFragment != null) {
-            trackSettingFragment.onRecentTrackSelected(track);
-        }
     }
 }

@@ -22,7 +22,7 @@ import com.nagnek.bikenavi.customview.DelayAutoCompleteTextView;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.util.NagneUtil;
 
-public class TrackSettingFragment extends Fragment {
+public class TrackSettingFragment extends Fragment implements RecentTrackFragment.OnTrackSelectedListener {
     static final int SEARCH_INTEREST_POINT = 1; // 장소 검색 request code
     private static final String TAG = TrackSettingFragment.class.getSimpleName();
     DelayAutoCompleteTextView start_point, dest_point;
@@ -35,18 +35,20 @@ public class TrackSettingFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView");
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_track_setting, container, false);
 
         // Get the ViewPager and set it's RecentPOIPagerAdapter so that it can display items
         ViewPager viewPager = (ViewPager) rootView.findViewById(R.id.viewPager);
-        RecentTrackPagerAdapter recentTrackPagerAdapter = new RecentTrackPagerAdapter(getActivity().getSupportFragmentManager(), getActivity());
+        RecentTrackPagerAdapter recentTrackPagerAdapter = new RecentTrackPagerAdapter(getChildFragmentManager(), getActivity());
         viewPager.setAdapter(recentTrackPagerAdapter);
 
         // Give the TabLayout the ViewPager
@@ -115,6 +117,7 @@ public class TrackSettingFragment extends Fragment {
         return rootView;
     }
 
+    @Override
     public void onRecentTrackSelected(Track track) {
         start_point.setText(track.start_poi.name);
         dest_point.setText(track.dest_poi.name);
