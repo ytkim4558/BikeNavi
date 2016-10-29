@@ -148,7 +148,7 @@ public class TrackSettingFragment extends Fragment implements RecentTrackFragmen
         Log.d(TAG, "왓나?");
         Log.d(TAG, "requestCode = " + requestCode + " But, I want this requestCode: " + SEARCH_INTEREST_POINT);
         if (requestCode == SEARCH_INTEREST_POINT) { // 장소검색 요청한게 돌아온 경우
-            Log.d(TAG, "SEARCH_INTEREST_POINT");
+            Log.d(TAG, "SEARCH_INTEREST_POINT_TRACK_SETTING_FRAGMENT");
             if (resultCode == Activity.RESULT_OK) {// 장소 검색 결과 리턴
                 String purposePoint = data.getStringExtra(NagneUtil.getStringFromResources(getActivity(), R.string.name_purpose_search_point));
                 Log.d(TAG, "장소입력한 곳은? " + purposePoint);

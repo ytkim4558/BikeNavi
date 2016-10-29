@@ -67,7 +67,8 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     // 첫번째로 네비게이션 드로어 리스트뷰에 타이틀과 아이콘을 선언한다.
     // 이 아이콘과 타이틀들은 배열에 담긴다
 
-    static final int SEARCH_INTEREST_POINT = 1; // 장소 검색 request code
+    static final int SEARCH_INTEREST_POINT_TRACK_SETTING_FRAGMENT = 1; // 경로 화면에서 장소 검색 request code
+    static final int SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT = 2; // 장소 검색 화면에서 장소 검색 request code
     private static final String TAG = MainActivity.class.getSimpleName();
     final String TITLES[] = {"길찾기", "장소찾기"};
     final int ICONS[] = {R.drawable.ic_directions_black_24dp, R.drawable.places_ic_search};
@@ -486,13 +487,22 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(TAG, "onActivityResult : requestcode = " + requestCode);
-        if (requestCode == SEARCH_INTEREST_POINT) { // 장소검색 요청한게 돌아온 경우
-            Log.d(TAG, "SEARCH_INTEREST_POINT");
+        if (requestCode == SEARCH_INTEREST_POINT_TRACK_SETTING_FRAGMENT) { // 장소검색 요청한게 돌아온 경우
+            Log.d(TAG, "SEARCH_INTEREST_POINT_TRACK_SETTING_FRAGMENT");
             if (resultCode == RESULT_OK) {// 장소 검색 결과 리턴
                 TrackSettingFragment trackSettingFragment = (TrackSettingFragment) getSupportFragmentManager().findFragmentById(R.id.content_frame);
 
                 if (trackSettingFragment != null) {
                     trackSettingFragment.onActivityResult(requestCode, resultCode, data);
+                }
+            }
+        } else if (requestCode == SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT) {
+            Log.d(TAG, "SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT");
+            if (resultCode == RESULT_OK) {// 장소 검색 결과 리턴
+                POISearchFragment poiSearchFragment = (POISearchFragment) getSupportFragmentManager().findFragmentById(R.id.content_frame);
+
+                if (poiSearchFragment != null) {
+                    poiSearchFragment.onActivityResult(requestCode, resultCode, data);
                 }
             }
         }

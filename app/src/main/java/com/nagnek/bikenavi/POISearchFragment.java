@@ -5,9 +5,11 @@
 package com.nagnek.bikenavi;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.app.ActivityOptions;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
@@ -16,9 +18,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.ProgressBar;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -29,20 +28,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.nagnek.bikenavi.customview.DelayAutoCompleteTextView;
-import com.nagnek.bikenavi.helper.SQLiteHandler;
-import com.nagnek.bikenavi.helper.SessionManager;
-import com.skp.Tmap.TMapPOIItem;
-import com.skp.Tmap.TMapPoint;
+import com.nagnek.bikenavi.util.NagneUtil;
 
 public class POISearchFragment extends Fragment implements OnMapReadyCallback {
+    static final int SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT = 2; // 장소 검색 화면에서 장소 검색 request code
     static final LatLng SEOUL_STATION = new LatLng(37.555755, 126.970431);
     private static final String TAG = POISearchFragment.class.getSimpleName();
     DelayAutoCompleteTextView searchPoint = null;
     TextInputLayout textInputLayout = null;
     private GoogleMap mGoogleMap;
-    private ProgressDialog progressDialog;
-    private SessionManager session; // 로그인했는지 확인용 변수
-    private SQLiteHandler db;   // sqlite
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -68,18 +62,42 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback {
         searchPoint = (DelayAutoCompleteTextView) rootView.findViewById(R.id.search_point);
         textInputLayout = (TextInputLayout) rootView.findViewById(R.id.ti_layout);
 
-        ProgressBar progressBar1 = (ProgressBar) rootView.findViewById(R.id.pb_loading_indicator1);
+        searchPoint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Performing stop of activity that is not resumed: {com.nagnek.bikenavi/com.nagnek.bikenavi.MainActivity} 에러 방지
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent intent = new Intent(getContext(), SearchActivity.class);
+                        intent.putExtra(getResources().getString(R.string.name_purpose_search_point), "");
+                        intent.putExtra(getResources().getString(R.string.current_point_text_for_transition), searchPoint.getText().toString());
+                        // 화면전환 애니메이션을 생성한다. 트랜지션 이름은 양쪽 액티비티에 선언되어야한다.
+                        ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(getActivity(),
+                                searchPoint, searchPoint.getTransitionName());
+                        getActivity().startActivityForResult(intent, SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT, options.toBundle());
+                    }
+                }, 300);
+            }
+        });
 
-        session = new SessionManager(getContext().getApplicationContext());
-        // SqLite database handler 초기화
-        db = SQLiteHandler.getInstance(getContext().getApplicationContext());
-
-        // ProgressDialog
-        progressDialog = new ProgressDialog(getContext());
-        progressDialog.setCancelable(false);    // 백키로 캔슬 가능안하게끔 설정
-
-        setupTmapPOIToGoogleMapAutoCompleteTextView(searchPoint, progressBar1);
         return rootView;
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "왓나?");
+        Log.d(TAG, "requestCode = " + requestCode + " But, I want this requestCode: " + SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT);
+        if (requestCode == SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT) { // 장소검색 요청한게 돌아온 경우
+            Log.d(TAG, "SEARCH_INTEREST_POINT_TRACK_SETTING_FRAGMENT");
+            if (resultCode == Activity.RESULT_OK) {// 장소 검색 결과 리턴
+                String selectPointName = data.getStringExtra(NagneUtil.getStringFromResources(getActivity(), R.string.select_poi_name_for_transition));
+                searchPoint.setText(selectPointName);
+                String address = data.getStringExtra(NagneUtil.getStringFromResources(getActivity(), R.string.select_poi_address_for_transition));
+                double wgs_84x = data.getDoubleExtra(NagneUtil.getStringFromResources(getActivity(), R.string.wgs_84_x), 0.0);
+                double wgs_84y = data.getDoubleExtra(NagneUtil.getStringFromResources(getActivity(), R.string.wgs_84_y), 0.0);
+                moveCameraToPOIAndDisplay(wgs_84x, wgs_84y, selectPointName, address);
+            }
+        }
     }
 
     void moveCameraToPOIAndDisplay(double wgs84_x, double wgs84_y, String poiName, String address) {
@@ -134,50 +152,5 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback {
         googleMap.getUiSettings().setZoomControlsEnabled(true);
 
         mGoogleMap = googleMap;
-    }
-
-    // final ArrayList 는 new ArrayList() 형태로 새로 ArrayList를 만드는게 안될 뿐 add 나 remove는 가능하다.
-    private void setupTmapPOIToGoogleMapAutoCompleteTextView(final DelayAutoCompleteTextView locationName, final ProgressBar progressBar) {
-        locationName.setThreshold(1);
-        locationName.setAdapter(new TMapPOIAutoCompleteAdapter(getContext()));
-        locationName.setLoadingIndicator(progressBar);
-        locationName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // 키보드 감추기
-                InputMethodManager immhide = (InputMethodManager) getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
-                immhide.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
-
-                TMapPOIItem tMapPOIItem = (TMapPOIItem) parent.getItemAtPosition(position);
-                locationName.setText(tMapPOIItem.getPOIName());
-
-                TMapPoint tMapPoint = tMapPOIItem.getPOIPoint();
-
-                // 위도를 반환
-                double wgs84_x = tMapPoint.getLatitude();
-
-                // 경도를 반환
-                double wgs84_y = tMapPoint.getLongitude();
-
-                Log.d("tag", "좌표위치 " + "Lat:" + wgs84_x + ", Long : " + wgs84_y);
-
-                String poiName = tMapPOIItem.getPOIName();
-                String address = tMapPOIItem.getPOIAddress().replace("null", "");
-
-                POI poi = new POI();
-                poi.name = poiName;
-                poi.address = address;
-                poi.latLng = "" + wgs84_x + "," + wgs84_y;
-                if (db.checkIfPOIExists(poi.latLng)) {
-                    db.updateLastUsedAtPOI(poi.latLng);
-                } else {
-                    db.addPOI(poi);
-                }
-
-                mGoogleMap.clear();
-
-                moveCameraToPOIAndDisplay(wgs84_x, wgs84_y, poiName, address);
-            }
-        });
     }
 }
