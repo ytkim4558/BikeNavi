@@ -5,8 +5,11 @@
 package com.nagnek.bikenavi;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +27,7 @@ import java.util.List;
  */
 
 public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackListAdapter.RecentTrackListViewHolder> {
-
+    private static final String TAG = RecentTrackListAdapter.class.getSimpleName();
     Context context;
     List<Track> recentTrackList = new ArrayList<>();
     LayoutInflater inflater;
@@ -91,7 +94,8 @@ public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackList
             @Override
             public void onClick(View v) {
                 int select_position = (Integer) v.getTag();
-                recentTrackListener.trackClickToSet(recentTrackList.get(select_position));
+                Log.d(TAG, "selected_position : " + select_position);
+                recentTrackListener.trackClickToSet(recentTrackList.get(select_position), select_position);
             }
         });
 
@@ -112,6 +116,30 @@ public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackList
     @Override
     public int getItemCount() {
         return recentTrackList.size();
+    }
+
+    void addTrack(Track track) {
+        recentTrackList.add(track);
+        notifyItemInserted(0);
+        //this line below gives you the animation and also updates the
+        //list items after the inserted item
+        notifyItemRangeChanged(0, getItemCount());
+    }
+
+    void updateTrack(Track track, int position) {
+        recentTrackList.remove(position);
+        recentTrackList.add(0, track);
+        notifyDataSetChanged();
+    }
+
+    void refresh() {
+        this.recentTrackList = db.getAllTrack();
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                notifyDataSetChanged();
+            }
+        });
     }
 
     class RecentTrackListViewHolder extends RecyclerView.ViewHolder {

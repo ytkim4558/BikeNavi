@@ -27,6 +27,7 @@ public class TrackSettingFragment extends Fragment implements RecentTrackFragmen
     private static final String TAG = TrackSettingFragment.class.getSimpleName();
     DelayAutoCompleteTextView start_point, dest_point;
     POI start_poi, dest_poi;
+    RecentTrackPagerAdapter recentTrackPagerAdapter;
     private SQLiteHandler db;   // sqlite
 
     public TrackSettingFragment() {
@@ -48,7 +49,7 @@ public class TrackSettingFragment extends Fragment implements RecentTrackFragmen
 
         // Get the ViewPager and set it's RecentPOIPagerAdapter so that it can display items
         ViewPager viewPager = (ViewPager) rootView.findViewById(R.id.viewPager);
-        RecentTrackPagerAdapter recentTrackPagerAdapter = new RecentTrackPagerAdapter(getChildFragmentManager(), getActivity());
+        recentTrackPagerAdapter = new RecentTrackPagerAdapter(getChildFragmentManager(), getActivity());
         viewPager.setAdapter(recentTrackPagerAdapter);
 
         // Give the TabLayout the ViewPager
@@ -169,7 +170,15 @@ public class TrackSettingFragment extends Fragment implements RecentTrackFragmen
                             Track track = new Track();
                             track.start_poi = start_poi;
                             track.dest_poi = dest_poi;
-                            db.addTrack(track);
+                            if (db.checkIfTrackExists(track)) {
+                                db.updateLastUsedAtTrack(track);
+                            } else {
+                                db.addTrack(track);
+                            }
+                            if (recentTrackPagerAdapter.recentTrackFragment != null) {
+                                recentTrackPagerAdapter.recentTrackFragment.addOrUpdateTrack(track);
+                            }
+
                         }
                     });
                     thread.start();

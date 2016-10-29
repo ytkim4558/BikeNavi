@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -87,6 +88,10 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         Intent receivedIntent = getIntent();
         start_poi_name = receivedIntent.getStringExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.start_point_text_for_transition));
         dest_poi_name = receivedIntent.getStringExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.dest_point_text_for_transition));
+
+        TextView route = (TextView) findViewById(R.id.track_log);
+        route.setText(start_poi_name + "=>" + dest_poi_name);
+
 
         /**
          * 구글맵 생성

@@ -681,7 +681,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
             db.close(); // Closing database connection
 
-            Log.d(TAG, "New track update on sqlite: " + id);
+            Log.d(TAG, "track update on sqlite: " + id);
         } else {
             Log.d(TAG, "track not existed in sqlite: " + gson.toJson(track));
         }

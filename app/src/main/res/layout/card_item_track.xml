@@ -25,7 +25,9 @@
                 android:id="@+id/text_track_log"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
                 android:layout_marginTop="5dp"
+                android:layout_toLeftOf="@+id/text_track_last_used_at"
                 android:textAppearance="?android:attr/textAppearanceLargePopupMenu" />
 
             <ImageView
@@ -33,6 +35,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
+                android:contentDescription="@string/btn_delete"
                 android:src="@drawable/ic_delete_black_24dp" />
 
             <TextView
