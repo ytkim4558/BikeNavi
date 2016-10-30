@@ -550,7 +550,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                 lastUsedAt = cursor.getString(cursor.getColumnIndex(KEY_LAST_USED_AT));
             }
         } catch (Exception e) {
-            Log.d(TAG, "Error while trying to get posts from database");
+            Log.e(TAG, "Error while trying to get posts from database", e);
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -583,7 +583,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {
-            Log.d(TAG, "Error while trying to get posts from database");
+            Log.e(TAG, "Error while trying to get posts from database", e);
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -604,7 +604,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             db.execSQL("delete from " + TABLE_POI + " where " + KEY_POI_LAT_LNG + " ='" + latLng + "'");
             db.setTransactionSuccessful();
         } catch (SQLException e) {
-            Log.d(TAG, "Error while tryign to delete user detail");
+            Log.e(TAG, "Error while tryign to delete user detail", e);
         } finally {
             db.endTransaction();
         }
@@ -652,12 +652,15 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         }
     }
 
+    public boolean checkIFBookmarkedTrackExists(Track track) {
+        return checkIfExists(KEY_ID, TABLE_BOOKMARK_TRACK, KEY_TRACK_ID, getTrackIDUsingTrack(track));
+    }
     /**
      * Storing bookmarked track id in database
      */
     public void addBookmarkedTrack(Track track) {
         Gson gson = new Gson();
-        if (!checkIfExists(KEY_ID, TABLE_BOOKMARK_TRACK, KEY_TRACK_ID, getTrackIDUsingTrack(track))) {
+        if (!checkIFBookmarkedTrackExists(track)) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues values = new ContentValues();
@@ -686,7 +689,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
     public void updateBookmarkedTrack(Track track) {
         Gson gson = new Gson();
-        if (checkIfExists(KEY_ID, TABLE_BOOKMARK_TRACK, KEY_TRACK_ID, getTrackIDUsingTrack(track))) {
+        if (checkIFBookmarkedTrackExists(track)) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues values = new ContentValues();
@@ -777,7 +780,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                 trackID = cursor.getInt(cursor.getColumnIndex(KEY_ID));
             }
         } catch (Exception e) {
-            Log.d(TAG, "Error while trying to get posts from database");
+            Log.e(TAG, "Error while trying to get posts from database", e);
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -811,7 +814,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                 lastUsedAt = cursor.getString(cursor.getColumnIndex(KEY_LAST_USED_AT));
             }
         } catch (Exception e) {
-            Log.d(TAG, "Error while trying to get posts from database");
+            Log.e(TAG, "Error while trying to get posts from database", e);
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -846,7 +849,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {
-            Log.d(TAG, "Error while trying to get posts from database");
+            Log.e(TAG, "Error while trying to get posts from database", e);
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -873,7 +876,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                 bookmarkedTrackID = cursor.getInt(cursor.getColumnIndex(KEY_ID));
             }
         } catch (Exception e) {
-            Log.d(TAG, "Error while trying to get posts from database while get bookmarked track");
+            Log.e(TAG, "Error while trying to get posts from database while get bookmarked track", e);
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -885,7 +888,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
     // 북마크된 경로를 생성한 시각 내림차순으로 정렬됨.
     public List<Track> getAllBookmarkedTrack() {
-        Log.d(TAG, "getAllTrack()");
+        Log.d(TAG, "getAllBookmarkedTrack()");
         Gson gson = new Gson();
         List<Track> bookmarkedTrackDetails = new ArrayList<>();
 
@@ -906,7 +909,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                     Cursor cursor2 = db2.rawQuery(TRACK_DETAIL_SELECT, null);
 
                     try {
-                        if (cursor.moveToFirst()) {
+                        if (cursor2.moveToFirst()) {
                             Track track = new Track();
                             track.start_poi = gson.fromJson(cursor2.getString(cursor2.getColumnIndex(KEY_JSON_START_POI)), POI.class);
                             track.dest_poi = gson.fromJson(cursor2.getString(cursor2.getColumnIndex(KEY_JSON_DEST_POI)), POI.class);
@@ -916,16 +919,16 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                             bookmarkedTrackDetails.add(track);
                         }
                     } catch (Exception e) {
-                        Log.d(TAG, "Error while trying to get posts from database while track detail");
+                        Log.e(TAG, "Error while trying to get posts from database while track detail", e);
                     } finally {
-                        if (cursor != null && !cursor.isClosed()) {
-                            cursor.close();
+                        if (cursor2 != null && !cursor2.isClosed()) {
+                            cursor2.close();
                         }
                     }
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {
-            Log.d(TAG, "Error while trying to get posts from database while get bookmarked track");
+            Log.e(TAG, "Error while trying to get posts from database while get bookmarked track", e);
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -947,7 +950,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             db.execSQL("delete from " + TABLE_BOOKMARK_TRACK + " where " + KEY_TRACK_ID + " = " + getTrackIDUsingTrack(track));
             db.setTransactionSuccessful();
         } catch (SQLException e) {
-            Log.d(TAG, "Error while tryign to delete user detail");
+            Log.e(TAG, "Error while tryign to delete user detail", e);
         } finally {
             db.endTransaction();
         }
@@ -970,7 +973,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             }
             db.setTransactionSuccessful();
         } catch (SQLException e) {
-            Log.d(TAG, "Error while tryign to delete user detail");
+            Log.e(TAG, "Error while tryign to delete user detail", e);
         } finally {
             db.endTransaction();
         }

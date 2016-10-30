@@ -24,7 +24,7 @@ public class BookmarkedTrackListFragment extends Fragment implements TrackListLi
     private static final String TAG = BookmarkedTrackListFragment.class.getSimpleName();
     BookmarkedTrackListFragment.OnTrackSelectedListener mCallback;
     SQLiteHandler db;
-    RecentTrackListAdapter adapter;
+    BookmarkedTrackListAdapter adapter;
     RecyclerView rv;
 
     public BookmarkedTrackListFragment() {
@@ -51,7 +51,7 @@ public class BookmarkedTrackListFragment extends Fragment implements TrackListLi
         rv.setHasFixedSize(true);
 
         Log.d(TAG, "rootView.findViewById(R.id.recenet_search_recyclerView");
-        adapter = new RecentTrackListAdapter(getContext().getApplicationContext(), db.getAllBookmarkedTrack(), this);
+        adapter = new BookmarkedTrackListAdapter(getContext().getApplicationContext(), db.getAllBookmarkedTrack(), this);
         rv.setAdapter(adapter);
 
         LinearLayoutManager llm = new LinearLayoutManager(getContext().getApplicationContext());

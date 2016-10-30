@@ -103,10 +103,14 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         bookMarkButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!db.checkIfTrackExists(track)) {
-                    db.addBookmarkedTrack(track);
+                if (track != null) {
+                    if (!db.checkIFBookmarkedTrackExists(track)) {
+                        db.addBookmarkedTrack(track);
+                    } else {
+                        db.updateBookmarkedTrack(track);
+                    }
                 } else {
-                    db.updateBookmarkedTrack(track);
+                    Log.d(TAG, "트랙이 null입니다");
                 }
             }
         });

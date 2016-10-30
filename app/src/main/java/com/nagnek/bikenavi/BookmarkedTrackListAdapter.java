@@ -17,7 +17,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.nagnek.bikenavi.helper.SQLiteHandler;
-import com.nagnek.bikenavi.time.Time;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +28,7 @@ import java.util.List;
 public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedTrackListAdapter.BookmarkedTrackListViewHolder> {
     private static final String TAG = BookmarkedTrackListAdapter.class.getSimpleName();
     Context context;
-    List<Track> recentTrackList = new ArrayList<>();
+    List<Track> bookmarkedTrackList = new ArrayList<>();
     LayoutInflater inflater;
     TrackListListener trackListListener;
     private SQLiteHandler db;   // sqlite
@@ -38,7 +37,7 @@ public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedT
     public BookmarkedTrackListAdapter(Context context, List<Track> trackList, TrackListListener trackListListener) {
 
         this.context = context;
-        this.recentTrackList = trackList;
+        this.bookmarkedTrackList = trackList;
         this.trackListListener = trackListListener;
         inflater = LayoutInflater.from(context);
         // SqLite database handler 초기화
@@ -49,7 +48,7 @@ public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedT
     public BookmarkedTrackListAdapter(Context context, List<Track> trackList) {
 
         this.context = context;
-        this.recentTrackList = trackList;
+        this.bookmarkedTrackList = trackList;
         this.trackListListener = (TrackListListener) context;
         inflater = LayoutInflater.from(context);
 
@@ -61,7 +60,7 @@ public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedT
                                                             int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.card_item_recent_track, parent, false);
+                .inflate(R.layout.card_item_bookmarked_track, parent, false);
         // set the view's size, margins, paddings and layout parameters
         BookmarkedTrackListViewHolder vh = new BookmarkedTrackListViewHolder(v);
         return vh;
@@ -71,31 +70,30 @@ public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedT
     public void onBindViewHolder(BookmarkedTrackListViewHolder holder, final int position) {
 
         holder.iv_delete.setTag(position);
-        List<POI> stopList = recentTrackList.get(position).stop_list;
+        List<POI> stopList = bookmarkedTrackList.get(position).stop_list;
         if (stopList == null) {
             // 경유지가 없으므로 시작장소 -> 도착장소로 표시
-            if (recentTrackList.get(position).start_poi != null && recentTrackList.get(position).dest_poi != null) {
-                holder.track_log.setText(recentTrackList.get(position).start_poi.name + " -> " + recentTrackList.get(position).dest_poi.name);
+            if (bookmarkedTrackList.get(position).start_poi != null && bookmarkedTrackList.get(position).dest_poi != null) {
+                holder.track_log.setText(bookmarkedTrackList.get(position).start_poi.name + " -> " + bookmarkedTrackList.get(position).dest_poi.name);
             }
         } else {
             // 경유지마다 전부 표시
             // 트랙 경로들을 -> 로 묶어서 보여줌
-            String track_list = recentTrackList.get(position).start_poi.name;
+            String track_list = bookmarkedTrackList.get(position).start_poi.name;
 
             for (POI poi : stopList) {
                 track_list += ("->" + poi.name);
             }
-            track_list += recentTrackList.get(position).dest_poi.name;
+            track_list += bookmarkedTrackList.get(position).dest_poi.name;
             holder.track_log.setText(track_list);
         }
-        holder.track_last_used_at.setText(Time.formatTimeString(db.getLastUsedAtUsingTrack(recentTrackList.get(position))));
         holder.itemView.setTag(position);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int select_position = (Integer) v.getTag();
                 Log.d(TAG, "selected_position : " + select_position);
-                trackListListener.trackClickToSet(recentTrackList.get(select_position), select_position);
+                trackListListener.trackClickToSet(bookmarkedTrackList.get(select_position), select_position);
             }
         });
 
@@ -103,8 +101,8 @@ public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedT
             @Override
             public void onClick(View v) {
                 int delete_position = (Integer) v.getTag();
-                trackListListener.trackClickToDelete(recentTrackList.get(delete_position));
-                recentTrackList.remove(delete_position);
+                trackListListener.trackClickToDelete(bookmarkedTrackList.get(delete_position));
+                bookmarkedTrackList.remove(delete_position);
                 notifyItemRemoved(delete_position);
                 //this line below gives you the animation and also updates the
                 //list items after the deleted item
@@ -115,11 +113,11 @@ public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedT
 
     @Override
     public int getItemCount() {
-        return recentTrackList.size();
+        return bookmarkedTrackList.size();
     }
 
     void addTrack(Track track) {
-        recentTrackList.add(track);
+        bookmarkedTrackList.add(track);
         notifyItemInserted(0);
         //this line below gives you the animation and also updates the
         //list items after the inserted item
@@ -127,13 +125,13 @@ public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedT
     }
 
     void updateTrack(Track track, int position) {
-        recentTrackList.remove(position);
-        recentTrackList.add(0, track);
+        bookmarkedTrackList.remove(position);
+        bookmarkedTrackList.add(0, track);
         notifyDataSetChanged();
     }
 
     void refresh() {
-        this.recentTrackList = db.getAllTrack();
+        this.bookmarkedTrackList = db.getAllBookmarkedTrack();
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
@@ -147,7 +145,6 @@ public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedT
         ImageView iv_delete;
         CardView card_view;
         TextView track_log; // 트랙 로그. 예 ) 출발지 -> 도착지 또는 출발지 -> 경유지1 -> 경유지2 -> 경유지3 -> .. -> 도착지
-        TextView track_last_used_at; //trackLastUsedAt
 
         public BookmarkedTrackListViewHolder(View v) {
             super(v);
@@ -155,7 +152,6 @@ public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedT
             card_view = (CardView) v.findViewById(R.id.card_view);
             track_log = (TextView) v.findViewById(R.id.text_track_log);
             iv_delete = (ImageView) v.findViewById(R.id.iv_delete);
-            track_last_used_at = (TextView) v.findViewById(R.id.text_track_last_used_at);
         }
     }
 }

@@ -22,7 +22,7 @@ import com.nagnek.bikenavi.customview.DelayAutoCompleteTextView;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.util.NagneUtil;
 
-public class TrackSettingFragment extends Fragment implements RecentTrackListFragment.OnTrackSelectedListener {
+public class TrackSettingFragment extends Fragment implements RecentTrackListFragment.OnTrackSelectedListener, BookmarkedTrackListFragment.OnTrackSelectedListener {
     static final int SEARCH_INTEREST_POINT = 1; // 장소 검색 request code
     private static final String TAG = TrackSettingFragment.class.getSimpleName();
     DelayAutoCompleteTextView start_point, dest_point;
@@ -121,9 +121,11 @@ public class TrackSettingFragment extends Fragment implements RecentTrackListFra
 
     @Override
     public void onRecentTrackSelected(Track track) {
+        this.track = track;
         start_point.setText(track.start_poi.name);
         dest_point.setText(track.dest_poi.name);
         db.updateLastUsedAtTrack(track);
+        db.updateBookmarkedTrack(track);
         reactionSearchResult();
     }
 
@@ -169,7 +171,7 @@ public class TrackSettingFragment extends Fragment implements RecentTrackListFra
                     Thread thread = new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            Track track = new Track();
+                            track = new Track();
                             track.start_poi = start_poi;
                             track.dest_poi = dest_poi;
                             if (db.checkIfTrackExists(track)) {
@@ -180,12 +182,11 @@ public class TrackSettingFragment extends Fragment implements RecentTrackListFra
                             if (trackPagerAdapter.recentTrackFragment != null) {
                                 trackPagerAdapter.recentTrackFragment.addOrUpdateTrack(track);
                             }
-
+                            reactionSearchResult();
                         }
                     });
                     thread.start();
                 }
-                reactionSearchResult();
             }
         }
     }
