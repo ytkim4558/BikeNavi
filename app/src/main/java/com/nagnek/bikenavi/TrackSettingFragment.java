@@ -22,7 +22,7 @@ import com.nagnek.bikenavi.customview.DelayAutoCompleteTextView;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.util.NagneUtil;
 
-public class TrackSettingFragment extends Fragment implements RecentTrackFragment.OnTrackSelectedListener {
+public class TrackSettingFragment extends Fragment implements TrackListFragment.OnTrackSelectedListener {
     static final int SEARCH_INTEREST_POINT = 1; // 장소 검색 request code
     private static final String TAG = TrackSettingFragment.class.getSimpleName();
     DelayAutoCompleteTextView start_point, dest_point;

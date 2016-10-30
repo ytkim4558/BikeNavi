@@ -41,6 +41,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     public static final String KEY_FACEBOOK_ID = "facebookID"; // 페이스북 유저 아이디 (숫자)
     public static final String KEY_FACEBOOK_NAME = "facebookname";  // 페이스북에서 쓰는 사용자 이름
     // Poi Table Columns names (즐겨찾기 포함)
+    public static final String KEY_POI_ID = "poiID"; // 장소 아이디
     public static final String KEY_POI_NAME = "poiName"; // 장소 이름
     public static final String KEY_POI_ADDRESS = "poiAddress"; // 장소 이름
     public static final String KEY_POI_LAT_LNG = "poiLatLng";   // 장소 좌표
@@ -48,6 +49,9 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     public static final String KEY_JSON_START_POI = "json_start_poi"; // 출발 장소 json
     public static final String KEY_JSON_DEST_POI = "json_dest_poi"; // 도착 장소 json
     public static final String KEY_JSON_STOP_POI_ARRAY = "json_stop_poi_list"; // 경유지 장소 리스트 json
+
+    public static final String KEY_TRACK_ID = "trackID"; // 경로 아이디
+
     private static final String TAG = SQLiteHandler.class.getSimpleName();
     // All Static variables
     // Database Version
@@ -60,12 +64,8 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     private static final String TABLE_IP = "IPS";
     // poi table name 장소 검색 기록 저장용 테이블
     private static final String TABLE_POI = "POI";
-    // 로그인시 통합되는 poi table name 장소 검색 기록 저장용 테이블
-    private static final String TABLE_TEMP_POI = "TEMP_POI";
     // track table name 경로 로그 저장용 테이블
     private static final String TABLE_TRACK = "TRACK";
-    // 로그인시 통합되는 track table name 경로 로그 저장용 테이블
-    private static final String TABLE_TEMP_TRACK = "TEMP_TRACK";
     // poi 즐겨찾기용 table name
     private static final String TABLE_BOOKMARK_POI = "BOOKMARK_POI";
     // track 즐겨찾기용 table name , 유저가 즐겨찾기한 경로들 저장용 테이블
@@ -143,30 +143,27 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
         Log.d(TAG, "track tables created");
 
-        // 유저 로그인시 임시 POI 테이블 (로그아웃 하면 삭제됨)
-        String CREATE_TEMP_POI_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_TEMP_POI + "("
+        // 북마크된 장소 ID 테이블
+        String CREATE_BOOKMARK_POI_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_BOOKMARK_POI + "("
                 + KEY_ID + " INTEGER PRIMARY KEY,"
-                + KEY_POI_NAME + " TEXT,"
-                + KEY_POI_ADDRESS + " TEXT,"
-                + KEY_POI_LAT_LNG + " TEXT UNIQUE,"
+                + KEY_POI_ID + " INTEGER,"
                 + KEY_CREATED_AT + " TEXT,"
                 + KEY_UPDATED_AT + " TEXT,"
                 + KEY_LAST_USED_AT + " TEXT" + ")";
-        db.execSQL(CREATE_TEMP_POI_TABLE);
-        Log.d(TAG, "temp poi tables created");
 
-        // 유저 로그인시 임시 경로 테이블 (로그아웃 하면 삭제됨)
-        String CREATE_TEMP_TRACK_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_TEMP_TRACK + "("
+        db.execSQL(CREATE_BOOKMARK_POI_TABLE);
+
+        // 북마크된 경로 ID 테이블
+        String CREATE_BOOKMARK_TRACK_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_BOOKMARK_TRACK + "("
                 + KEY_ID + " INTEGER PRIMARY KEY,"
-                + KEY_JSON_START_POI + " TEXT,"
-                + KEY_JSON_DEST_POI + " TEXT,"
-                + KEY_JSON_STOP_POI_ARRAY + " TEXT,"
+                + KEY_TRACK_ID + " INTEGER,"
                 + KEY_CREATED_AT + " TEXT,"
                 + KEY_UPDATED_AT + " TEXT,"
                 + KEY_LAST_USED_AT + " TEXT" + ")";
-        db.execSQL(CREATE_TEMP_TRACK_TABLE);
 
-        Log.d(TAG, "temp track tables created");
+        db.execSQL(CREATE_BOOKMARK_TRACK_TABLE);
+
+        Log.d(TAG, "track tables created");
     }
 
     // Upgrading database
@@ -185,10 +182,6 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_BOOKMARK_POI);
 
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_BOOKMARK_TRACK);
-
-            db.execSQL("DROP TABLE IF EXISTS " + TABLE_TEMP_POI);
-
-            db.execSQL("DROP TABLE IF EXISTS " + TABLE_TEMP_TRACK);
 
             // Create tables again
             onCreate(db);
@@ -287,6 +280,25 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery("SELECT " + fieldObjectId + " FROM " + tableName + " WHERE " + fieldObjectName + " = '" + objectName + "'", null);
+
+        if (cursor != null) {
+
+            if (cursor.getCount() > 0) {
+                recordExists = true;
+            }
+        }
+
+        cursor.close();
+        db.close();
+
+        return recordExists;
+    }
+
+    public boolean checkIfExists(String fieldObjectId, String tableName, String fieldObjectName, int objectName) {
+        boolean recordExists = false;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + fieldObjectId + " FROM " + tableName + " WHERE " + fieldObjectName + " = " + objectName, null);
 
         if (cursor != null) {
 
@@ -640,6 +652,38 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * Storing bookmarked track id in database
+     */
+    public void addBookmarkedTrack(Track track) {
+        Gson gson = new Gson();
+        if (!checkIfExists(KEY_ID, TABLE_BOOKMARK_TRACK, KEY_TRACK_ID, getTrackIDUsingTrack(track))) {
+            SQLiteDatabase db = this.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+            values.put(KEY_TRACK_ID, getTrackIDUsingTrack(track));
+            Log.d(TAG, "values.put 경로 아이디 : " + getTrackIDUsingTrack(track));
+
+            String created_at = getDateTime();
+            values.put(KEY_CREATED_AT, created_at); // created_at
+            Log.d(TAG, "values.put created_at: " + created_at);
+
+            values.put(KEY_UPDATED_AT, created_at); // created_at 값 복사 , 어차피 같은 시각이므로
+            Log.d(TAG, "values.put updated_at: " + created_at);
+
+            values.put(KEY_LAST_USED_AT, created_at); // created_at 값 복사
+            Log.d(TAG, "values.put last_used_at: " + created_at);
+
+            // Inserting Row
+            long id = db.insert(TABLE_BOOKMARK_TRACK, null, values);
+            db.close(); // Closing database connection
+
+            Log.d(TAG, "New track inserted into sqlite: " + id);
+        } else {
+            Log.d(TAG, "trackinfo already existed in sqlite: " + gson.toJson(track));
+        }
+    }
+
     // 출발지, 도착지, 경유지 리스트들을 보고 이미 있었는지 확인
     public boolean checkIfTrackExists(Track track) {
         Gson gson = new Gson();
@@ -687,9 +731,43 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         }
     }
 
+    // id 가져오기
+    public int getTrackIDUsingTrack(Track track) {
+        int trackID = -1;
+        Gson gson = new Gson();
+
+        String TRACK_LAST_USED_AT_SELECT_QUERY = null;
+        if (track.stop_list != null) {
+            TRACK_LAST_USED_AT_SELECT_QUERY =
+                    "SELECT " + KEY_ID + " FROM " + TABLE_TRACK + " WHERE " + KEY_JSON_START_POI + " = '" + gson.toJson(track.start_poi) + "'" + " AND " +
+                            KEY_JSON_DEST_POI + " = '" + gson.toJson(track.dest_poi) + "'" + " AND " + KEY_JSON_STOP_POI_ARRAY + " = '" + gson.toJson(track.stop_list) + "'";
+        } else {
+            TRACK_LAST_USED_AT_SELECT_QUERY =
+                    "SELECT " + KEY_ID + " FROM " + TABLE_TRACK + " WHERE " + KEY_JSON_START_POI + " = '" + gson.toJson(track.start_poi) + "'" + " AND " +
+                            KEY_JSON_DEST_POI + " = '" + gson.toJson(track.dest_poi) + "'";
+        }
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(TRACK_LAST_USED_AT_SELECT_QUERY, null);
+
+        try {
+            if (cursor.moveToFirst()) {
+                trackID = cursor.getInt(cursor.getColumnIndex(KEY_ID));
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to get posts from database");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return trackID;
+    }
+
+    // 사용한 시각 가져오기
     public String getLastUsedAtUsingTrack(Track track) {
         String lastUsedAt = null;
-        List<POI> poiDetails = new ArrayList<>();
         Gson gson = new Gson();
 
         String TRACK_LAST_USED_AT_SELECT_QUERY = null;
@@ -756,8 +834,105 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         return trackDetails;
     }
 
+    // 북마크된 경로를 생성한 시각 내림차순으로 정렬됨.
+    public int getBookmarkedIDUsingTrack(Track track) {
+        Log.d(TAG, "getAllTrack()");
+        Gson gson = new Gson();
+        int bookmarkedTrackID = -1;
+
+        String BOOKMARKED_TRACK_DETAIL_SELECT_QUERY =
+                "SELECT " + KEY_ID + " FROM " + TABLE_BOOKMARK_TRACK + " WHERE " + KEY_TRACK_ID + " = " + getTrackIDUsingTrack(track);
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(BOOKMARKED_TRACK_DETAIL_SELECT_QUERY, null);
+
+        try {
+            if (cursor.moveToFirst()) {
+                bookmarkedTrackID = cursor.getInt(cursor.getColumnIndex(KEY_ID));
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to get posts from database while get bookmarked track");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return bookmarkedTrackID;
+    }
+
+    // 북마크된 경로를 생성한 시각 내림차순으로 정렬됨.
+    public List<Track> getAllBookmarkedTrack() {
+        Log.d(TAG, "getAllTrack()");
+        Gson gson = new Gson();
+        List<Track> bookmarkedTrackDetails = new ArrayList<>();
+
+        String BOOKMARKED_TRACK_DETAIL_SELECT_QUERY_ORDER_BY_CREATED_AT =
+                "SELECT " + KEY_TRACK_ID + " FROM " + TABLE_BOOKMARK_TRACK + " ORDER BY " + KEY_CREATED_AT + " DESC";
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(BOOKMARKED_TRACK_DETAIL_SELECT_QUERY_ORDER_BY_CREATED_AT, null);
+
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+
+                    int id = cursor.getInt(cursor.getColumnIndex(KEY_TRACK_ID));
+                    String TRACK_DETAIL_SELECT = "SELECT * FROM " + TABLE_TRACK + " WHERE " + KEY_ID + " = " + id;
+
+                    SQLiteDatabase db2 = getReadableDatabase();
+                    Cursor cursor2 = db2.rawQuery(TRACK_DETAIL_SELECT, null);
+
+                    try {
+                        if (cursor.moveToFirst()) {
+                            Track track = new Track();
+                            track.start_poi = gson.fromJson(cursor2.getString(cursor2.getColumnIndex(KEY_JSON_START_POI)), POI.class);
+                            track.dest_poi = gson.fromJson(cursor2.getString(cursor2.getColumnIndex(KEY_JSON_DEST_POI)), POI.class);
+                            track.stop_list = gson.fromJson(cursor2.getString(cursor2.getColumnIndex(KEY_JSON_STOP_POI_ARRAY)), new TypeToken<List<POI>>() {
+                            }.getType());
+
+                            bookmarkedTrackDetails.add(track);
+                        }
+                    } catch (Exception e) {
+                        Log.d(TAG, "Error while trying to get posts from database while track detail");
+                    } finally {
+                        if (cursor != null && !cursor.isClosed()) {
+                            cursor.close();
+                        }
+                    }
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "Error while trying to get posts from database while get bookmarked track");
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return bookmarkedTrackDetails;
+    }
+
     /**
-     * poi 정보 삭제
+     * bookmark track 정보 삭제
+     */
+    public void deleteBookmarkedTrackRow(Track track) {
+        SQLiteDatabase db = getWritableDatabase();
+        Gson gson = new Gson();
+
+        try {
+            db.beginTransaction();
+            db.execSQL("delete from " + TABLE_BOOKMARK_TRACK + " where " + KEY_TRACK_ID + " = " + getTrackIDUsingTrack(track));
+            db.setTransactionSuccessful();
+        } catch (SQLException e) {
+            Log.d(TAG, "Error while tryign to delete user detail");
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    /**
+     * track 정보 삭제
      */
     public void deleteTrackRow(Track track) {
         SQLiteDatabase db = getWritableDatabase();

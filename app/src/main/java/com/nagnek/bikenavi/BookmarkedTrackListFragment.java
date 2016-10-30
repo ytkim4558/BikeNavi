@@ -17,16 +17,17 @@ import com.google.gson.Gson;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 
 /**
- * Created by user on 2016-10-27.
+ * Created by user on 2016-10-29.
  */
 
-public class RecentTrackFragment extends Fragment implements RecentTrackListener {
-    private static final String TAG = RecentTrackFragment.class.getSimpleName();
-    OnTrackSelectedListener mCallback;
+public class BookmarkedTrackListFragment extends Fragment implements TrackListListener {
+    private static final String TAG = TrackListFragment.class.getSimpleName();
+    BookmarkedTrackListFragment.OnTrackSelectedListener mCallback;
     SQLiteHandler db;
     RecentTrackListAdapter adapter;
     RecyclerView rv;
-    public RecentTrackFragment() {
+
+    public BookmarkedTrackListFragment() {
         // Required empty public constructor
     }
 
@@ -41,7 +42,7 @@ public class RecentTrackFragment extends Fragment implements RecentTrackListener
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_recent, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_bookmarked_track, container, false);
         Log.d(TAG, "inflater.inflate");
         db = SQLiteHandler.getInstance(getContext().getApplicationContext());
         Log.d(TAG, "SQLiteHandler.getInstance");
@@ -50,14 +51,14 @@ public class RecentTrackFragment extends Fragment implements RecentTrackListener
         rv.setHasFixedSize(true);
 
         Log.d(TAG, "rootView.findViewById(R.id.recenet_search_recyclerView");
-        adapter = new RecentTrackListAdapter(getContext().getApplicationContext(), db.getAllTrack(), this);
+        adapter = new RecentTrackListAdapter(getContext().getApplicationContext(), db.getAllBookmarkedTrack(), this);
         rv.setAdapter(adapter);
 
         LinearLayoutManager llm = new LinearLayoutManager(getContext().getApplicationContext());
         rv.setLayoutManager(llm);
 
         try {
-            mCallback = (OnTrackSelectedListener) getParentFragment();
+            mCallback = (BookmarkedTrackListFragment.OnTrackSelectedListener) getParentFragment();
             if (mCallback == null) {
                 Log.d(TAG, "mCallback은 null이야 ㅠ");
             }

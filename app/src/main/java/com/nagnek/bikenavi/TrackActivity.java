@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -90,7 +91,15 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         dest_poi_name = receivedIntent.getStringExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.dest_point_text_for_transition));
 
         TextView route = (TextView) findViewById(R.id.track_log);
+        ImageButton bookMarkButton = (ImageButton) findViewById(R.id.bookmark_button);
+
         route.setText(start_poi_name + "=>" + dest_poi_name);
+        bookMarkButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
 
 
         /**

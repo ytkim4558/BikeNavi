@@ -31,15 +31,15 @@ public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackList
     Context context;
     List<Track> recentTrackList = new ArrayList<>();
     LayoutInflater inflater;
-    RecentTrackListener recentTrackListener;
+    TrackListListener trackListListener;
     private SQLiteHandler db;   // sqlite
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public RecentTrackListAdapter(Context context, List<Track> trackList, RecentTrackListener recentTrackListener) {
+    public RecentTrackListAdapter(Context context, List<Track> trackList, TrackListListener trackListListener) {
 
         this.context = context;
         this.recentTrackList = trackList;
-        this.recentTrackListener = recentTrackListener;
+        this.trackListListener = trackListListener;
         inflater = LayoutInflater.from(context);
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(context.getApplicationContext());
@@ -50,7 +50,7 @@ public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackList
 
         this.context = context;
         this.recentTrackList = trackList;
-        this.recentTrackListener = (RecentTrackListener) context;
+        this.trackListListener = (TrackListListener) context;
         inflater = LayoutInflater.from(context);
 
     }
@@ -95,7 +95,7 @@ public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackList
             public void onClick(View v) {
                 int select_position = (Integer) v.getTag();
                 Log.d(TAG, "selected_position : " + select_position);
-                recentTrackListener.trackClickToSet(recentTrackList.get(select_position), select_position);
+                trackListListener.trackClickToSet(recentTrackList.get(select_position), select_position);
             }
         });
 
@@ -103,7 +103,7 @@ public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackList
             @Override
             public void onClick(View v) {
                 int delete_position = (Integer) v.getTag();
-                recentTrackListener.trackClickToDelete(recentTrackList.get(delete_position));
+                trackListListener.trackClickToDelete(recentTrackList.get(delete_position));
                 recentTrackList.remove(delete_position);
                 notifyItemRemoved(delete_position);
                 //this line below gives you the animation and also updates the

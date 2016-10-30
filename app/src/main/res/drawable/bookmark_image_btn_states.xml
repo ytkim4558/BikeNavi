@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright (c) 2016. UGIF. All Rights Reserved
+  -->
+
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/ic_star_border_black_24dp" android:state_focused="true" />
+    <item android:drawable="@drawable/ic_grade_black_24dp" android:state_pressed="true" />
+    <item android:drawable="@drawable/ic_star_border_black_24dp" />
+</selector>
