@@ -20,14 +20,14 @@ import com.nagnek.bikenavi.helper.SQLiteHandler;
  * Created by user on 2016-10-27.
  */
 
-public class TrackListFragment extends Fragment implements TrackListListener {
-    private static final String TAG = TrackListFragment.class.getSimpleName();
+public class RecentTrackListFragment extends Fragment implements TrackListListener {
+    private static final String TAG = RecentTrackListFragment.class.getSimpleName();
     OnTrackSelectedListener mCallback;
     SQLiteHandler db;
     RecentTrackListAdapter adapter;
     RecyclerView rv;
 
-    public TrackListFragment() {
+    public RecentTrackListFragment() {
         // Required empty public constructor
     }
 

@@ -21,7 +21,7 @@ import com.nagnek.bikenavi.helper.SQLiteHandler;
  */
 
 public class BookmarkedTrackListFragment extends Fragment implements TrackListListener {
-    private static final String TAG = TrackListFragment.class.getSimpleName();
+    private static final String TAG = BookmarkedTrackListFragment.class.getSimpleName();
     BookmarkedTrackListFragment.OnTrackSelectedListener mCallback;
     SQLiteHandler db;
     RecentTrackListAdapter adapter;
@@ -73,7 +73,7 @@ public class BookmarkedTrackListFragment extends Fragment implements TrackListLi
     public void trackClickToDelete(Track track) {
         Gson gson = new Gson();
         Log.d(TAG, "delete track : " + gson.toJson(track));
-        db.deleteTrackRow(track);
+        db.deleteBookmarkedTrackRow(track);
     }
 
     @Override

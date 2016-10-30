@@ -45,6 +45,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.guide.GuideContent;
+import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.util.NagneUtil;
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapPOIItem;
@@ -80,15 +81,20 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
     private ArrayList<MarkerOptions> markerOptionsArrayList;    // 출발지 도착지 사이에 마커 리스트
     private List<Marker> descriptorMarkers = new ArrayList<Marker>(); //markers
     private List<Marker> markers = new ArrayList<Marker>(); //markers
+    private SQLiteHandler db;   // sqlite
+    private Track track = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_track);
+        // SqLite database handler 초기화
+        db = SQLiteHandler.getInstance(getApplicationContext());
 
         Intent receivedIntent = getIntent();
         start_poi_name = receivedIntent.getStringExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.start_point_text_for_transition));
         dest_poi_name = receivedIntent.getStringExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.dest_point_text_for_transition));
+        track = (Track) receivedIntent.getSerializableExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.current_track_for_transition));
 
         TextView route = (TextView) findViewById(R.id.track_log);
         ImageButton bookMarkButton = (ImageButton) findViewById(R.id.bookmark_button);
@@ -97,7 +103,11 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         bookMarkButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                if (!db.checkIfTrackExists(track)) {
+                    db.addBookmarkedTrack(track);
+                } else {
+                    db.updateBookmarkedTrack(track);
+                }
             }
         });
 

@@ -16,12 +16,13 @@ import android.widget.TextView;
  * Created by user on 2016-10-27.
  */
 
-public class RecentTrackPagerAdapter extends FragmentPagerAdapter {
-    public TrackListFragment recentTrackFragment;
+public class TrackPagerAdapter extends FragmentPagerAdapter {
+    public RecentTrackListFragment recentTrackFragment;
+    public BookmarkedTrackListFragment bookmarkedTrackListFragment;
     String tabTitles[] = new String[]{"최근 검색", "즐겨 찾기"};
     Context context;
 
-    public RecentTrackPagerAdapter(FragmentManager fm, Context context) {
+    public TrackPagerAdapter(FragmentManager fm, Context context) {
         super(fm);
         this.context = context;
     }
@@ -36,11 +37,11 @@ public class RecentTrackPagerAdapter extends FragmentPagerAdapter {
 
         switch (position) {
             case 0:
-                recentTrackFragment = new TrackListFragment();
+                recentTrackFragment = new RecentTrackListFragment();
                 return recentTrackFragment;
             case 1:
-                return new TrackListFragment();
-            //return new TrackListFragment();
+                bookmarkedTrackListFragment = new BookmarkedTrackListFragment();
+                return bookmarkedTrackListFragment;
         }
 
         return null;

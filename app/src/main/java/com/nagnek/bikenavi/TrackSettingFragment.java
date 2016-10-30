@@ -22,12 +22,13 @@ import com.nagnek.bikenavi.customview.DelayAutoCompleteTextView;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.util.NagneUtil;
 
-public class TrackSettingFragment extends Fragment implements TrackListFragment.OnTrackSelectedListener {
+public class TrackSettingFragment extends Fragment implements RecentTrackListFragment.OnTrackSelectedListener {
     static final int SEARCH_INTEREST_POINT = 1; // 장소 검색 request code
     private static final String TAG = TrackSettingFragment.class.getSimpleName();
     DelayAutoCompleteTextView start_point, dest_point;
     POI start_poi, dest_poi;
-    RecentTrackPagerAdapter recentTrackPagerAdapter;
+    TrackPagerAdapter trackPagerAdapter;
+    Track track = null;
     private SQLiteHandler db;   // sqlite
 
     public TrackSettingFragment() {
@@ -49,8 +50,8 @@ public class TrackSettingFragment extends Fragment implements TrackListFragment.
 
         // Get the ViewPager and set it's RecentPOIPagerAdapter so that it can display items
         ViewPager viewPager = (ViewPager) rootView.findViewById(R.id.viewPager);
-        recentTrackPagerAdapter = new RecentTrackPagerAdapter(getChildFragmentManager(), getActivity());
-        viewPager.setAdapter(recentTrackPagerAdapter);
+        trackPagerAdapter = new TrackPagerAdapter(getChildFragmentManager(), getActivity());
+        viewPager.setAdapter(trackPagerAdapter);
 
         // Give the TabLayout the ViewPager
         TabLayout tabLayout = (TabLayout) rootView.findViewById(R.id.tab_layout);
@@ -60,7 +61,7 @@ public class TrackSettingFragment extends Fragment implements TrackListFragment.
         for (int i = 0; i < tabLayout.getTabCount(); ++i) {
             TabLayout.Tab tab = tabLayout.getTabAt(i);
             if (tab != null) {
-                tab.setCustomView(recentTrackPagerAdapter.getTabView(i));
+                tab.setCustomView(trackPagerAdapter.getTabView(i));
             } else {
                 Log.d(TAG, "tab이 null이네?");
             }
@@ -140,6 +141,7 @@ public class TrackSettingFragment extends Fragment implements TrackListFragment.
         Intent intent = new Intent(getContext(), TrackActivity.class);
         intent.putExtra(NagneUtil.getStringFromResources(getActivity().getApplicationContext(), R.string.start_point_text_for_transition), start_point.getText().toString());
         intent.putExtra(NagneUtil.getStringFromResources(getActivity().getApplicationContext(), R.string.dest_point_text_for_transition), dest_point.getText().toString());
+        intent.putExtra(NagneUtil.getStringFromResources(getActivity().getApplicationContext(), R.string.current_track_for_transition), track);
         startActivity(intent);
     }
 
@@ -175,8 +177,8 @@ public class TrackSettingFragment extends Fragment implements TrackListFragment.
                             } else {
                                 db.addTrack(track);
                             }
-                            if (recentTrackPagerAdapter.recentTrackFragment != null) {
-                                recentTrackPagerAdapter.recentTrackFragment.addOrUpdateTrack(track);
+                            if (trackPagerAdapter.recentTrackFragment != null) {
+                                trackPagerAdapter.recentTrackFragment.addOrUpdateTrack(track);
                             }
 
                         }

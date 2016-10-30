@@ -684,6 +684,28 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         }
     }
 
+    public void updateBookmarkedTrack(Track track) {
+        Gson gson = new Gson();
+        if (checkIfExists(KEY_ID, TABLE_BOOKMARK_TRACK, KEY_TRACK_ID, getTrackIDUsingTrack(track))) {
+            SQLiteDatabase db = this.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+
+            String last_used_at = getDateTime();
+
+            values.put(KEY_LAST_USED_AT, last_used_at); // 현재 시각
+            Log.d(TAG, "values.put last_used_at: " + last_used_at);
+
+            // Inserting Row
+            long id = db.update(TABLE_BOOKMARK_TRACK, values, KEY_TRACK_ID + " = " + getTrackIDUsingTrack(track), null);
+            db.close(); // Closing database connection
+
+            Log.d(TAG, "update track into sqlite: " + id);
+        } else {
+            Log.d(TAG, "trackinfo not existed in sqlite: " + gson.toJson(track));
+        }
+    }
+
     // 출발지, 도착지, 경유지 리스트들을 보고 이미 있었는지 확인
     public boolean checkIfTrackExists(Track track) {
         Gson gson = new Gson();
