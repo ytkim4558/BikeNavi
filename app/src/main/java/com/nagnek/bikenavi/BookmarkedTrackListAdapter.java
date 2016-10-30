@@ -26,8 +26,8 @@ import java.util.List;
  * Created by user on 2016-10-27.
  */
 
-public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackListAdapter.RecentTrackListViewHolder> {
-    private static final String TAG = RecentTrackListAdapter.class.getSimpleName();
+public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedTrackListAdapter.BookmarkedTrackListViewHolder> {
+    private static final String TAG = BookmarkedTrackListAdapter.class.getSimpleName();
     Context context;
     List<Track> recentTrackList = new ArrayList<>();
     LayoutInflater inflater;
@@ -35,7 +35,7 @@ public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackList
     private SQLiteHandler db;   // sqlite
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public RecentTrackListAdapter(Context context, List<Track> trackList, TrackListListener trackListListener) {
+    public BookmarkedTrackListAdapter(Context context, List<Track> trackList, TrackListListener trackListListener) {
 
         this.context = context;
         this.recentTrackList = trackList;
@@ -46,7 +46,7 @@ public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackList
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public RecentTrackListAdapter(Context context, List<Track> trackList) {
+    public BookmarkedTrackListAdapter(Context context, List<Track> trackList) {
 
         this.context = context;
         this.recentTrackList = trackList;
@@ -57,18 +57,18 @@ public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackList
 
     // Create new views (invoked by the layout manager)
     @Override
-    public RecentTrackListAdapter.RecentTrackListViewHolder onCreateViewHolder(ViewGroup parent,
-                                                                               int viewType) {
+    public BookmarkedTrackListViewHolder onCreateViewHolder(ViewGroup parent,
+                                                            int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.card_item_recent_track, parent, false);
         // set the view's size, margins, paddings and layout parameters
-        RecentTrackListAdapter.RecentTrackListViewHolder vh = new RecentTrackListAdapter.RecentTrackListViewHolder(v);
+        BookmarkedTrackListViewHolder vh = new BookmarkedTrackListViewHolder(v);
         return vh;
     }
 
     @Override
-    public void onBindViewHolder(RecentTrackListAdapter.RecentTrackListViewHolder holder, final int position) {
+    public void onBindViewHolder(BookmarkedTrackListViewHolder holder, final int position) {
 
         holder.iv_delete.setTag(position);
         List<POI> stopList = recentTrackList.get(position).stop_list;
@@ -142,14 +142,14 @@ public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackList
         });
     }
 
-    class RecentTrackListViewHolder extends RecyclerView.ViewHolder {
+    class BookmarkedTrackListViewHolder extends RecyclerView.ViewHolder {
 
         ImageView iv_delete;
         CardView card_view;
         TextView track_log; // 트랙 로그. 예 ) 출발지 -> 도착지 또는 출발지 -> 경유지1 -> 경유지2 -> 경유지3 -> .. -> 도착지
         TextView track_last_used_at; //trackLastUsedAt
 
-        public RecentTrackListViewHolder(View v) {
+        public BookmarkedTrackListViewHolder(View v) {
             super(v);
 
             card_view = (CardView) v.findViewById(R.id.card_view);
