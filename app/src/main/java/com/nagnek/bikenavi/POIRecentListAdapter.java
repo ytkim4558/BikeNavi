@@ -29,15 +29,15 @@ public class POIRecentListAdapter extends RecyclerView.Adapter<POIRecentListAdap
     LayoutInflater inflater;
     private Context context;
     private List<POI> recentPOIList = new ArrayList<>();
-    private POIRecentListener POIRecentListener;
+    private POIListener POIListener;
     private SQLiteHandler db;   // sqlite
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public POIRecentListAdapter(Context context, List<POI> poiList, POIRecentListener POIRecentListener) {
+    public POIRecentListAdapter(Context context, List<POI> poiList, POIListener POIListener) {
 
         this.context = context;
         this.recentPOIList = poiList;
-        this.POIRecentListener = POIRecentListener;
+        this.POIListener = POIListener;
         inflater = LayoutInflater.from(context);
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(context.getApplicationContext());
@@ -72,7 +72,7 @@ public class POIRecentListAdapter extends RecyclerView.Adapter<POIRecentListAdap
             @Override
             public void onClick(View v) {
                 int select_position = (Integer) v.getTag();
-                POIRecentListener.poiClickToSet(recentPOIList.get(select_position));
+                POIListener.poiClickToSet(recentPOIList.get(select_position));
             }
         });
 
@@ -80,7 +80,7 @@ public class POIRecentListAdapter extends RecyclerView.Adapter<POIRecentListAdap
             @Override
             public void onClick(View v) {
                 int delete_position = (Integer) v.getTag();
-                POIRecentListener.latLngToDelete(recentPOIList.get(delete_position).latLng);
+                POIListener.latLngToDelete(recentPOIList.get(delete_position).latLng);
                 recentPOIList.remove(delete_position);
                 notifyItemRemoved(delete_position);
                 //this line below gives you the animation and also updates the

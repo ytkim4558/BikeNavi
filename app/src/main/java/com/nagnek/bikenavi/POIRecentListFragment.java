@@ -32,8 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class POIRecentFragment extends Fragment implements POIRecentListener {
-    private static final String TAG = POIRecentFragment.class.getSimpleName();
+public class POIRecentListFragment extends Fragment implements POIListener {
+    private static final String TAG = POIRecentListFragment.class.getSimpleName();
     OnPoiSelectedListener mCallback;
     SQLiteHandler db;
     POIRecentListAdapter adapter;
@@ -45,7 +45,7 @@ public class POIRecentFragment extends Fragment implements POIRecentListener {
     //The request counter to send ?page=1, ?page=2  requests
     private int requestCount = 1;
 
-    public POIRecentFragment() {
+    public POIRecentListFragment() {
         // Required empty public constructor
     }
 

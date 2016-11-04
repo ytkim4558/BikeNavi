@@ -16,11 +16,11 @@ import android.widget.TextView;
  * Created by user on 2016-10-27.
  */
 
-public class POIRecentPagerAdapter extends FragmentPagerAdapter {
+public class POIPagerAdapter extends FragmentPagerAdapter {
     String tabTitles[] = new String[]{"최근 검색", "즐겨 찾기"};
     Context context;
 
-    public POIRecentPagerAdapter(FragmentManager fm, Context context) {
+    public POIPagerAdapter(FragmentManager fm, Context context) {
         super(fm);
         this.context = context;
     }
@@ -35,9 +35,9 @@ public class POIRecentPagerAdapter extends FragmentPagerAdapter {
 
         switch (position) {
             case 0:
-                return new POIRecentFragment();
+                return new POIRecentListFragment();
             case 1:
-                return new POIRecentFragment();
+                return new POIRecentListFragment();
         }
 
         return null;

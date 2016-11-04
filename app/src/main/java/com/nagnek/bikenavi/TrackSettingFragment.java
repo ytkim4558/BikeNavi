@@ -48,7 +48,7 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_track_setting, container, false);
 
-        // Get the ViewPager and set it's POIRecentPagerAdapter so that it can display items
+        // Get the ViewPager and set it's POIPagerAdapter so that it can display items
         ViewPager viewPager = (ViewPager) rootView.findViewById(R.id.viewPager);
         trackPagerAdapter = new TrackPagerAdapter(getChildFragmentManager(), getActivity());
         viewPager.setAdapter(trackPagerAdapter);

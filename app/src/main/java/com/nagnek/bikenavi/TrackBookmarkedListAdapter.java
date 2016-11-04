@@ -25,16 +25,16 @@ import java.util.List;
  * Created by user on 2016-10-27.
  */
 
-public class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookmarkedListAdapter.BookmarkedTrackListViewHolder> {
+class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookmarkedListAdapter.BookmarkedTrackListViewHolder> {
     private static final String TAG = TrackBookmarkedListAdapter.class.getSimpleName();
-    Context context;
-    List<Track> bookmarkedTrackList = new ArrayList<>();
     LayoutInflater inflater;
-    TrackListListener trackListListener;
+    private Context context;
+    private List<Track> bookmarkedTrackList = new ArrayList<>();
+    private TrackListListener trackListListener;
     private SQLiteHandler db;   // sqlite
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public TrackBookmarkedListAdapter(Context context, List<Track> trackList, TrackListListener trackListListener) {
+    TrackBookmarkedListAdapter(Context context, List<Track> trackList, TrackListListener trackListListener) {
 
         this.context = context;
         this.bookmarkedTrackList = trackList;
@@ -42,16 +42,6 @@ public class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookma
         inflater = LayoutInflater.from(context);
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(context.getApplicationContext());
-    }
-
-    // Provide a suitable constructor (depends on the kind of dataset)
-    public TrackBookmarkedListAdapter(Context context, List<Track> trackList) {
-
-        this.context = context;
-        this.bookmarkedTrackList = trackList;
-        this.trackListListener = (TrackListListener) context;
-        inflater = LayoutInflater.from(context);
-
     }
 
     // Create new views (invoked by the layout manager)
@@ -146,7 +136,7 @@ public class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookma
         CardView card_view;
         TextView track_log; // 트랙 로그. 예 ) 출발지 -> 도착지 또는 출발지 -> 경유지1 -> 경유지2 -> 경유지3 -> .. -> 도착지
 
-        public BookmarkedTrackListViewHolder(View v) {
+        BookmarkedTrackListViewHolder(View v) {
             super(v);
 
             card_view = (CardView) v.findViewById(R.id.card_view);

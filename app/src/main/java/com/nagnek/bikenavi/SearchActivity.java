@@ -41,7 +41,7 @@ import java.util.Map;
 
 import static com.nagnek.bikenavi.util.NagneUtil.getStringFromResources;
 
-public class SearchActivity extends AppCompatActivity implements POIRecentFragment.OnPoiSelectedListener {
+public class SearchActivity extends AppCompatActivity implements POIRecentListFragment.OnPoiSelectedListener {
     private static final String TAG = SearchActivity.class.getSimpleName();
     DelayAutoCompleteTextView searchPoint = null;
     TextInputLayout textInputLayout = null;
@@ -86,10 +86,10 @@ public class SearchActivity extends AppCompatActivity implements POIRecentFragme
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
 
-        // Get the ViewPager and set it's POIRecentPagerAdapter so that it can display items
+        // Get the ViewPager and set it's POIPagerAdapter so that it can display items
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewPager);
-        POIRecentPagerAdapter POIRecentPagerAdapter = new POIRecentPagerAdapter(getSupportFragmentManager(), SearchActivity.this);
-        viewPager.setAdapter(POIRecentPagerAdapter);
+        POIPagerAdapter POIPagerAdapter = new POIPagerAdapter(getSupportFragmentManager(), SearchActivity.this);
+        viewPager.setAdapter(POIPagerAdapter);
 
         // Give the TabLayout the ViewPager
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_layout);
@@ -99,7 +99,7 @@ public class SearchActivity extends AppCompatActivity implements POIRecentFragme
         for (int i = 0; i < tabLayout.getTabCount(); ++i) {
             TabLayout.Tab tab = tabLayout.getTabAt(i);
             if (tab != null) {
-                tab.setCustomView(POIRecentPagerAdapter.getTabView(i));
+                tab.setCustomView(POIPagerAdapter.getTabView(i));
             }
         }
         searchPoint = (DelayAutoCompleteTextView) findViewById(R.id.search_point);
