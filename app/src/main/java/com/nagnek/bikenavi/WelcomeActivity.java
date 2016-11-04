@@ -60,17 +60,17 @@ public class WelcomeActivity extends AppCompatActivity {
         HashMap<String, String> user = null;
         String email = null;
         if (sessionManager.isLoggedIn()) {
-            user = db.getUserDetails(SQLiteHandler.UserType.BIKENAVI);
+            user = db.getUserNickname(SQLiteHandler.UserType.BIKENAVI);
             email = user.get(SQLiteHandler.KEY_EMAIL);
         } else if (sessionManager.isGoogleLoggedIn()) {
-            user = db.getUserDetails(SQLiteHandler.UserType.GOOGLE);
+            user = db.getUserNickname(SQLiteHandler.UserType.GOOGLE);
             email = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
         } else if (sessionManager.isFacebookIn()) {
-            user = db.getUserDetails(SQLiteHandler.UserType.FACEBOOK);
+            user = db.getUserNickname(SQLiteHandler.UserType.FACEBOOK);
             email = user.get(SQLiteHandler.KEY_FACEBOOK_NAME);
         } else if (sessionManager.isKakaoLoggedIn()) {
             Log.d(TAG, "카카오로긴");
-            user = db.getUserDetails(SQLiteHandler.UserType.KAKAO);
+            user = db.getUserNickname(SQLiteHandler.UserType.KAKAO);
             email = user.get(SQLiteHandler.KEY_KAKAO_NICK_NAME);
         }
 

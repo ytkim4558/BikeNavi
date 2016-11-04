@@ -26,10 +26,10 @@ import java.util.List;
 
 public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdapter.RecentPOIListViewHolder> {
 
-    Context context;
-    List<POI> recentPOIList = new ArrayList<>();
     LayoutInflater inflater;
-    RecentPOIListener recentPOIListener;
+    private Context context;
+    private List<POI> recentPOIList = new ArrayList<>();
+    private RecentPOIListener recentPOIListener;
     private SQLiteHandler db;   // sqlite
 
     // Provide a suitable constructor (depends on the kind of dataset)
@@ -41,16 +41,6 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
         inflater = LayoutInflater.from(context);
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(context.getApplicationContext());
-    }
-
-    // Provide a suitable constructor (depends on the kind of dataset)
-    public RecentPOIListAdapter(Context context, List<POI> poiList) {
-
-        this.context = context;
-        this.recentPOIList = poiList;
-        this.recentPOIListener = (RecentPOIListener) context;
-        inflater = LayoutInflater.from(context);
-
     }
 
     // Create new views (invoked by the layout manager)
@@ -67,11 +57,16 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
 
     @Override
     public void onBindViewHolder(RecentPOIListViewHolder holder, final int position) {
-
+        POI currentPOI = recentPOIList.get(position);
         holder.iv_delete.setTag(position);
-        holder.poi_name.setText(recentPOIList.get(position).name);
-        holder.poi_address.setText(recentPOIList.get(position).address);
-        holder.poi_last_used_at.setText(Time.formatTimeString(db.getLastUsedAtUsingPOI(recentPOIList.get(position).latLng)));
+        holder.poi_name.setText(currentPOI.name);
+        holder.poi_address.setText(currentPOI.address);
+        if (currentPOI.last_used_at != null) {
+            // 로그인해서 서버에서 정보를 받아와서 last_used_at이 적혀진 경우
+            holder.poi_last_used_at.setText(Time.formatTimeString(currentPOI.last_used_at));
+        } else {
+            holder.poi_last_used_at.setText(Time.formatTimeString(db.getLastUsedAtUsingPOI(currentPOI.latLng)));
+        }
         holder.itemView.setTag(position);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,7 +110,7 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
             poi_name = (TextView) v.findViewById(R.id.text_poi_name);
             poi_address = (TextView) v.findViewById(R.id.text_poi_address);
             iv_delete = (ImageView) v.findViewById(R.id.iv_delete);
-            poi_last_used_at = (TextView) v.findViewById(R.id.text_track_last_used_at);
+            poi_last_used_at = (TextView) v.findViewById(R.id.text_poi_last_used_at);
         }
     }
 }

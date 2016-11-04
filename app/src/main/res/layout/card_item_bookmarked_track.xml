@@ -27,7 +27,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentLeft="true"
                 android:layout_marginTop="5dp"
-                android:layout_toLeftOf="@+id/text_track_last_used_at"
+                android:layout_toLeftOf="@+id/iv_delete"
                 android:textAppearance="?android:attr/textAppearanceLargePopupMenu" />
 
             <ImageView

@@ -80,12 +80,12 @@ public class BookmarkedTrackListFragment extends Fragment implements TrackListLi
     public void trackClickToSet(Track track, int position) {
         Gson gson = new Gson();
         Log.d(TAG, "click track : " + gson.toJson(track));
-        mCallback.onRecentTrackSelected(track);
+        mCallback.onBookmarkedSelected(track);
         adapter.updateTrack(track, position);
     }
 
     public void addOrUpdateTrack(Track track) {
-        if (db.checkIfTrackExists(track)) {
+        if (db.checkIFBookmarkedTrackExists(track)) {
             adapter.refresh();
         } else {
             adapter.addTrack(track);
@@ -94,6 +94,6 @@ public class BookmarkedTrackListFragment extends Fragment implements TrackListLi
 
     // 부모 프래그먼트는 항상 이 인터페이스를 구현 해야한다
     public interface OnTrackSelectedListener {
-        void onRecentTrackSelected(Track track);
+        void onBookmarkedSelected(Track track);
     }
 }

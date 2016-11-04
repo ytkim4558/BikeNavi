@@ -5,7 +5,6 @@
 package com.nagnek.bikenavi;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,17 +63,9 @@ public class TMapPOIAutoCompleteAdapter extends BaseAdapter implements Filterabl
         TextView poiAddressView = (TextView) convertView.findViewById(R.id.text2);
         if (poiNameView != null) {
             poiNameView.setText(getItem(position).getPOIName());
-            Log.d("tag", "체크");
-            Log.d("tag", getItem(position).getPOIName());
-        } else {
-            Log.d("tag", "메롱" + getItem(position).getPOIName());
         }
         if (poiAddressView != null) {
             poiAddressView.setText(getItem(position).getPOIAddress().replace("null", ""));
-            Log.d("tag", "체크");
-            Log.d("tag", getItem(position).getPOIAddress());
-        } else {
-            Log.d("tag", "메롱" + getItem(position).getPOIAddress().replace("null", ""));
         }
         return convertView;
     }

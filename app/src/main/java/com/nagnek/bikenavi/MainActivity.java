@@ -368,8 +368,8 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
         if (session.isLoggedIn()) {
             Log.d(TAG, "자체회원로긴");
 
-            // Fetching user details from sqlite
-            HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.BIKENAVI);
+            // Fetc1ng user details from sqlite
+            HashMap<String, String> user = db.getUserNickname(SQLiteHandler.UserType.BIKENAVI);
 
             String email = user.get(SQLiteHandler.KEY_EMAIL);
 
@@ -378,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
         } else if (session.isGoogleLoggedIn()) {
             // Fetching user details from sqlite
             Log.d(TAG, "구글 자동로긴");
-            HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.GOOGLE);
+            HashMap<String, String> user = db.getUserNickname(SQLiteHandler.UserType.GOOGLE);
 
             String email = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
 
@@ -387,7 +387,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
         } else if (session.isFacebookIn()) {
             // Fetching user details from sqlite
             Log.d(TAG, "페북 자동로긴");
-            HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.FACEBOOK);
+            HashMap<String, String> user = db.getUserNickname(SQLiteHandler.UserType.FACEBOOK);
 
             String name = user.get(SQLiteHandler.KEY_FACEBOOK_NAME);
 
@@ -396,7 +396,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
         } else if (session.isKakaoLoggedIn()) {
             Log.d(TAG, "카카오로긴");
             // Fetching user details from sqlite
-            HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.KAKAO);
+            HashMap<String, String> user = db.getUserNickname(SQLiteHandler.UserType.KAKAO);
 
             String email = user.get(SQLiteHandler.KEY_KAKAO_NICK_NAME);
 

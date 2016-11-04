@@ -25,14 +25,18 @@
                 android:id="@+id/text_poi_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
                 android:layout_marginTop="5dp"
+                android:layout_toLeftOf="@+id/text_poi_last_used_at"
                 android:textAppearance="?android:attr/textAppearanceLargePopupMenu" />
 
             <TextView
                 android:id="@+id/text_poi_address"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
                 android:layout_below="@id/text_poi_name"
+                android:layout_toLeftOf="@+id/text_poi_last_used_at"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <ImageView
@@ -43,7 +47,7 @@
                 android:src="@drawable/ic_delete_black_24dp" />
 
             <TextView
-                android:id="@+id/text_track_last_used_at"
+                android:id="@+id/text_poi_last_used_at"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"

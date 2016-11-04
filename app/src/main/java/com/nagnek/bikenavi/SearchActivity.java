@@ -20,7 +20,10 @@ import android.widget.Toast;
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.app.AppController;
@@ -95,7 +98,9 @@ public class SearchActivity extends AppCompatActivity implements RecentPOIFragme
         // Iterate over all tabs and set the custom view
         for (int i = 0; i < tabLayout.getTabCount(); ++i) {
             TabLayout.Tab tab = tabLayout.getTabAt(i);
-            tab.setCustomView(recentPOIPagerAdapter.getTabView(i));
+            if (tab != null) {
+                tab.setCustomView(recentPOIPagerAdapter.getTabView(i));
+            }
         }
         searchPoint = (DelayAutoCompleteTextView) findViewById(R.id.search_point);
         textInputLayout = (TextInputLayout) findViewById(R.id.ti_layout);
@@ -121,39 +126,6 @@ public class SearchActivity extends AppCompatActivity implements RecentPOIFragme
                 textInputLayout.setHint(getStringFromResources(this.getApplicationContext(), R.string.hint_destination));
             } else {
                 textInputLayout.setHint(getStringFromResources(this.getApplicationContext(), R.string.hint_search_point));
-            }
-
-            /**
-             * 유저 로그인 타입(비로그인 포함)에 따라 다른 함수 호출
-             */
-            String primaryKey = null;   // 각 로그인 타입별 유저를 구별할 수 있는 필드. (임의로 primary Key로 잡음. 실제로 mysql 상에서의 primarykey는 아님.)
-            if (session.isLoggedIn()) {
-                Log.d(TAG, "자체회원로긴");
-
-                // Fetching user details from sqlite
-                HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.BIKENAVI);
-
-                primaryKey = user.get(SQLiteHandler.KEY_EMAIL);
-            } else if (session.isGoogleLoggedIn()) {
-                // Fetching user details from sqlite
-                Log.d(TAG, "구글 자동로긴");
-                HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.GOOGLE);
-
-                primaryKey = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
-            } else if (session.isFacebookIn()) {
-                // Fetching user details from sqlite
-                Log.d(TAG, "페북 자동로긴");
-                HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.FACEBOOK);
-
-                primaryKey = user.get(SQLiteHandler.KEY_FACEBOOK_ID);
-            } else if (session.isKakaoLoggedIn()) {
-                Log.d(TAG, "카카오로긴");
-                // Fetching user details from sqlite
-                HashMap<String, String> user = db.getUserDetails(SQLiteHandler.UserType.KAKAO);
-
-                primaryKey = user.get(SQLiteHandler.KEY_KAKAO_ID);
-            } else {
-                Log.d(TAG, "비로그인 상태");
             }
 
             setupTmapPOIToGoogleMapAutoCompleteTextView(searchPoint, progressBar1, search_purpose);
@@ -188,10 +160,16 @@ public class SearchActivity extends AppCompatActivity implements RecentPOIFragme
                 poi.name = poiName;
                 poi.address = address;
                 poi.latLng = "" + wgs84_x + "," + wgs84_y;
-                if (db.checkIfPOIExists(poi.latLng)) {
-                    db.updateLastUsedAtPOI(poi.latLng);
+
+                if (session.isSessionLoggedIn()) {
+                    /* 로그인 했는지 확인*/
+                    addOrUpdatePOIToServer(poi);
                 } else {
-                    db.addPOI(poi);
+                    if (db.checkIfPOIExists(poi.latLng)) {
+                        db.updateLastUsedAtPOI(poi.latLng);
+                    } else {
+                        db.addPOI(poi);
+                    }
                 }
 
                 Intent intent = new Intent();
@@ -213,63 +191,104 @@ public class SearchActivity extends AppCompatActivity implements RecentPOIFragme
         });
     }
 
-    private void registerPOI(final String poiName, final double wgs84_x, final double wgs84_y) {    // 장소이름, 위도, 경도
+    // 유저정보와 POI 정보를 Server에 보내서 서버에 있는 mysql에 저장하기
+    private void addOrUpdatePOIToServer(final POI poi) {
         // Tag used to cancel the request
-        String tag_string_req = "req_poi_register";
+        String tag_string_req = "req_add_or_update_poi_to_table_bookmark_track";
 
-        progressDialog.setMessage("등록중 ...");
-        showDialog();
-
-        StringRequest stringRequest = new StringRequest(Request.Method.POST,
-                AppConfig.URL_REGISTER, new Response.Listener<String>() {
+        // poi정보와 유저정보를 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
+        StringRequest strReq = new StringRequest(Request.Method.POST,
+                AppConfig.URL_POI_REGISTER_OR_UPDATE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "Register Response: " + response.toString());
+                Log.d(TAG, "POI add or update Response: " + response);
                 hideDialog();
 
                 try {
                     JSONObject jsonObject = new JSONObject(response);
                     boolean error = jsonObject.getBoolean("error");
+
+                    // Check for error node in json
                     if (!error) {
-                        // User successfully stored in MySQL
-                        // Now store the user in sqlite
-
-                        Toast.makeText(getApplicationContext(), "성공적으로 장소가 등록되었습니다.!", Toast.LENGTH_LONG).show();
-
-                        // 메인 엑티비티로 돌아가기
-                        finishAfterTransition();
+                        // Now store or update the poi in SQLite
+                        JSONObject poiObject = jsonObject.getJSONObject("poi");
+                        Log.d(TAG, "poi : " + poiObject.toString());
                     } else {
-                        // Error occured in registration. Get the error message
+                        // Error in login. Get the error message
                         String errorMsg = jsonObject.getString("error_msg");
                         Toast.makeText(getApplicationContext(),
                                 errorMsg, Toast.LENGTH_LONG).show();
                     }
                 } catch (JSONException e) {
+                    // JSON error
                     e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Registration Error: " + error.getMessage());
-                Toast.makeText(getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_LONG).show();
+                if (error instanceof TimeoutError) {
+                    Log.e(TAG, "POI 등록 또는 업데이트 에러 : 서버 응답시간이 초과되었습니다." + error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            "POI 등록 또는 업데이트 에러 : 서버가 응답하지 않습니다." + error.getMessage(), Toast.LENGTH_LONG).show();
+                } else if (error instanceof ServerError) {
+                    Log.e(TAG, "서버 에러래" + error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            "POI 등록 또는 업데이트 에러 : 서버 Error." + error.getMessage(), Toast.LENGTH_LONG).show();
+                } else {
+                    Log.e(TAG, error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            error.getMessage(), Toast.LENGTH_LONG).show();
+                }
                 hideDialog();
             }
         }) {
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
-                // Posting params to register url
+                // Posting parameters to login url
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("POI_LAT_LNG", wgs84_x + "," + wgs84_y);
-                params.put("POI_NAME", poiName);
+                // 로그인 한 경우
+                SQLiteHandler.UserType loginUserType = session.getUserType();
+                HashMap<String, String> user = db.getLoginedUserDetails(loginUserType);
+
+                switch (loginUserType) {
+                    case BIKENAVI:
+                        String email = user.get(SQLiteHandler.KEY_EMAIL);
+                        params.put("email", email);
+                        Log.d(TAG, "bikenavi타입 유저네" + email);
+                        break;
+                    case GOOGLE:
+                        String googleemail = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
+                        params.put("googleemail", googleemail);
+                        Log.d(TAG, "구글 유저네" + googleemail);
+                        break;
+                    case KAKAO:
+                        String kakaoId = user.get(SQLiteHandler.KEY_KAKAO_ID);
+                        params.put("kakaoid", kakaoId);
+                        Log.d(TAG, "카카오 유저네" + kakaoId);
+                        break;
+                    case FACEBOOK:
+                        String facebookId = user.get(SQLiteHandler.KEY_FACEBOOK_ID);
+                        params.put("facebookid", facebookId);
+                        Log.d(TAG, "페북 유저네" + facebookId);
+                        break;
+                }
+                // poi를 final로 선언한 이유가 이곳에서 error 떠서 인데 나중에
+                // poi정보를 서버측에서 바꾼다면.. 뭐 상관없나 값이 바뀌는거야.. 객체가 삭제되는게 아니니까 =_=a;
+                params.put("POI_NAME", poi.name);
+                params.put("POI_ADDRESS", poi.address);
+                params.put("POI_LAT_LNG", poi.latLng);
 
                 return params;
             }
         };
 
         // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(stringRequest, tag_string_req);
+        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
     }
 
     @Override
@@ -288,13 +307,5 @@ public class SearchActivity extends AppCompatActivity implements RecentPOIFragme
         if (progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
-    }
-
-    enum UserType {
-        GOOGLE,
-        KAKAO,
-        FACEBOOK,
-        BIKENAVI,
-        NONLOGIN
     }
 }

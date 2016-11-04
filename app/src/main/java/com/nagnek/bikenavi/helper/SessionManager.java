@@ -92,4 +92,17 @@ public class SessionManager {
     public boolean isSessionLoggedIn() {
         return isLoggedIn() || isGoogleLoggedIn() || isFacebookIn() || isKakaoLoggedIn();
     }
+
+    public SQLiteHandler.UserType getUserType() {
+        if (isGoogleLoggedIn()) {
+            return SQLiteHandler.UserType.GOOGLE;
+        } else if (isFacebookIn()) {
+            return SQLiteHandler.UserType.FACEBOOK;
+        } else if (isLoggedIn()) {
+            return SQLiteHandler.UserType.BIKENAVI;
+        } else if (isKakaoLoggedIn()) {
+            return SQLiteHandler.UserType.KAKAO;
+        }
+        return null;
+    }
 }

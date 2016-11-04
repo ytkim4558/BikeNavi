@@ -155,7 +155,7 @@ public class RecentTrackListAdapter extends RecyclerView.Adapter<RecentTrackList
             card_view = (CardView) v.findViewById(R.id.card_view);
             track_log = (TextView) v.findViewById(R.id.text_track_log);
             iv_delete = (ImageView) v.findViewById(R.id.iv_delete);
-            track_last_used_at = (TextView) v.findViewById(R.id.text_track_last_used_at);
+            track_last_used_at = (TextView) v.findViewById(R.id.text_poi_last_used_at);
         }
     }
 }

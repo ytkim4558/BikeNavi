@@ -16,6 +16,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.nagnek.bikenavi.POI;
 import com.nagnek.bikenavi.Track;
+import com.nagnek.bikenavi.User;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -191,40 +192,50 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     /**
      * Storing user details in database
      */
-    public void addUser(UserType userType, String email, String created_at) {    // userType : 구글 유저인지 자체사이트 회원인지 구별하는 타입
-        if (!checkIfUserExists(email, userType)) {
+    public void addUser(UserType userType, User user, String created_at, String updated_at, String last_used_at) {    // userType : 구글 유저인지 자체사이트 회원인지 구별하는 타입
+        if (!checkIfUserExists(user, userType)) {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues values = new ContentValues();
             switch (userType) {
                 case BIKENAVI:
-                    values.put(KEY_EMAIL, email); // 이메일
-                    Log.d(TAG, "values.put email : " + email);
+                    values.put(KEY_EMAIL, user.bike_navi_email); // 이메일
+                    Log.d(TAG, "values.put email : " + user.bike_navi_email);
                     break;
                 case GOOGLE:
-                    values.put(KEY_GOOGLE_EMAIL, email); // 이메일
-                    Log.d(TAG, "values.put googleemail : " + email);
+                    values.put(KEY_GOOGLE_EMAIL, user.google_email); // 이메일
+                    Log.d(TAG, "values.put googleemail : " + user.google_email);
                     break;
                 case FACEBOOK:
-                    values.put(KEY_FACEBOOK_NAME, email); // 이름
-                    Log.d(TAG, "values.put fbname : " + email);
+                    values.put(KEY_FACEBOOK_NAME, user.facebook_user_name); // 이름
+                    values.put(KEY_FACEBOOK_ID, user.facebook_id); // 아이디
+                    Log.d(TAG, "values.put fbname : " + user.facebook_user_name);
+                    Log.d(TAG, "values.put fbid : " + user.facebook_id);
                     break;
                 case KAKAO:
-                    values.put(KEY_KAKAO_NICK_NAME, email); // 닉네임
-                    Log.d(TAG, "values.put kakaonick : " + email);
+                    values.put(KEY_KAKAO_NICK_NAME, user.kakaoNickName); // 닉네임
+                    values.put(KEY_KAKAO_ID, user.kakao_id); // 카카오아이디
+                    Log.d(TAG, "values.put kakaonick : " + user.kakaoNickName);
+                    Log.d(TAG, "values.put kakaoID : " + user.kakao_id);
                     break;
             }
 
-
             values.put(KEY_CREATED_AT, created_at); // created_at
             Log.d(TAG, "values.put created_at: " + created_at);
+
+            values.put(KEY_UPDATED_AT, updated_at); // updated_at
+            Log.d(TAG, "values.put updated_at: " + updated_at);
+
+            values.put(KEY_LAST_USED_AT, last_used_at); //last_used_at
+            Log.d(TAG, "values.put last_used_at: " + last_used_at);
+
             // Inserting Row
             long id = db.insert(TABLE_USER, null, values);
             db.close(); // Closing database connection
 
             Log.d(TAG, "New user inserted into sqlite: " + id);
         } else {
-            Log.d(TAG, "user already existed in sqlite: " + email);
+            Log.d(TAG, "user already existed in sqlite: ");
         }
     }
 
@@ -256,20 +267,20 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         return checkIfExists(KEY_ID, TABLE_IP, KEY_IP, ip);
     }
 
-    public boolean checkIfUserExists(String email, UserType userType) {
+    public boolean checkIfUserExists(User user, UserType userType) {
         boolean result = false;
         switch (userType) {
             case BIKENAVI:  //자체사이트
-                result = checkIfExists(KEY_ID, TABLE_USER, KEY_EMAIL, email);
+                result = checkIfExists(KEY_ID, TABLE_USER, KEY_EMAIL, user.bike_navi_email);
                 break;
             case GOOGLE:
-                result = checkIfExists(KEY_ID, TABLE_USER, KEY_GOOGLE_EMAIL, email);
+                result = checkIfExists(KEY_ID, TABLE_USER, KEY_GOOGLE_EMAIL, user.google_email);
                 break;
             case FACEBOOK:
-                result = checkIfExists(KEY_ID, TABLE_USER, KEY_FACEBOOK_NAME, email);
+                result = checkIfExists(KEY_ID, TABLE_USER, KEY_FACEBOOK_ID, user.facebook_id);
                 break;
             case KAKAO:
-                result = checkIfExists(KEY_ID, TABLE_USER, KEY_KAKAO_NICK_NAME, email);
+                result = checkIfExists(KEY_ID, TABLE_USER, KEY_KAKAO_ID, user.kakao_id);
                 break;
         }
         return result;
@@ -387,7 +398,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     /**
      * Getting user data from database
      */
-    public HashMap<String, String> getUserDetails(UserType userType) {
+    public HashMap<String, String> getUserNickname(UserType userType) {
         HashMap<String, String> user = new HashMap<String, String>();
         String selectQuery = "SELECT * FROM " + TABLE_USER;
 
@@ -415,6 +426,41 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             }
 
             user.put("created_at", cursor.getString(cursor.getColumnIndex(KEY_CREATED_AT)));
+        }
+        cursor.close();
+        db.close();
+        // return user
+        Log.d(TAG, "Fetching user from Sqlite: " + user.toString());
+
+        return user;
+    }
+
+    /**
+     * 이미 로그인한 유저 정보를 db에서 가져옴. 유저 맞춤형 리스트를 요청하는 용도
+     */
+    public HashMap<String, String> getLoginedUserDetails(UserType userType) {
+        HashMap<String, String> user = new HashMap<String, String>();
+        String selectQuery = "SELECT * FROM " + TABLE_USER;
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        // Move to first row
+        cursor.moveToFirst();
+        if (cursor.getCount() > 0) {
+            switch (userType) {
+                case BIKENAVI:
+                    user.put(KEY_EMAIL, cursor.getString(cursor.getColumnIndex(KEY_EMAIL)));
+                    break;
+                case FACEBOOK:
+                    user.put(KEY_FACEBOOK_ID, cursor.getString(cursor.getColumnIndex(KEY_FACEBOOK_ID)));
+                    break;
+                case KAKAO:
+                    user.put(KEY_KAKAO_ID, cursor.getString(cursor.getColumnIndex(KEY_KAKAO_ID)));
+                    break;
+                case GOOGLE:
+                    user.put(KEY_GOOGLE_EMAIL, cursor.getString(cursor.getColumnIndex(KEY_GOOGLE_EMAIL)));
+                    break;
+            }
         }
         cursor.close();
         db.close();

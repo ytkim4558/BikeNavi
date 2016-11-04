@@ -120,7 +120,28 @@ public class TrackSettingFragment extends Fragment implements RecentTrackListFra
     }
 
     @Override
+    public void onStart() {
+        if (trackPagerAdapter != null) {
+            if (trackPagerAdapter.bookmarkedTrackListFragment != null) {
+                if (trackPagerAdapter.bookmarkedTrackListFragment.adapter != null) {
+                    trackPagerAdapter.bookmarkedTrackListFragment.adapter.refresh();
+                }
+            }
+        }
+        super.onStart();
+    }
+
+    @Override
     public void onRecentTrackSelected(Track track) {
+        this.track = track;
+        start_point.setText(track.start_poi.name);
+        dest_point.setText(track.dest_poi.name);
+        db.updateLastUsedAtTrack(track);
+        reactionSearchResult();
+    }
+
+    @Override
+    public void onBookmarkedSelected(Track track) {
         this.track = track;
         start_point.setText(track.start_poi.name);
         dest_point.setText(track.dest_poi.name);
@@ -182,6 +203,7 @@ public class TrackSettingFragment extends Fragment implements RecentTrackListFra
                             if (trackPagerAdapter.recentTrackFragment != null) {
                                 trackPagerAdapter.recentTrackFragment.addOrUpdateTrack(track);
                             }
+
                             reactionSearchResult();
                         }
                     });

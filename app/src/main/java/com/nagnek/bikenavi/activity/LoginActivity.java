@@ -57,6 +57,7 @@ import com.kakao.auth.Session;
 import com.kakao.util.exception.KakaoException;
 import com.kakao.util.helper.log.Logger;
 import com.nagnek.bikenavi.R;
+import com.nagnek.bikenavi.User;
 import com.nagnek.bikenavi.WelcomeActivity;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.app.AppController;
@@ -392,7 +393,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 AppConfig.URL_REGISTER, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "FB Register Response: " + response.toString());
+                Log.d(TAG, "FB Register Response: " + response);
                 hideDialog();
 
                 try {
@@ -408,11 +409,17 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                         // Now store the user in SQLite
                         JSONObject user = jsonObject.getJSONObject("user");
                         String name = user.getString("facebookName");
+                        String id = user.getString("facebookID");
                         String created_at = user
                                 .getString("created_at");
+                        String updated_at = user.getString("updated_at");
+                        String last_used_at = user.getString("last_used_at");
+                        User facebookUser = new User();
+                        facebookUser.facebook_user_name = name;
+                        facebookUser.facebook_id = id;
 
                         // Inserting row in users table
-                        db.addUser(SQLiteHandler.UserType.FACEBOOK, name, created_at);
+                        db.addUser(SQLiteHandler.UserType.FACEBOOK, facebookUser, created_at, updated_at, last_used_at);
                         Log.d(TAG, "name : " + name);
                         Log.d(TAG, "created_at : " + created_at);
 
@@ -493,7 +500,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                     AppConfig.URL_REGISTER, new Response.Listener<String>() {
                 @Override
                 public void onResponse(String response) {
-                    Log.d(TAG, "Register Response: " + response.toString());
+                    Log.d(TAG, "Register Response: " + response);
                     hideDialog();
 
                     try {
@@ -511,9 +518,13 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                             String email = user.getString("googleemail");
                             String created_at = user
                                     .getString("created_at");
+                            String updated_at = user.getString("updated_at");
+                            String last_used_at = user.getString("last_used_at");
+                            User googleUser = new User();
+                            googleUser.google_email = email;
 
                             // Inserting row in users table
-                            db.addUser(SQLiteHandler.UserType.GOOGLE, email, created_at);
+                            db.addUser(SQLiteHandler.UserType.GOOGLE, googleUser, created_at, updated_at, last_used_at);
                             Log.d(TAG, "email : " + email);
                             Log.d(TAG, "created_at : " + created_at);
 
@@ -616,7 +627,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 AppConfig.URL_LOGIN, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "Login Response: " + response.toString());
+                Log.d(TAG, "Login Response: " + response);
                 hideDialog();
 
                 try {
@@ -634,9 +645,13 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                         String email = user.getString("email");
                         String created_at = user
                                 .getString("created_at");
+                        String updated_at = user.getString("updated_at");
+                        String last_used_at = user.getString("last_used_at");
 
+                        User bikenaviUser = new User();
+                        bikenaviUser.bike_navi_email = email;
                         // Inserting row in users table
-                        db.addUser(SQLiteHandler.UserType.BIKENAVI, email, created_at);
+                        db.addUser(SQLiteHandler.UserType.BIKENAVI, bikenaviUser, created_at, updated_at, last_used_at);
                         Log.d(TAG, "email : " + email);
                         Log.d(TAG, "created_at : " + created_at);
 

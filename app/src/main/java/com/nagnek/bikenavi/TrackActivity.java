@@ -7,6 +7,8 @@ package com.nagnek.bikenavi;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -20,6 +22,7 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -28,7 +31,16 @@ import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
+import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -44,8 +56,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.nagnek.bikenavi.app.AppConfig;
+import com.nagnek.bikenavi.app.AppController;
 import com.nagnek.bikenavi.guide.GuideContent;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
+import com.nagnek.bikenavi.helper.SessionManager;
 import com.nagnek.bikenavi.util.NagneUtil;
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapPOIItem;
@@ -53,6 +67,8 @@ import com.skp.Tmap.TMapPoint;
 import com.skp.Tmap.TMapPolyLine;
 import com.skp.Tmap.util.HttpConnect;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -60,13 +76,14 @@ import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 public class TrackActivity extends AppCompatActivity implements OnMapReadyCallback {
 
-    static final LatLng SEOUL_STATION = new LatLng(37.555755, 126.970431);
     private static final String TAG = TrackActivity.class.getSimpleName();
     private final Handler mHandler = new Handler();
     ArrayList<TMapPoint> sourceAndDest;
@@ -77,12 +94,14 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
     String dest_poi_name;
     private Animator animator = new Animator();
     private GoogleMap mGoogleMap;
+    private SessionManager session; // 로그인했는지 확인용 변수
     private ArrayList<LatLng> pathStopPointList;    // 출발지 도착지를 포함한 경유지점(위도, 경도) 리스트
     private ArrayList<MarkerOptions> markerOptionsArrayList;    // 출발지 도착지 사이에 마커 리스트
     private List<Marker> descriptorMarkers = new ArrayList<Marker>(); //markers
     private List<Marker> markers = new ArrayList<Marker>(); //markers
     private SQLiteHandler db;   // sqlite
     private Track track = null;
+    private ProgressDialog pDialog; //진행 상황 확인용 다이얼로그
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,30 +110,67 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(getApplicationContext());
 
+        // Session manager
+        session = new SessionManager(getApplicationContext());
+
+        // Progress dialog
+        pDialog = new ProgressDialog(this);
+        pDialog.setCancelable(false);
+
         Intent receivedIntent = getIntent();
         start_poi_name = receivedIntent.getStringExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.start_point_text_for_transition));
         dest_poi_name = receivedIntent.getStringExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.dest_point_text_for_transition));
         track = (Track) receivedIntent.getSerializableExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.current_track_for_transition));
 
         TextView route = (TextView) findViewById(R.id.track_log);
-        ImageButton bookMarkButton = (ImageButton) findViewById(R.id.bookmark_button);
+        final ImageButton bookMarkButton = (ImageButton) findViewById(R.id.bookmark_button);
+
+        if (db.checkIFBookmarkedTrackExists(track)) {
+            bookMarkButton.setPressed(true);
+        }
 
         route.setText(start_poi_name + "=>" + dest_poi_name);
         bookMarkButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (track != null) {
-                    if (!db.checkIFBookmarkedTrackExists(track)) {
-                        db.addBookmarkedTrack(track);
+                    if (!session.isSessionLoggedIn()) {
+                        // 로그인하지 않은 경우
+                        if (!db.checkIFBookmarkedTrackExists(track)) {
+                            db.addBookmarkedTrack(track);
+                            AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this);
+                            alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();   // 닫기
+                                }
+                            });
+                            alert.setMessage("북마크 되었습니다.");
+                            alert.show();
+                            bookMarkButton.setPressed(true);
+                        } else {
+                            db.deleteBookmarkedTrackRow(track);
+                            AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this);
+                            alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();   // 닫기
+                                }
+                            });
+                            alert.setMessage("북마크 해제 되었습니다.");
+                            alert.show();
+                            bookMarkButton.setPressed(false);
+                        }
                     } else {
-                        db.updateBookmarkedTrack(track);
+                        pDialog.setMessage("페북 로그인 시도중 ...");
+                        showDialog();
+                        addBookMarkTrackToServer(track);
                     }
                 } else {
                     Log.d(TAG, "트랙이 null입니다");
                 }
             }
         });
-
 
         /**
          * 구글맵 생성
@@ -129,6 +185,133 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         sourceAndDest = new ArrayList<TMapPoint>();
         pathStopPointList = new ArrayList<LatLng>();
         markerOptionsArrayList = new ArrayList<MarkerOptions>();
+    }
+
+    private void showDialog() {
+        if (!pDialog.isShowing()) {
+            pDialog.show();
+        }
+    }
+
+    private void addBookMarkTrackToServer(Track track) {
+        // Tag used to cancel the request
+        String tag_string_req = "req_add_track_to_table_bookmark_track";
+
+        // track정보 와 유저정보를 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
+        StringRequest strReq = new StringRequest(Request.Method.POST,
+                AppConfig.URL_BOOKMARK_USER_TRACK_REGISTER, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "FB Register Response: " + response);
+                hideDialog();
+
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    boolean error = jsonObject.getBoolean("error");
+
+                    // Check for error node in json
+                    if (!error) {
+                        //user successfully logged in
+                        // Create login session
+                        session.setFacebookLogin(true);
+
+                        // Now store the user in SQLite
+                        JSONObject user = jsonObject.getJSONObject("user");
+                        String name = user.getString("facebookName");
+                        String id = user.getString("facebookID");
+                        String created_at = user
+                                .getString("created_at");
+                        String updated_at = user
+                                .getString("updated_at");
+                        String last_used_at = user
+                                .getString("last_used_at");
+
+                        // Inserting row in users table
+                        User facebookUser = new User();
+                        facebookUser.facebook_id = id;
+                        facebookUser.facebook_user_name = name;
+                        db.addUser(SQLiteHandler.UserType.FACEBOOK, facebookUser, created_at, updated_at, last_used_at);
+                        Log.d(TAG, "name : " + name);
+                        Log.d(TAG, "created_at : " + created_at);
+
+
+                    } else {
+                        // Error in login. Get the error message
+                        String errorMsg = jsonObject.getString("error_msg");
+                        Toast.makeText(getApplicationContext(),
+                                errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                } catch (JSONException e) {
+                    // JSON error
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (error instanceof TimeoutError) {
+                    Log.e(TAG, "Login Error: 서버가 응답하지 않습니다." + error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            "Login Error: 서버가 응답하지 않습니다.", Toast.LENGTH_LONG).show();
+                } else if (error instanceof ServerError) {
+                    Log.e(TAG, "서버 에러래" + error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            "Login Error: 서버 Error.", Toast.LENGTH_LONG).show();
+                } else {
+                    Log.e(TAG, error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            error.getMessage(), Toast.LENGTH_LONG).show();
+                }
+
+                Toast.makeText(getApplicationContext(),
+                        error.getMessage(), Toast.LENGTH_LONG).show();
+                hideDialog();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                // Posting parameters to login url
+                Map<String, String> params = new HashMap<String, String>();
+                // 로그인 한 경우
+                SQLiteHandler.UserType loginUserType = session.getUserType();
+                HashMap<String, String> user = db.getLoginedUserDetails(loginUserType);
+
+                switch (loginUserType) {
+                    case BIKENAVI:
+                        String email = user.get(SQLiteHandler.KEY_EMAIL);
+                        params.put("email", email);
+
+                        break;
+                    case GOOGLE:
+                        String googleemail = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
+                        params.put("googleemail", googleemail);
+                        break;
+                    case KAKAO:
+                        String kakaoId = user.get(SQLiteHandler.KEY_KAKAO_ID);
+                        params.put("kakaoid", kakaoId);
+                        break;
+                    case FACEBOOK:
+                        String facebookId = user.get(SQLiteHandler.KEY_FACEBOOK_ID);
+                        params.put("facebookid", facebookId);
+                        break;
+                }
+
+                return params;
+            }
+        };
+
+        // Adding request to request queue
+        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+    }
+
+    private void hideDialog() {
+        if (pDialog.isShowing()) {
+            pDialog.dismiss();
+        }
     }
 
     void performFindRoute(String startPOIName, String destPOIName) {

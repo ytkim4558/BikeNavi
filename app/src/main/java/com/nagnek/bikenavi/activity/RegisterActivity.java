@@ -34,6 +34,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.nagnek.bikenavi.MainActivity;
 import com.nagnek.bikenavi.R;
+import com.nagnek.bikenavi.User;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.app.AppController;
 import com.nagnek.bikenavi.customview.ClearableAppCompatEditText;
@@ -401,7 +402,7 @@ public class RegisterActivity extends AppCompatActivity {
                 AppConfig.URL_REGISTER, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "Register Response: " + response.toString());
+                Log.d(TAG, "Register Response: " + response);
                 hideDialog();
 
                 try {
@@ -414,9 +415,14 @@ public class RegisterActivity extends AppCompatActivity {
                         JSONObject user = jsonObject.getJSONObject("user");
                         String email = user.getString("email");
                         String created_at = user.getString("created_at");
+                        String updated_at = user.getString("updated_at");
+                        String last_used_at = user.getString("last_used_at");
+
+                        User bikeNaviUser = new User();
+                        bikeNaviUser.bike_navi_email = email;
 
                         // Inserting row in users table
-                        db.addUser(SQLiteHandler.UserType.BIKENAVI, email, created_at);
+                        db.addUser(SQLiteHandler.UserType.BIKENAVI, bikeNaviUser, created_at, updated_at, last_used_at);
 
                         Toast.makeText(getApplicationContext(), "성공적으로 회원가입되었습니다. 지금 로그인하세요!", Toast.LENGTH_LONG).show();
 

@@ -30,6 +30,7 @@ import com.kakao.usermgmt.UserManagement;
 import com.kakao.usermgmt.callback.MeResponseCallback;
 import com.kakao.usermgmt.response.model.UserProfile;
 import com.kakao.util.helper.log.Logger;
+import com.nagnek.bikenavi.User;
 import com.nagnek.bikenavi.WelcomeActivity;
 import com.nagnek.bikenavi.activity.LoginActivity;
 import com.nagnek.bikenavi.app.AppConfig;
@@ -178,7 +179,7 @@ public class KakaoSignupActivity extends AppCompatActivity {
                 AppConfig.URL_REGISTER, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "KaKao Register Response: " + response.toString());
+                Log.d(TAG, "KaKao Register Response: " + response);
                 hideDialog();
 
                 try {
@@ -194,13 +195,21 @@ public class KakaoSignupActivity extends AppCompatActivity {
                         // Now store the user in SQLite
                         JSONObject user = jsonObject.getJSONObject("user");
                         String nickname = user.getString("kakaonickname");
+                        String id = user.getString("kakaoid");
                         String created_at = user
                                 .getString("created_at");
+                        String updated_at = user.getString("updated_at");
+                        String last_used_at = user.getString("last_used_at");
+                        User kakaoUser = new User();
+                        kakaoUser.kakao_id = id;
+                        kakaoUser.kakaoNickName = nickname;
 
                         // Inserting row in users table
-                        db.addUser(SQLiteHandler.UserType.KAKAO, nickname, created_at);
+                        db.addUser(SQLiteHandler.UserType.KAKAO, kakaoUser, created_at, updated_at, last_used_at);
                         Log.d(TAG, "nickname : " + nickname);
                         Log.d(TAG, "created_at : " + created_at);
+                        Log.d(TAG, "updated_at : " + updated_at);
+                        Log.d(TAG, "last_used_at : " + last_used_at);
 
                         // Launch main activity
                         Intent intent = new Intent(KakaoSignupActivity.this,
