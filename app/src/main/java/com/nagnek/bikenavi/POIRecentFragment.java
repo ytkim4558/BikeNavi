@@ -32,11 +32,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class RecentPOIFragment extends Fragment implements RecentPOIListener {
-    private static final String TAG = RecentPOIFragment.class.getSimpleName();
+public class POIRecentFragment extends Fragment implements POIRecentListener {
+    private static final String TAG = POIRecentFragment.class.getSimpleName();
     OnPoiSelectedListener mCallback;
     SQLiteHandler db;
-    RecentPOIListAdapter adapter;
+    POIRecentListAdapter adapter;
     RecyclerView rv;
     ProgressBar progressBar;
     private List<POI> poiList;
@@ -45,7 +45,7 @@ public class RecentPOIFragment extends Fragment implements RecentPOIListener {
     //The request counter to send ?page=1, ?page=2  requests
     private int requestCount = 1;
 
-    public RecentPOIFragment() {
+    public POIRecentFragment() {
         // Required empty public constructor
     }
 
@@ -109,10 +109,10 @@ public class RecentPOIFragment extends Fragment implements RecentPOIListener {
         if (session.isSessionLoggedIn()) {
             //Displaying Progressbar
             progressBar.setVisibility(View.VISIBLE);
-            adapter = new RecentPOIListAdapter(getActivity(), poiList, this);
+            adapter = new POIRecentListAdapter(getActivity(), poiList, this);
         } else {
             progressBar.setVisibility(View.GONE);
-            adapter = new RecentPOIListAdapter(getActivity(), db.getAllPOI(), this);
+            adapter = new POIRecentListAdapter(getActivity(), db.getAllPOI(), this);
         }
         rv.setAdapter(adapter);
 
@@ -158,7 +158,7 @@ public class RecentPOIFragment extends Fragment implements RecentPOIListener {
                             boolean error = jsonObject.getBoolean("error");
 
                             if (!error) {
-                                JSONArray poiList = new JSONArray(jsonObject.getString("recent"));
+                                JSONArray poiList = jsonObject.getJSONArray("recent");
                                 parsePOIList(poiList);
                             } else {
                                 // Error in login. Get the error message

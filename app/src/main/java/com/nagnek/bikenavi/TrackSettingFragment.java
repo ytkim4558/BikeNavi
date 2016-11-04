@@ -22,7 +22,7 @@ import com.nagnek.bikenavi.customview.DelayAutoCompleteTextView;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.util.NagneUtil;
 
-public class TrackSettingFragment extends Fragment implements RecentTrackListFragment.OnTrackSelectedListener, BookmarkedTrackListFragment.OnTrackSelectedListener {
+public class TrackSettingFragment extends Fragment implements TrackRecentListFragment.OnTrackSelectedListener, TrackBookmarkedListFragment.OnTrackSelectedListener {
     static final int SEARCH_INTEREST_POINT = 1; // 장소 검색 request code
     private static final String TAG = TrackSettingFragment.class.getSimpleName();
     DelayAutoCompleteTextView start_point, dest_point;
@@ -48,7 +48,7 @@ public class TrackSettingFragment extends Fragment implements RecentTrackListFra
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_track_setting, container, false);
 
-        // Get the ViewPager and set it's RecentPOIPagerAdapter so that it can display items
+        // Get the ViewPager and set it's POIRecentPagerAdapter so that it can display items
         ViewPager viewPager = (ViewPager) rootView.findViewById(R.id.viewPager);
         trackPagerAdapter = new TrackPagerAdapter(getChildFragmentManager(), getActivity());
         viewPager.setAdapter(trackPagerAdapter);
@@ -122,9 +122,9 @@ public class TrackSettingFragment extends Fragment implements RecentTrackListFra
     @Override
     public void onStart() {
         if (trackPagerAdapter != null) {
-            if (trackPagerAdapter.bookmarkedTrackListFragment != null) {
-                if (trackPagerAdapter.bookmarkedTrackListFragment.adapter != null) {
-                    trackPagerAdapter.bookmarkedTrackListFragment.adapter.refresh();
+            if (trackPagerAdapter.trackBookmarkedListFragment != null) {
+                if (trackPagerAdapter.trackBookmarkedListFragment.adapter != null) {
+                    trackPagerAdapter.trackBookmarkedListFragment.adapter.refresh();
                 }
             }
         }

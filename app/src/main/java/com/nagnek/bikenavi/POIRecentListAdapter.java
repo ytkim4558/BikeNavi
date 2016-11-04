@@ -24,20 +24,20 @@ import java.util.List;
  * 최근 장소 어댑터
  */
 
-public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdapter.RecentPOIListViewHolder> {
+public class POIRecentListAdapter extends RecyclerView.Adapter<POIRecentListAdapter.RecentPOIListViewHolder> {
 
     LayoutInflater inflater;
     private Context context;
     private List<POI> recentPOIList = new ArrayList<>();
-    private RecentPOIListener recentPOIListener;
+    private POIRecentListener POIRecentListener;
     private SQLiteHandler db;   // sqlite
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public RecentPOIListAdapter(Context context, List<POI> poiList, RecentPOIListener recentPOIListener) {
+    public POIRecentListAdapter(Context context, List<POI> poiList, POIRecentListener POIRecentListener) {
 
         this.context = context;
         this.recentPOIList = poiList;
-        this.recentPOIListener = recentPOIListener;
+        this.POIRecentListener = POIRecentListener;
         inflater = LayoutInflater.from(context);
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(context.getApplicationContext());
@@ -72,7 +72,7 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
             @Override
             public void onClick(View v) {
                 int select_position = (Integer) v.getTag();
-                recentPOIListener.poiClickToSet(recentPOIList.get(select_position));
+                POIRecentListener.poiClickToSet(recentPOIList.get(select_position));
             }
         });
 
@@ -80,7 +80,7 @@ public class RecentPOIListAdapter extends RecyclerView.Adapter<RecentPOIListAdap
             @Override
             public void onClick(View v) {
                 int delete_position = (Integer) v.getTag();
-                recentPOIListener.latLngToDelete(recentPOIList.get(delete_position).latLng);
+                POIRecentListener.latLngToDelete(recentPOIList.get(delete_position).latLng);
                 recentPOIList.remove(delete_position);
                 notifyItemRemoved(delete_position);
                 //this line below gives you the animation and also updates the

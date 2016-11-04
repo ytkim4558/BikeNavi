@@ -25,8 +25,8 @@ import java.util.List;
  * Created by user on 2016-10-27.
  */
 
-public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedTrackListAdapter.BookmarkedTrackListViewHolder> {
-    private static final String TAG = BookmarkedTrackListAdapter.class.getSimpleName();
+public class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookmarkedListAdapter.BookmarkedTrackListViewHolder> {
+    private static final String TAG = TrackBookmarkedListAdapter.class.getSimpleName();
     Context context;
     List<Track> bookmarkedTrackList = new ArrayList<>();
     LayoutInflater inflater;
@@ -34,7 +34,7 @@ public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedT
     private SQLiteHandler db;   // sqlite
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public BookmarkedTrackListAdapter(Context context, List<Track> trackList, TrackListListener trackListListener) {
+    public TrackBookmarkedListAdapter(Context context, List<Track> trackList, TrackListListener trackListListener) {
 
         this.context = context;
         this.bookmarkedTrackList = trackList;
@@ -45,7 +45,7 @@ public class BookmarkedTrackListAdapter extends RecyclerView.Adapter<BookmarkedT
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public BookmarkedTrackListAdapter(Context context, List<Track> trackList) {
+    public TrackBookmarkedListAdapter(Context context, List<Track> trackList) {
 
         this.context = context;
         this.bookmarkedTrackList = trackList;

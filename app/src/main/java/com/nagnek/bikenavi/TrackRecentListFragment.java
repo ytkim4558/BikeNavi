@@ -17,17 +17,17 @@ import com.google.gson.Gson;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 
 /**
- * Created by user on 2016-10-29.
+ * Created by user on 2016-10-27.
  */
 
-public class BookmarkedTrackListFragment extends Fragment implements TrackListListener {
-    private static final String TAG = BookmarkedTrackListFragment.class.getSimpleName();
-    BookmarkedTrackListFragment.OnTrackSelectedListener mCallback;
+public class TrackRecentListFragment extends Fragment implements TrackListListener {
+    private static final String TAG = TrackRecentListFragment.class.getSimpleName();
+    OnTrackSelectedListener mCallback;
     SQLiteHandler db;
-    BookmarkedTrackListAdapter adapter;
+    TrackRecentListAdapter adapter;
     RecyclerView rv;
 
-    public BookmarkedTrackListFragment() {
+    public TrackRecentListFragment() {
         // Required empty public constructor
     }
 
@@ -42,7 +42,7 @@ public class BookmarkedTrackListFragment extends Fragment implements TrackListLi
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_bookmarked_track, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_recent, container, false);
         Log.d(TAG, "inflater.inflate");
         db = SQLiteHandler.getInstance(getContext().getApplicationContext());
         Log.d(TAG, "SQLiteHandler.getInstance");
@@ -51,14 +51,14 @@ public class BookmarkedTrackListFragment extends Fragment implements TrackListLi
         rv.setHasFixedSize(true);
 
         Log.d(TAG, "rootView.findViewById(R.id.recenet_search_recyclerView");
-        adapter = new BookmarkedTrackListAdapter(getContext().getApplicationContext(), db.getAllBookmarkedTrack(), this);
+        adapter = new TrackRecentListAdapter(getContext().getApplicationContext(), db.getAllTrack(), this);
         rv.setAdapter(adapter);
 
         LinearLayoutManager llm = new LinearLayoutManager(getContext().getApplicationContext());
         rv.setLayoutManager(llm);
 
         try {
-            mCallback = (BookmarkedTrackListFragment.OnTrackSelectedListener) getParentFragment();
+            mCallback = (OnTrackSelectedListener) getParentFragment();
             if (mCallback == null) {
                 Log.d(TAG, "mCallback은 null이야 ㅠ");
             }
@@ -73,19 +73,19 @@ public class BookmarkedTrackListFragment extends Fragment implements TrackListLi
     public void trackClickToDelete(Track track) {
         Gson gson = new Gson();
         Log.d(TAG, "delete track : " + gson.toJson(track));
-        db.deleteBookmarkedTrackRow(track);
+        db.deleteTrackRow(track);
     }
 
     @Override
     public void trackClickToSet(Track track, int position) {
         Gson gson = new Gson();
         Log.d(TAG, "click track : " + gson.toJson(track));
-        mCallback.onBookmarkedSelected(track);
+        mCallback.onRecentTrackSelected(track);
         adapter.updateTrack(track, position);
     }
 
     public void addOrUpdateTrack(Track track) {
-        if (db.checkIFBookmarkedTrackExists(track)) {
+        if (db.checkIfTrackExists(track)) {
             adapter.refresh();
         } else {
             adapter.addTrack(track);
@@ -94,6 +94,6 @@ public class BookmarkedTrackListFragment extends Fragment implements TrackListLi
 
     // 부모 프래그먼트는 항상 이 인터페이스를 구현 해야한다
     public interface OnTrackSelectedListener {
-        void onBookmarkedSelected(Track track);
+        void onRecentTrackSelected(Track track);
     }
 }
