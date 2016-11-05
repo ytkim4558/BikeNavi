@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.nagnek.bikenavi.helper.SQLiteHandler;
+import com.nagnek.bikenavi.helper.SessionManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookmarkedLis
     private List<Track> bookmarkedTrackList = new ArrayList<>();
     private TrackListListener trackListListener;
     private SQLiteHandler db;   // sqlite
+    private SessionManager session; // 로그인했는지 확인용 변수
 
     // Provide a suitable constructor (depends on the kind of dataset)
     TrackBookmarkedListAdapter(Context context, List<Track> trackList, TrackListListener trackListListener) {
@@ -42,6 +44,8 @@ class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookmarkedLis
         inflater = LayoutInflater.from(context);
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(context.getApplicationContext());
+        // Session manager
+        session = new SessionManager(context.getApplicationContext());
     }
 
     // Create new views (invoked by the layout manager)
@@ -60,19 +64,20 @@ class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookmarkedLis
     public void onBindViewHolder(BookmarkedTrackListViewHolder holder, final int position) {
 
         holder.iv_delete.setTag(position);
-        List<Integer> stopList = bookmarkedTrackList.get(position).stop_id_list;
+        List<POI> stopList = bookmarkedTrackList.get(position).stop_poi_list;
         if (stopList == null) {
             // 경유지가 없으므로 시작장소 -> 도착장소로 표시
-            holder.track_log.setText(db.getPOINameUsingPOIID(bookmarkedTrackList.get(position).start_poi_id) + " -> " + db.getPOINameUsingPOIID(bookmarkedTrackList.get(position).dest_poi_id));
+            holder.track_log.setText(bookmarkedTrackList.get(position).startPOI.name + " -> " + bookmarkedTrackList.get(position).destPOI.name);
         } else {
             // 경유지마다 전부 표시
             // 트랙 경로들을 -> 로 묶어서 보여줌
-            String track_list = db.getPOINameUsingPOIID(bookmarkedTrackList.get(position).start_poi_id);
+            String track_list = bookmarkedTrackList.get(position).startPOI.name;
 
-            for (int poiID : stopList) {
-                track_list += ("->" + db.getPOINameUsingPOIID(poiID));
+            for (POI poi : stopList) {
+                track_list += ("->" + poi.name);
             }
-            track_list += db.getPOINameUsingPOIID(bookmarkedTrackList.get(position).dest_poi_id);
+
+            track_list += bookmarkedTrackList.get(position).destPOI.name;
             holder.track_log.setText(track_list);
         }
         holder.itemView.setTag(position);

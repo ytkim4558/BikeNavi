@@ -71,19 +71,19 @@ public class TrackRecentListAdapter extends RecyclerView.Adapter<TrackRecentList
     public void onBindViewHolder(TrackRecentListAdapter.RecentTrackListViewHolder holder, final int position) {
 
         holder.iv_delete.setTag(position);
-        List<Integer> stopIDList = recentTrackList.get(position).stop_id_list;
+        List<POI> stopIDList = recentTrackList.get(position).stop_poi_list;
         if (stopIDList == null) {
             // 경유지가 없으므로 시작장소 -> 도착장소로 표시
-            holder.track_log.setText(db.getPOINameUsingPOIID(recentTrackList.get(position).start_poi_id) + " -> " + db.getPOINameUsingPOIID(recentTrackList.get(position).dest_poi_id));
+            holder.track_log.setText(recentTrackList.get(position).startPOI.name + " -> " + recentTrackList.get(position).destPOI.name);
         } else {
             // 경유지마다 전부 표시
             // 트랙 경로들을 -> 로 묶어서 보여줌
-            String track_list = db.getPOINameUsingPOIID(recentTrackList.get(position).start_poi_id);
+            String track_list = recentTrackList.get(position).startPOI.name;
 
-            for (int poiID : stopIDList) {
-                track_list += ("->" + db.getPOINameUsingPOIID(poiID));
+            for (POI poi : stopIDList) {
+                track_list += ("->" + poi.name);
             }
-            track_list += db.getPOINameUsingPOIID(recentTrackList.get(position).dest_poi_id);
+            track_list += recentTrackList.get(position).destPOI.name;
             holder.track_log.setText(track_list);
         }
         holder.track_last_used_at.setText(Time.formatTimeString(db.getLastUsedAtUsingTrack(recentTrackList.get(position))));

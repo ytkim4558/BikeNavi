@@ -861,14 +861,14 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             SQLiteDatabase db = this.getWritableDatabase();
 
             ContentValues values = new ContentValues();
-            values.put(KEY_START_POI_ID, track.start_poi_id); // 출발 장소 POI id
-            Log.d(TAG, "values.put 출발 장소 json : " + track.start_poi_id);
+            values.put(KEY_START_POI_ID, getPOIID(track.startPOI)); // 출발 장소 POI id
+            Log.d(TAG, "values.put 출발 POI id : " + getPOIID(track.startPOI));
 
-            values.put(KEY_DEST_POI_ID, track.dest_poi_id); // 도착 장소 POI id
-            Log.d(TAG, "values.put 도착 장소 POI json : " + track.dest_poi_id);
+            values.put(KEY_DEST_POI_ID, getPOIID(track.destPOI)); // 도착 장소 POI id
+            Log.d(TAG, "values.put 도착 POI id : " + getPOIID(track.destPOI));
 
-            values.put(KEY_JSON_STOP_POI_ID_ARRAY, gson.toJson(track.stop_id_list)); // 경유지 장소 POI 리스트
-            Log.d(TAG, "values.put 경유지 장소 POI 리스트 : " + gson.toJson(track.stop_id_list));
+            values.put(KEY_JSON_STOP_POI_ID_ARRAY, gson.toJson(track.stop_poi_list)); // 경유지 장소 POI 리스트
+            Log.d(TAG, "values.put 경유지 POI 리스트 : " + gson.toJson(track.stop_poi_list));
 
             String created_at = getDateTime();
             values.put(KEY_CREATED_AT, created_at); // created_at
@@ -990,15 +990,15 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     // 출발지, 도착지, 경유지 리스트들을 보고 이미 있었는지 확인
     public boolean checkIfTrackExists(Track track) {
         Gson gson = new Gson();
-        int startPOIID = track.start_poi_id; // 출발장소 POI id
+        int startPOIID = getPOIID(track.startPOI); // 출발장소 POI id
         Log.d(TAG, "출발장소 POI id: " + startPOIID);
-        int destPOIID = track.dest_poi_id;   // 도착장소 POI id
+        int destPOIID = getPOIID(track.destPOI);   // 도착장소 POI id
         Log.d(TAG, "도착장소 POI id: " + destPOIID);
         String gsonStopPOIList;
-        if (track.stop_id_list == null) {
+        if (track.stop_poi_list == null) {
             gsonStopPOIList = null;
         } else {
-            gsonStopPOIList = gson.toJson(track.stop_id_list); // 경유지 POI 리스트
+            gsonStopPOIList = gson.toJson(track.stop_poi_list); // 경유지 POI 리스트
         }
         Log.d(TAG, "Json으로 변환된 경유지 POI 리스트 : " + gsonStopPOIList);
         return checkIfExists(KEY_ID, TABLE_TRACK, KEY_START_POI_ID, startPOIID, KEY_DEST_POI_ID, destPOIID, KEY_JSON_STOP_POI_ID_ARRAY, gsonStopPOIList);
@@ -1059,14 +1059,14 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         Gson gson = new Gson();
 
         String TRACK_LAST_USED_AT_SELECT_QUERY = null;
-        if (track.stop_id_list != null) {
+        if (track.stop_poi_list != null) {
             TRACK_LAST_USED_AT_SELECT_QUERY =
-                    "SELECT " + KEY_ID + " FROM " + TABLE_TRACK + " WHERE " + KEY_START_POI_ID + " = " + track.start_poi_id + " AND " +
-                            KEY_DEST_POI_ID + " = " + track.dest_poi_id + " AND " + KEY_JSON_STOP_POI_ID_ARRAY + " = '" + gson.toJson(track.stop_id_list) + "'";
+                    "SELECT " + KEY_ID + " FROM " + TABLE_TRACK + " WHERE " + KEY_START_POI_ID + " = " + track.startPOI + " AND " +
+                            KEY_DEST_POI_ID + " = " + track.destPOI + " AND " + KEY_JSON_STOP_POI_ID_ARRAY + " = '" + gson.toJson(track.stop_poi_list) + "'";
         } else {
             TRACK_LAST_USED_AT_SELECT_QUERY =
-                    "SELECT " + KEY_ID + " FROM " + TABLE_TRACK + " WHERE " + KEY_START_POI_ID + " = " + track.start_poi_id + " AND " +
-                            KEY_DEST_POI_ID + " = " + track.dest_poi_id;
+                    "SELECT " + KEY_ID + " FROM " + TABLE_TRACK + " WHERE " + KEY_START_POI_ID + " = " + track.startPOI + " AND " +
+                            KEY_DEST_POI_ID + " = " + track.destPOI;
         }
 
         SQLiteDatabase db = getReadableDatabase();
@@ -1093,14 +1093,14 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         Gson gson = new Gson();
 
         String TRACK_LAST_USED_AT_SELECT_QUERY = null;
-        if (track.stop_id_list != null) {
+        if (track.stop_poi_list != null) {
             TRACK_LAST_USED_AT_SELECT_QUERY =
-                    "SELECT " + KEY_LAST_USED_AT + " FROM " + TABLE_TRACK + " WHERE " + KEY_START_POI_ID + " = '" + gson.toJson(track.start_poi_id) + "'" + " AND " +
-                            KEY_DEST_POI_ID + " = '" + gson.toJson(track.dest_poi_id) + "'" + " AND " + KEY_JSON_STOP_POI_ID_ARRAY + " = '" + gson.toJson(track.stop_id_list) + "'";
+                    "SELECT " + KEY_LAST_USED_AT + " FROM " + TABLE_TRACK + " WHERE " + KEY_START_POI_ID + " = '" + getPOIID(track.startPOI) + "'" + " AND " +
+                            KEY_DEST_POI_ID + " = '" + getPOIID(track.destPOI) + "'" + " AND " + KEY_JSON_STOP_POI_ID_ARRAY + " = '" + gson.toJson(track.stop_poi_list) + "'";
         } else {
             TRACK_LAST_USED_AT_SELECT_QUERY =
-                    "SELECT " + KEY_LAST_USED_AT + " FROM " + TABLE_TRACK + " WHERE " + KEY_START_POI_ID + " = '" + gson.toJson(track.start_poi_id) + "'" + " AND " +
-                            KEY_DEST_POI_ID + " = " + track.dest_poi_id;
+                    "SELECT " + KEY_LAST_USED_AT + " FROM " + TABLE_TRACK + " WHERE " + KEY_START_POI_ID + " = '" + getPOIID(track.startPOI) + "'" + " AND " +
+                            KEY_DEST_POI_ID + " = " + getPOIID(track.destPOI);
         }
 
         SQLiteDatabase db = getReadableDatabase();
@@ -1139,6 +1139,8 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
                     int trackID = cursor.getInt(cursor.getColumnIndex(KEY_TRACK_ID));
 
+                    Log.d(TAG, "track ID : " + trackID);
+
                     String TRACK_SELECT_QUERY =
                             "SELECT * FROM " + TABLE_TRACK + " WHERE " + KEY_ID + " = " + trackID;
 
@@ -1148,10 +1150,10 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                     try {
                         if (cursor2.moveToFirst()) {
                             Track track = new Track();
-                            track.start_poi_id = cursor2.getInt(cursor2.getColumnIndex(KEY_START_POI_ID));
-                            track.dest_poi_id = cursor2.getInt(cursor2.getColumnIndex(KEY_DEST_POI_ID));
-                            track.stop_id_list = gson.fromJson(cursor2.getString(cursor2.getColumnIndex(KEY_JSON_STOP_POI_ID_ARRAY)), new TypeToken<List<Integer>>() {
-                            }.getType());
+                            track.startPOI = getPOIUsingPOIID(cursor2.getInt(cursor2.getColumnIndex(KEY_START_POI_ID)));
+                            track.destPOI = getPOIUsingPOIID(cursor2.getInt(cursor2.getColumnIndex(KEY_DEST_POI_ID)));
+                            track.stop_poi_list = getPOIList((ArrayList<Integer>) gson.fromJson(cursor2.getString(cursor2.getColumnIndex(KEY_JSON_STOP_POI_ID_ARRAY)), new TypeToken<List<Integer>>() {
+                            }.getType()));
 
                             trackDetails.add(track);
                         }
@@ -1173,6 +1175,49 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         }
 
         return trackDetails;
+    }
+
+    public ArrayList<POI> getPOIList(ArrayList<Integer> poiIdList) {
+        if (poiIdList == null) {
+            return null;
+        }
+        ArrayList<POI> poiList = null;
+        if (poiIdList.size() > 0) {
+            poiList = new ArrayList<POI>();
+        }
+        for (int poiid : poiIdList) {
+            poiList.add(getPOIUsingPOIID(poiid));
+        }
+        return poiList;
+    }
+
+    public POI getPOIUsingPOIID(int poiID) {
+        POI poi = null;
+
+        String POI_SELECT_QUERY =
+                "SELECT * FROM " + TABLE_POI + " WHERE " + KEY_ID + " = " + poiID;
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(POI_SELECT_QUERY, null);
+
+        Log.d(TAG, POI_SELECT_QUERY);
+
+        try {
+            if (cursor.moveToFirst()) {
+                poi = new POI();
+                poi.name = cursor.getString(cursor.getColumnIndex(KEY_POI_NAME));
+                poi.address = cursor.getString(cursor.getColumnIndex(KEY_POI_ADDRESS));
+                poi.latLng = cursor.getString(cursor.getColumnIndex(KEY_POI_LAT_LNG));
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error while trying to get posts from database", e);
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return poi;
     }
 
     // 북마크된 경로를 생성한 시각 내림차순으로 정렬됨.
@@ -1200,10 +1245,10 @@ public class SQLiteHandler extends SQLiteOpenHelper {
                     try {
                         if (cursor2.moveToFirst()) {
                             Track track = new Track();
-                            track.start_poi_id = cursor2.getInt(cursor2.getColumnIndex(KEY_START_POI_ID));
-                            track.dest_poi_id = cursor2.getInt(cursor2.getColumnIndex(KEY_DEST_POI_ID));
-                            track.stop_id_list = gson.fromJson(cursor2.getString(cursor2.getColumnIndex(KEY_JSON_STOP_POI_ID_ARRAY)), new TypeToken<List<Integer>>() {
-                            }.getType());
+                            track.startPOI = getPOIUsingPOIID(cursor2.getInt(cursor2.getColumnIndex(KEY_START_POI_ID)));
+                            track.destPOI = getPOIUsingPOIID(cursor2.getInt(cursor2.getColumnIndex(KEY_DEST_POI_ID)));
+                            track.stop_poi_list = getPOIList((ArrayList<Integer>) gson.fromJson(cursor2.getString(cursor2.getColumnIndex(KEY_JSON_STOP_POI_ID_ARRAY)), new TypeToken<List<Integer>>() {
+                            }.getType()));
 
                             bookmarkedTrackDetails.add(track);
                         }
@@ -1226,6 +1271,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
 
         return bookmarkedTrackDetails;
     }
+
 
     /**
      * bookmark track 정보 삭제

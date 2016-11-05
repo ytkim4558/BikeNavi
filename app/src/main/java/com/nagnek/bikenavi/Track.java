@@ -12,7 +12,7 @@ import java.util.ArrayList;
  */
 
 public class Track implements Serializable {
-    public int start_poi_id;
-    public int dest_poi_id;
-    public ArrayList<Integer> stop_id_list;    // 경유지 리스트;
+    public POI startPOI;
+    public POI destPOI;
+    public ArrayList<POI> stop_poi_list;    // 경유지 리스트;
 }

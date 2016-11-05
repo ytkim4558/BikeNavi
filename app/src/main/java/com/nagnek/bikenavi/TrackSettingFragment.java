@@ -160,8 +160,8 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
     public void onRecentTrackSelected(Track track) {
         this.track = track;
         if (!session.isSessionLoggedIn()) {
-            start_point.setText(db.getPOINameUsingPOIID(track.start_poi_id));
-            dest_point.setText(db.getPOINameUsingPOIID(track.dest_poi_id));
+            start_point.setText(track.startPOI.name);
+            dest_point.setText(track.destPOI.name);
             db.updateLastUsedAtUserTrack(track);
             db.updateLastUsedAtTrack(track);
         } else {
@@ -282,8 +282,8 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
     @Override
     public void onBookmarkedSelected(Track track) {
         this.track = track;
-        start_point.setText(db.getPOINameUsingPOIID(track.start_poi_id));
-        dest_point.setText(db.getPOINameUsingPOIID(track.dest_poi_id));
+        start_point.setText(track.startPOI.name);
+        dest_point.setText(track.destPOI.name);
         db.updateLastUsedAtUserTrack(track);
         db.updateLastUsedAtTrack(track);
         db.updateBookmarkedTrack(track);
@@ -333,8 +333,8 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
                         @Override
                         public void run() {
                             track = new Track();
-                            track.start_poi_id = db.getPOIID(start_poi);
-                            track.dest_poi_id = db.getPOIID(dest_poi);
+                            track.startPOI = start_poi;
+                            track.destPOI = dest_poi;
                             if (db.checkIfTrackExists(track)) {
                                 db.updateLastUsedAtTrack(track);
                                 if (db.checkIfUserTrackExists(track)) {
