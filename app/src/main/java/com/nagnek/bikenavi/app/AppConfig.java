@@ -18,6 +18,7 @@ public class AppConfig {
     // Server user register url
     public static String URL_REGISTER = "http://" + HOSTING_IP + "/android_login_api/register.php"; // 회원 가입,  자체 회원가입을 말한다
     public static String URL_POI_REGISTER_OR_UPDATE = "http://" + HOSTING_IP + "/android_login_api/request_add_or_update_poi.php";  // poi 정보를 추가하거나 업데이트
+    public static String URL_POI_DELETE = "http://" + HOSTING_IP + "/android_login_api/request_add_or_update_poi.php";  // poi 정보를 추가하거나 업데이트
     public static String URL_POILIST_LOAD = "http://" + HOSTING_IP + "/android_login_api/request_range_user_poi.php";  // poi 정보를 추가하거나 업데이트
     public static String URL_BOOKMARK_USER_TRACK_REGISTER = "http://" + HOSTING_IP + "/android_login_api/request_add_user_track.php";   // 현재 경로를 유저의 즐겨찾기 경로 테이블에 추가하기 위한 주소
     private static TMapTapi tMapTapi = null;

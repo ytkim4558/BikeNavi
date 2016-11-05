@@ -17,7 +17,10 @@ import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
+import com.android.volley.ServerError;
+import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.app.AppController;
@@ -138,10 +141,152 @@ public class POIRecentListFragment extends Fragment implements POIListener {
         requestCount++;
     }
 
+    /**
+     * 유저가 검색한 특정 POI 정보 삭제
+     *
+     * @param poi
+     */
+    private void deleteUSERPOI(final POI poi) {
+        // Tag used to cancel the request
+        String tag_string_req = "req_delete_user_poi";
+
+        progressBar.setVisibility(View.VISIBLE);
+
+        // id 와 이름을 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
+        StringRequest strReq = new StringRequest(Request.Method.POST,
+                AppConfig.URL_POI_DELETE, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "USER POI DELETE Response: " + response);
+                progressBar.setVisibility(View.GONE);
+
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    boolean delete = jsonObject.getBoolean("delete");
+
+                    // Check for error node in json
+                    if (delete) {
+                        // TODO: adapter 초기화할까?
+                    } else {
+                        // Error in login. Get the error message
+                        String errorMsg = jsonObject.getString("error_msg");
+                        Toast.makeText(getContext().getApplicationContext(),
+                                errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                } catch (JSONException e) {
+                    // JSON error
+                    e.printStackTrace();
+                    Toast.makeText(getContext().getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (error instanceof TimeoutError) {
+                    Log.e(TAG, "Login Error: 서버가 응답하지 않습니다." + error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getContext().getApplicationContext(),
+                            "Login Error: 서버가 응답하지 않습니다.", Toast.LENGTH_LONG).show();
+                } else if (error instanceof ServerError) {
+                    Log.e(TAG, "서버 에러래" + error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getContext().getApplicationContext(),
+                            "Login Error: 서버 Error.", Toast.LENGTH_LONG).show();
+                } else {
+                    Log.e(TAG, error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getContext().getApplicationContext(),
+                            error.getMessage(), Toast.LENGTH_LONG).show();
+                }
+
+                Toast.makeText(getContext().getApplicationContext(),
+                        error.getMessage(), Toast.LENGTH_LONG).show();
+                progressBar.setVisibility(View.GONE);
+            }
+        }) {
+            @Override
+            protected HashMap<String, String> getParams() {
+                // Posting parameters to login url
+                HashMap<String, String> params = new HashMap<String, String>();
+                params = inputUserInfoToInputParams(params);
+                params.put("POI_NAME", poi.name);
+                params.put("POI_ADDRESS", poi.address);
+                params.put("POI_LAT_LNG", poi.latLng);
+
+                return params;
+            }
+        };
+
+        // Adding request to request queue
+        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+    }
+
+    // 리스트를 서버에서 받아오기
     //Request to get json from server we are passing an integer here
     //This integer will used to specify the page number for the request ?page = requestcount
     //This method would return a JsonArrayRequest that will be added to the request queue
     private StringRequest getDataFromServer(final int requestCount) throws JSONException {
+
+        // Tag used to cancel the request
+        String tag_string_req = "req_range_recent_poi";
+
+        // progressbar 보여주기
+        progressBar.setVisibility(View.VISIBLE);
+
+        //JsonArrayRequest of volley
+        final StringRequest strReq = new StringRequest(Request.Method.POST, AppConfig.URL_POILIST_LOAD,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        //Calling method parsePOIList to parse the json response
+                        try {
+                            Log.d(TAG, "response : " + response);
+                            JSONObject jsonObject = new JSONObject(response);
+                            boolean error = jsonObject.getBoolean("error");
+
+                            if (!error) {
+                                JSONArray poiList = jsonObject.getJSONArray("recent");
+                                parsePOIList(poiList);
+                            } else {
+                                // Error in login. Get the error message
+                                String errorMsg = jsonObject.getString("error_msg");
+                                Toast.makeText(getContext().getApplicationContext(),
+                                        errorMsg, Toast.LENGTH_LONG).show();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        //Hiding the progressbar
+                        progressBar.setVisibility(View.GONE);
+                    }
+                },
+
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        progressBar.setVisibility(View.GONE);
+                        //If an error occurs that means end of the list has reached
+                        Toast.makeText(getContext().getApplicationContext(), "더 이상 장소가 없습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                }) {
+            @Override
+            protected HashMap<String, String> getParams() {
+                HashMap<String, String> mRequestParams = new HashMap<String, String>();
+                mRequestParams.put("page", String.valueOf(requestCount));
+                mRequestParams.put("recent", "true");
+                mRequestParams = inputUserInfoToInputParams(mRequestParams);
+
+                return mRequestParams;
+            }
+        };
+
+        //Returning the request
+        return strReq;
+    }
+
+    // 특정 POI 삭제 요청
+    private StringRequest removeDataFromServer(POI poi) throws JSONException {
 
         // progressbar 보여주기
         progressBar.setVisibility(View.VISIBLE);
@@ -270,9 +415,13 @@ public class POIRecentListFragment extends Fragment implements POIListener {
     }
 
     @Override
-    public void latLngToDelete(String latLng) {
-        db.deletePOIRow(latLng);
-        Log.d(TAG, "latLng : " + latLng);
+    public void latLngToDelete(POI poi) {
+        if (session.isSessionLoggedIn()) {
+            deleteUSERPOI(poi);
+        } else {
+            db.deletePOIRow(poi.latLng);
+        }
+        Log.d(TAG, "latLng : " + poi.latLng);
     }
 
     @Override

@@ -80,7 +80,7 @@ public class POIRecentListAdapter extends RecyclerView.Adapter<POIRecentListAdap
             @Override
             public void onClick(View v) {
                 int delete_position = (Integer) v.getTag();
-                POIListener.latLngToDelete(recentPOIList.get(delete_position).latLng);
+                POIListener.latLngToDelete(recentPOIList.get(delete_position));
                 recentPOIList.remove(delete_position);
                 notifyItemRemoved(delete_position);
                 //this line below gives you the animation and also updates the

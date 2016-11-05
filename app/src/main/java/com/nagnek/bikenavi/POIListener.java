@@ -9,7 +9,7 @@ package com.nagnek.bikenavi;
  */
 
 public interface POIListener {
-    void latLngToDelete(String name);
+    void latLngToDelete(POI poi);
 
     void poiClickToSet(POI poi);
 }
