@@ -676,12 +676,12 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             Log.d(TAG, "values.put last_used_at: " + last_used_at);
 
             // Updating Row
-            long id = db.update(TABLE_POI, values, KEY_POI_ID + " = " + getPOIID(poi), null);
+            long id = db.update(TABLE_USER_POI, values, KEY_POI_ID + " = " + getPOIID(poi), null);
             db.close(); // Closing database connection
 
             Log.d(TAG, "New poi update on sqlite: " + id);
         } else {
-            Log.d(TAG, "poi not existed in sqlite: ");
+            Log.d(TAG, "user poi not existed in sqlite: ");
         }
     }
 
@@ -1061,12 +1061,12 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         String TRACK_LAST_USED_AT_SELECT_QUERY = null;
         if (track.stop_poi_list != null) {
             TRACK_LAST_USED_AT_SELECT_QUERY =
-                    "SELECT " + KEY_ID + " FROM " + TABLE_TRACK + " WHERE " + KEY_START_POI_ID + " = " + track.startPOI + " AND " +
-                            KEY_DEST_POI_ID + " = " + track.destPOI + " AND " + KEY_JSON_STOP_POI_ID_ARRAY + " = '" + gson.toJson(track.stop_poi_list) + "'";
+                    "SELECT " + KEY_ID + " FROM " + TABLE_TRACK + " WHERE " + KEY_START_POI_ID + " = " + getPOIID(track.startPOI) + " AND " +
+                            KEY_DEST_POI_ID + " = " + getPOIID(track.destPOI) + " AND " + KEY_JSON_STOP_POI_ID_ARRAY + " = '" + gson.toJson(track.stop_poi_list) + "'";
         } else {
             TRACK_LAST_USED_AT_SELECT_QUERY =
-                    "SELECT " + KEY_ID + " FROM " + TABLE_TRACK + " WHERE " + KEY_START_POI_ID + " = " + track.startPOI + " AND " +
-                            KEY_DEST_POI_ID + " = " + track.destPOI;
+                    "SELECT " + KEY_ID + " FROM " + TABLE_TRACK + " WHERE " + KEY_START_POI_ID + " = " + getPOIID(track.startPOI) + " AND " +
+                            KEY_DEST_POI_ID + " = " + getPOIID(track.destPOI);
         }
 
         SQLiteDatabase db = getReadableDatabase();

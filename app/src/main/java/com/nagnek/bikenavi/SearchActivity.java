@@ -55,6 +55,7 @@ public class SearchActivity extends AppCompatActivity implements POIRecentListFr
         if (!session.isSessionLoggedIn()) {
             if (db != null) {
                 db.updateLastUsedAtPOI(poi.latLng);
+                db.updateLastUsedAtUserPOI(poi);
                 redirectCalledActvity(poi);
             }
         } else {
