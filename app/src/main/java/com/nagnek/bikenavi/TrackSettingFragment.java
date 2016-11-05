@@ -167,7 +167,7 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
         } else {
             addOrUpdateUserTrack(track);
         }
-        reactionSearchResult();
+        redirectTrackActivity();
     }
 
     private void addOrUpdateUserTrack(Track track) {
@@ -287,18 +287,8 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
         db.updateLastUsedAtUserTrack(track);
         db.updateLastUsedAtTrack(track);
         db.updateBookmarkedTrack(track);
-        reactionSearchResult();
+        redirectTrackActivity();
     }
-
-    // 출발지 도착지 설정할때마다 불러옴.
-    // 둘다 설정한 경우는 경로를 탐색하고 한곳만 설정한 경우는 해당 좌표를 표시한다.
-    void reactionSearchResult() {
-        // start 지점과 도착지점 모두 설정되었으면 경로를 찾는다.
-        if (!start_point.getText().toString().equals("") && !dest_point.getText().toString().equals("")) {
-            redirectTrackActivity();
-        }
-    }
-
 
     void redirectTrackActivity() {
         Intent intent = new Intent(getContext(), TrackActivity.class);
@@ -335,23 +325,44 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
                             track = new Track();
                             track.startPOI = start_poi;
                             track.destPOI = dest_poi;
-                            if (db.checkIfTrackExists(track)) {
-                                db.updateLastUsedAtTrack(track);
-                                if (db.checkIfUserTrackExists(track)) {
+
+                            /**
+                             * 시작 장소와 도착장소가 다 설정되었으니
+                             * 로그인 하지 않은 경우라면 경로를 db에,
+                             * 로그인 한 경우라면 서버에 경로를 추가하자
+                             */
+                            if (!session.isSessionLoggedIn()) {
+                                // 비 로그인 상태
+
+                                if (db.checkIfTrackExists(track)) {
+                                    // 경로가 기존 경로 테이블에 있다면 이제 경로 정보를 업데이트 해봐야지
+
                                     db.updateLastUsedAtTrack(track);
-                                    db.updateLastUsedAtUserTrack(track);
+
+                                    // 경로 업데이트.. 자 이제 비로그인 유저의 해당 장소 사용 기록을 갱신해볼까.. 안써봤던 경로라면 추가하자.
+                                    if (db.checkIfUserTrackExists(track)) {
+                                        db.updateLastUsedAtTrack(track);
+                                        db.updateLastUsedAtUserTrack(track);
+                                    } else {
+                                        db.addLocalUserTrack(track);
+                                    }
                                 } else {
+                                    // 경로가 기존 경로 테이블에 없었으니 경로 테이블과 사용자가 경로 사용했던 기록도 같이 추가해두자. 몇번이나 말하지만 사용기록은 삭제할 수도 있으니 따로 보관하자.
+                                    db.addTrack(track);
                                     db.addLocalUserTrack(track);
                                 }
+                                if (trackPagerAdapter.recentTrackFragment != null) {
+
+                                    // 화면에 보이는 경로 리스트의 내용을 다시 최근 db의 내용으로 업데이트 해놓는다.
+                                    trackPagerAdapter.recentTrackFragment.addOrUpdateTrack(track);
+                                }
                             } else {
-                                db.addTrack(track);
-                                db.addLocalUserTrack(track);
-                            }
-                            if (trackPagerAdapter.recentTrackFragment != null) {
-                                trackPagerAdapter.recentTrackFragment.addOrUpdateTrack(track);
+                                //로그인 한 경우라면 경로를 서버에 보내보자.
+
                             }
 
-                            reactionSearchResult();
+                            // 이제 경로를 그려주는 액티비티 화면으로 넘어가자.
+                            redirectTrackActivity();
                         }
                     });
                     thread.start();
