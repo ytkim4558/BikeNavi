@@ -52,28 +52,37 @@ public class SearchActivity extends AppCompatActivity implements POIRecentListFr
 
     @Override
     public void onPOISelected(POI poi) {
-        if (db != null) {
-            db.updateLastUsedAtPOI(poi.latLng);
-            searchPoint.setText(poi.name);
-            Intent intent = new Intent();
-            intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.current_point_text_for_transition), searchPoint.getText().toString());
-            intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.select_poi_address_for_transition), poi.address);
-            intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.select_poi_name_for_transition), poi.name);
-            String[] splitStr = poi.latLng.split(",");
-            Double wgs84_x = Double.parseDouble(splitStr[0]);
-            Double wgs84_y = Double.parseDouble(splitStr[1]);
-            intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.wgs_84_x), wgs84_x);
-            intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.wgs_84_y), wgs84_y);
-            intent.putExtra(getStringFromResources(this.getApplicationContext(), R.string.name_purpose_search_point), search_purpose);
-            intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.current_point_poi_for_transition), poi);
-            setResult(RESULT_OK, intent);
-            //registerPOI(poiName, wgs84_x, wgs84_y);
-
-            textInputLayout.setHint(null);
-
-            // 메인 엑티비티로 돌아가기
-            finishAfterTransition();
+        if (!session.isSessionLoggedIn()) {
+            if (db != null) {
+                db.updateLastUsedAtPOI(poi.latLng);
+                redirectCalledActvity(poi);
+            }
+        } else {
+            addOrUpdatePOIToServer(poi);
         }
+    }
+
+    // 호출한 액티비티로 돌려주기
+    void redirectCalledActvity(POI poi) {
+        searchPoint.setText(poi.name);
+        Intent intent = new Intent();
+        intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.current_point_text_for_transition), searchPoint.getText().toString());
+        intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.select_poi_address_for_transition), poi.address);
+        intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.select_poi_name_for_transition), poi.name);
+        String[] splitStr = poi.latLng.split(",");
+        Double wgs84_x = Double.parseDouble(splitStr[0]);
+        Double wgs84_y = Double.parseDouble(splitStr[1]);
+        intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.wgs_84_x), wgs84_x);
+        intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.wgs_84_y), wgs84_y);
+        intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.name_purpose_search_point), search_purpose);
+        intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.current_point_poi_for_transition), poi);
+        setResult(RESULT_OK, intent);
+        //registerPOI(poiName, wgs84_x, wgs84_y);
+
+        textInputLayout.setHint(null);
+
+        // 메인 엑티비티로 돌아가기
+        finishAfterTransition();
     }
 
     @Override
@@ -213,6 +222,7 @@ public class SearchActivity extends AppCompatActivity implements POIRecentListFr
                         // Now store or update the poi in SQLite
                         JSONObject poiObject = jsonObject.getJSONObject("poi");
                         Log.d(TAG, "poi : " + poiObject.toString());
+                        redirectCalledActvity(poi);
                     } else {
                         // Error in login. Get the error message
                         String errorMsg = jsonObject.getString("error_msg");
