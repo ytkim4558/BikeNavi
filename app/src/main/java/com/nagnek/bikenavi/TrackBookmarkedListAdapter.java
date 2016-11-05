@@ -60,21 +60,19 @@ class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookmarkedLis
     public void onBindViewHolder(BookmarkedTrackListViewHolder holder, final int position) {
 
         holder.iv_delete.setTag(position);
-        List<POI> stopList = bookmarkedTrackList.get(position).stop_list;
+        List<Integer> stopList = bookmarkedTrackList.get(position).stop_id_list;
         if (stopList == null) {
             // 경유지가 없으므로 시작장소 -> 도착장소로 표시
-            if (bookmarkedTrackList.get(position).start_poi != null && bookmarkedTrackList.get(position).dest_poi != null) {
-                holder.track_log.setText(bookmarkedTrackList.get(position).start_poi.name + " -> " + bookmarkedTrackList.get(position).dest_poi.name);
-            }
+            holder.track_log.setText(db.getPOINameUsingPOIID(bookmarkedTrackList.get(position).start_poi_id) + " -> " + db.getPOINameUsingPOIID(bookmarkedTrackList.get(position).dest_poi_id));
         } else {
             // 경유지마다 전부 표시
             // 트랙 경로들을 -> 로 묶어서 보여줌
-            String track_list = bookmarkedTrackList.get(position).start_poi.name;
+            String track_list = db.getPOINameUsingPOIID(bookmarkedTrackList.get(position).start_poi_id);
 
-            for (POI poi : stopList) {
-                track_list += ("->" + poi.name);
+            for (int poiID : stopList) {
+                track_list += ("->" + db.getPOINameUsingPOIID(poiID));
             }
-            track_list += bookmarkedTrackList.get(position).dest_poi.name;
+            track_list += db.getPOINameUsingPOIID(bookmarkedTrackList.get(position).dest_poi_id);
             holder.track_log.setText(track_list);
         }
         holder.itemView.setTag(position);

@@ -65,7 +65,7 @@ public class POIRecentListAdapter extends RecyclerView.Adapter<POIRecentListAdap
             // 로그인해서 서버에서 정보를 받아와서 last_used_at이 적혀진 경우
             holder.poi_last_used_at.setText(Time.formatTimeString(currentPOI.last_used_at));
         } else {
-            holder.poi_last_used_at.setText(Time.formatTimeString(db.getLastUsedAtUsingPOI(currentPOI.latLng)));
+            holder.poi_last_used_at.setText(Time.formatTimeString(db.getLastUsedAtUsingUserPOI(currentPOI)));
         }
         holder.itemView.setTag(position);
         holder.itemView.setOnClickListener(new View.OnClickListener() {

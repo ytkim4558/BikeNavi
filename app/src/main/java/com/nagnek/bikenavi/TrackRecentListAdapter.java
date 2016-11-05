@@ -71,21 +71,19 @@ public class TrackRecentListAdapter extends RecyclerView.Adapter<TrackRecentList
     public void onBindViewHolder(TrackRecentListAdapter.RecentTrackListViewHolder holder, final int position) {
 
         holder.iv_delete.setTag(position);
-        List<POI> stopList = recentTrackList.get(position).stop_list;
-        if (stopList == null) {
+        List<Integer> stopIDList = recentTrackList.get(position).stop_id_list;
+        if (stopIDList == null) {
             // 경유지가 없으므로 시작장소 -> 도착장소로 표시
-            if (recentTrackList.get(position).start_poi != null && recentTrackList.get(position).dest_poi != null) {
-                holder.track_log.setText(recentTrackList.get(position).start_poi.name + " -> " + recentTrackList.get(position).dest_poi.name);
-            }
+            holder.track_log.setText(db.getPOINameUsingPOIID(recentTrackList.get(position).start_poi_id) + " -> " + db.getPOINameUsingPOIID(recentTrackList.get(position).dest_poi_id));
         } else {
             // 경유지마다 전부 표시
             // 트랙 경로들을 -> 로 묶어서 보여줌
-            String track_list = recentTrackList.get(position).start_poi.name;
+            String track_list = db.getPOINameUsingPOIID(recentTrackList.get(position).start_poi_id);
 
-            for (POI poi : stopList) {
-                track_list += ("->" + poi.name);
+            for (int poiID : stopIDList) {
+                track_list += ("->" + db.getPOINameUsingPOIID(poiID));
             }
-            track_list += recentTrackList.get(position).dest_poi.name;
+            track_list += db.getPOINameUsingPOIID(recentTrackList.get(position).dest_poi_id);
             holder.track_log.setText(track_list);
         }
         holder.track_last_used_at.setText(Time.formatTimeString(db.getLastUsedAtUsingTrack(recentTrackList.get(position))));
@@ -133,7 +131,7 @@ public class TrackRecentListAdapter extends RecyclerView.Adapter<TrackRecentList
     }
 
     void refresh() {
-        this.recentTrackList = db.getAllTrack();
+        this.recentTrackList = db.getAllLocalUserTrack();
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {

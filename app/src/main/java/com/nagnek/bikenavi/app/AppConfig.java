@@ -20,7 +20,8 @@ public class AppConfig {
     public static String URL_POI_REGISTER_OR_UPDATE = "http://" + HOSTING_IP + "/android_login_api/request_add_or_update_poi.php";  // poi 정보를 추가하거나 업데이트
     public static String URL_POI_DELETE = "http://" + HOSTING_IP + "/android_login_api/request_add_or_update_poi.php";  // poi 정보를 추가하거나 업데이트
     public static String URL_POILIST_LOAD = "http://" + HOSTING_IP + "/android_login_api/request_range_user_poi.php";  // poi 정보를 추가하거나 업데이트
-    public static String URL_BOOKMARK_USER_TRACK_REGISTER = "http://" + HOSTING_IP + "/android_login_api/request_add_user_track.php";   // 현재 경로를 유저의 즐겨찾기 경로 테이블에 추가하기 위한 주소
+    public static String URL_USER_TRACK_REGISTER_OR_UPDATE_OR_DELETE = "http://" + HOSTING_IP + "/android_login_api/request_add_or_update_or_delete_user_track.php";   // 현재 경로를 유저의 최근 테이블에 추가, 수정 할 때, 또는 즐겨찾기 경로 테이블에 추가나 삭제하기 위한 주소
+    public static String URL_USER_TRACK_DELETE = "http://" + HOSTING_IP + "/android_login_api/request_delete_user_track.php";   // 현재 경로삭제 하기 위한 주소
     private static TMapTapi tMapTapi = null;
 
     public static void setServerIp(String serverIp) {

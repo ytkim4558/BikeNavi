@@ -51,7 +51,7 @@ public class TrackRecentListFragment extends Fragment implements TrackListListen
         rv.setHasFixedSize(true);
 
         Log.d(TAG, "rootView.findViewById(R.id.recenet_search_recyclerView");
-        adapter = new TrackRecentListAdapter(getContext().getApplicationContext(), db.getAllTrack(), this);
+        adapter = new TrackRecentListAdapter(getContext().getApplicationContext(), db.getAllLocalUserTrack(), this);
         rv.setAdapter(adapter);
 
         LinearLayoutManager llm = new LinearLayoutManager(getContext().getApplicationContext());
@@ -73,7 +73,7 @@ public class TrackRecentListFragment extends Fragment implements TrackListListen
     public void trackClickToDelete(Track track) {
         Gson gson = new Gson();
         Log.d(TAG, "delete track : " + gson.toJson(track));
-        db.deleteTrackRow(track);
+        db.deleteUserTrackRow(track);
     }
 
     @Override

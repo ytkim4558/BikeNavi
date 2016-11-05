@@ -115,7 +115,7 @@ public class POIRecentListFragment extends Fragment implements POIListener {
             adapter = new POIRecentListAdapter(getActivity(), poiList, this);
         } else {
             progressBar.setVisibility(View.GONE);
-            adapter = new POIRecentListAdapter(getActivity(), db.getAllPOI(), this);
+            adapter = new POIRecentListAdapter(getActivity(), db.getAllLocalUserPOI(), this);
         }
         rv.setAdapter(adapter);
 
@@ -419,7 +419,7 @@ public class POIRecentListFragment extends Fragment implements POIListener {
         if (session.isSessionLoggedIn()) {
             deleteUSERPOI(poi);
         } else {
-            db.deletePOIRow(poi.latLng);
+            db.deleteUserPOIRow(poi);
         }
         Log.d(TAG, "latLng : " + poi.latLng);
     }

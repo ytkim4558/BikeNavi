@@ -134,8 +134,9 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
     @Override
     public void onRecentTrackSelected(Track track) {
         this.track = track;
-        start_point.setText(track.start_poi.name);
-        dest_point.setText(track.dest_poi.name);
+        start_point.setText(db.getPOINameUsingPOIID(track.start_poi_id));
+        dest_point.setText(db.getPOINameUsingPOIID(track.dest_poi_id));
+        db.updateLastUsedAtUserTrack(track);
         db.updateLastUsedAtTrack(track);
         reactionSearchResult();
     }
@@ -143,8 +144,9 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
     @Override
     public void onBookmarkedSelected(Track track) {
         this.track = track;
-        start_point.setText(track.start_poi.name);
-        dest_point.setText(track.dest_poi.name);
+        start_point.setText(db.getPOINameUsingPOIID(track.start_poi_id));
+        dest_point.setText(db.getPOINameUsingPOIID(track.dest_poi_id));
+        db.updateLastUsedAtUserTrack(track);
         db.updateLastUsedAtTrack(track);
         db.updateBookmarkedTrack(track);
         reactionSearchResult();
@@ -193,12 +195,19 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
                         @Override
                         public void run() {
                             track = new Track();
-                            track.start_poi = start_poi;
-                            track.dest_poi = dest_poi;
+                            track.start_poi_id = db.getPOIID(start_poi);
+                            track.dest_poi_id = db.getPOIID(dest_poi);
                             if (db.checkIfTrackExists(track)) {
                                 db.updateLastUsedAtTrack(track);
+                                if (db.checkIfUserTrackExists(track)) {
+                                    db.updateLastUsedAtTrack(track);
+                                    db.updateLastUsedAtUserTrack(track);
+                                } else {
+                                    db.addLocalUserTrack(track);
+                                }
                             } else {
                                 db.addTrack(track);
+                                db.addLocalUserTrack(track);
                             }
                             if (trackPagerAdapter.recentTrackFragment != null) {
                                 trackPagerAdapter.recentTrackFragment.addOrUpdateTrack(track);

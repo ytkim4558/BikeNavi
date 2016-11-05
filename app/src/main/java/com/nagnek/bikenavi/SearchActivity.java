@@ -176,8 +176,14 @@ public class SearchActivity extends AppCompatActivity implements POIRecentListFr
                 } else {
                     if (db.checkIfPOIExists(poi.latLng)) {
                         db.updateLastUsedAtPOI(poi.latLng);
+                        if (db.checkIfUserPOIExists(poi)) {
+                            db.updateLastUsedAtUserPOI(poi);
+                        } else {
+                            db.addLocalUserPOI(poi);
+                        }
                     } else {
                         db.addPOI(poi);
+                        db.addLocalUserPOI(poi);
                     }
                 }
 

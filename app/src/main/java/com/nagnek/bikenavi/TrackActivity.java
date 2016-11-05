@@ -164,7 +164,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                     } else {
                         pDialog.setMessage("페북 로그인 시도중 ...");
                         showDialog();
-                        addBookMarkTrackToServer(track);
+                        addOrDeleteBookMarkUserTrackToServer(track);
                     }
                 } else {
                     Log.d(TAG, "트랙이 null입니다");
@@ -193,16 +193,16 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
-    private void addBookMarkTrackToServer(Track track) {
+    private void addOrDeleteBookMarkUserTrackToServer(Track track) {
         // Tag used to cancel the request
-        String tag_string_req = "req_add_track_to_table_bookmark_track";
+        String tag_string_req = "req_add_or_delete_track_to_table_bookmark_track";
 
         // track정보 와 유저정보를 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
         StringRequest strReq = new StringRequest(Request.Method.POST,
-                AppConfig.URL_BOOKMARK_USER_TRACK_REGISTER, new Response.Listener<String>() {
+                AppConfig.URL_USER_TRACK_REGISTER_OR_UPDATE_OR_DELETE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "FB Register Response: " + response);
+                Log.d(TAG, "북마크 추가 또는 삭제의 Response: " + response);
                 hideDialog();
 
                 try {
@@ -211,10 +211,6 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
 
                     // Check for error node in json
                     if (!error) {
-                        //user successfully logged in
-                        // Create login session
-                        session.setFacebookLogin(true);
-
                         // Now store the user in SQLite
                         JSONObject user = jsonObject.getJSONObject("user");
                         String name = user.getString("facebookName");
