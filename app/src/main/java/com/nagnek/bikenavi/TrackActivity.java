@@ -162,7 +162,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                             bookMarkButton.setPressed(false);
                         }
                     } else {
-                        pDialog.setMessage("페북 로그인 시도중 ...");
+                        pDialog.setMessage("북마크 추가중 ...");
                         showDialog();
                         addOrDeleteBookMarkUserTrackToServer(track);
                     }
