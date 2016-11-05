@@ -51,7 +51,7 @@ public class SearchActivity extends AppCompatActivity implements POIRecentListFr
     private SQLiteHandler db;   // sqlite
 
     @Override
-    public void onRecentPOISelected(POI poi) {
+    public void onPOISelected(POI poi) {
         if (db != null) {
             db.updateLastUsedAtPOI(poi.latLng);
             searchPoint.setText(poi.name);

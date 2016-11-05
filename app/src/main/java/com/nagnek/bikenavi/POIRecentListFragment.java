@@ -426,11 +426,11 @@ public class POIRecentListFragment extends Fragment implements POIListener {
 
     @Override
     public void poiClickToSet(POI poi) {
-        mCallback.onRecentPOISelected(poi);
+        mCallback.onPOISelected(poi);
     }
 
     // 액티비티는 항상 이 인터페이스를 구현 해야한다
     public interface OnPoiSelectedListener {
-        void onRecentPOISelected(POI poi);
+        void onPOISelected(POI poi);
     }
 }
