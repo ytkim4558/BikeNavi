@@ -145,9 +145,17 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
 
     @Override
     public void onStart() {
+        // 다른 액티비티로 갔다가 올때마다. 또는 화면이 다시 뿌려질때마다 경로 리스트 화면들 갱신
         if (trackPagerAdapter != null) {
+            if (trackPagerAdapter.recentTrackFragment != null) {
+                if (trackPagerAdapter.recentTrackFragment.adapter != null) {
+                    // 최근 경로 리스트 갱신
+                    trackPagerAdapter.recentTrackFragment.adapter.refresh();
+                }
+            }
             if (trackPagerAdapter.trackBookmarkedListFragment != null) {
                 if (trackPagerAdapter.trackBookmarkedListFragment.adapter != null) {
+                    // 북마크 경로 리스트 갱신
                     trackPagerAdapter.trackBookmarkedListFragment.adapter.refresh();
                 }
             }
@@ -164,13 +172,14 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
             dest_point.setText(track.destPOI.name);
             db.updateLastUsedAtUserTrack(track);
             db.updateLastUsedAtTrack(track);
+            redirectTrackActivity();
         } else {
-            addOrUpdateUserTrack(track);
+            addOrUpdateUserTrackToServer(track);
         }
-        redirectTrackActivity();
     }
 
-    private void addOrUpdateUserTrack(Track track) {
+    // 서버에 경로 저장.
+    private void addOrUpdateUserTrackToServer(Track track) {
         // Tag used to cancel the request
         String tag_string_req = "req_add_or_delete_track_to_table_bookmark_track";
 
@@ -179,7 +188,7 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
                 AppConfig.URL_USER_TRACK_REGISTER_OR_UPDATE_OR_DELETE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "북마크 추가 또는 삭제의 Response: " + response);
+                Log.d(TAG, "경로 추가 또는 수정의 Response: " + response);
 
                 try {
                     JSONObject jsonObject = new JSONObject(response);
@@ -206,6 +215,8 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
                         Log.d(TAG, "name : " + name);
                         Log.d(TAG, "created_at : " + created_at);
 
+                        // 서버에 반영한다음에 경로 액티비티로 넘어가자.
+                        redirectTrackActivity();
 
                     } else {
                         // Error in login. Get the error message
@@ -351,18 +362,21 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
                                     db.addTrack(track);
                                     db.addLocalUserTrack(track);
                                 }
-                                if (trackPagerAdapter.recentTrackFragment != null) {
-
-                                    // 화면에 보이는 경로 리스트의 내용을 다시 최근 db의 내용으로 업데이트 해놓는다.
-                                    trackPagerAdapter.recentTrackFragment.addOrUpdateTrack(track);
-                                }
+//                                if (trackPagerAdapter.recentTrackFragment != null) {
+//
+//                                    // 화면에 보이는 경로 리스트의 내용을 다시 최근 db의 내용으로 업데이트 해놓는다.
+//                                    trackPagerAdapter.recentTrackFragment.addOrUpdateTrack(track);
+//                                }
+                                // 이제 경로를 그려주는 액티비티 화면으로 넘어가자.
+                                redirectTrackActivity();
                             } else {
-                                //로그인 한 경우라면 경로를 서버에 보내보자.
-
+                                /**
+                                 * 로그인 한 경우라면 경로를 서버에 보내고 성공한뒤에 경로 액티비티로 넘어가자.
+                                 * (그냥 보내고 넘어가도 되는지 모르겠다 상관없을듯도 한데 혹시라도 전송되기 전에 다른 액티비티로 넘어가서 취소가 되지는 않을까 걱정되서 이런다.)
+                                 * 취소가 되는지도 모르겠다 흠흠..
+                                 */
+                                addOrUpdateUserTrackToServer(track);
                             }
-
-                            // 이제 경로를 그려주는 액티비티 화면으로 넘어가자.
-                            redirectTrackActivity();
                         }
                     });
                     thread.start();
