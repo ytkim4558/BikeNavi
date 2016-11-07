@@ -67,18 +67,30 @@ class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookmarkedLis
         List<POI> stopList = bookmarkedTrackList.get(position).stop_poi_list;
         if (stopList == null) {
             // 경유지가 없으므로 시작장소 -> 도착장소로 표시
-            holder.track_log.setText(bookmarkedTrackList.get(position).startPOI.name + " -> " + bookmarkedTrackList.get(position).destPOI.name);
+            if (bookmarkedTrackList != null) {
+                if (bookmarkedTrackList.get(position) != null) {
+                    if (bookmarkedTrackList.get(position).startPOI != null & bookmarkedTrackList.get(position).destPOI != null) {
+                        holder.track_log.setText(bookmarkedTrackList.get(position).startPOI.name + " -> " + bookmarkedTrackList.get(position).destPOI.name);
+                    }
+                }
+            }
         } else {
             // 경유지마다 전부 표시
             // 트랙 경로들을 -> 로 묶어서 보여줌
-            String track_list = bookmarkedTrackList.get(position).startPOI.name;
+            String track_list = null;
+            if (bookmarkedTrackList != null) {
+                if (bookmarkedTrackList.get(position) != null) {
+                    if (bookmarkedTrackList.get(position).startPOI != null & bookmarkedTrackList.get(position).destPOI != null) {
+                        track_list = bookmarkedTrackList.get(position).startPOI.name;
+                        for (POI poi : stopList) {
+                            track_list += ("->" + poi.name);
+                        }
 
-            for (POI poi : stopList) {
-                track_list += ("->" + poi.name);
+                        track_list += bookmarkedTrackList.get(position).destPOI.name;
+                        holder.track_log.setText(track_list);
+                    }
+                }
             }
-
-            track_list += bookmarkedTrackList.get(position).destPOI.name;
-            holder.track_log.setText(track_list);
         }
         holder.itemView.setTag(position);
         holder.itemView.setOnClickListener(new View.OnClickListener() {

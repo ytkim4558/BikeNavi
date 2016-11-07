@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.nagnek.bikenavi.helper.SQLiteHandler;
+import com.nagnek.bikenavi.helper.SessionManager;
 import com.nagnek.bikenavi.time.Time;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class TrackRecentListAdapter extends RecyclerView.Adapter<TrackRecentList
     LayoutInflater inflater;
     TrackListListener trackListListener;
     private SQLiteHandler db;   // sqlite
+    private SessionManager session; // 로그인했는지 확인용 변수
 
     // Provide a suitable constructor (depends on the kind of dataset)
     public TrackRecentListAdapter(Context context, List<Track> trackList, TrackListListener trackListListener) {
@@ -43,6 +45,8 @@ public class TrackRecentListAdapter extends RecyclerView.Adapter<TrackRecentList
         inflater = LayoutInflater.from(context);
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(context.getApplicationContext());
+        // Session manager
+        session = new SessionManager(context.getApplicationContext());
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
@@ -86,7 +90,11 @@ public class TrackRecentListAdapter extends RecyclerView.Adapter<TrackRecentList
             track_list += recentTrackList.get(position).destPOI.name;
             holder.track_log.setText(track_list);
         }
-        holder.track_last_used_at.setText(Time.formatTimeString(db.getLastUsedAtUsingTrack(recentTrackList.get(position))));
+        if (session.isSessionLoggedIn()) {
+            holder.track_last_used_at.setText(Time.formatTimeString(recentTrackList.get(position).last_used_at));
+        } else {
+            holder.track_last_used_at.setText(Time.formatTimeString(db.getLastUsedAtUsingTrack(recentTrackList.get(position))));
+        }
         holder.itemView.setTag(position);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -131,13 +139,17 @@ public class TrackRecentListAdapter extends RecyclerView.Adapter<TrackRecentList
     }
 
     void refresh() {
-        this.recentTrackList = db.getAllLocalUserTrack();
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                notifyDataSetChanged();
-            }
-        });
+        if (session.isSessionLoggedIn()) {
+
+        } else {
+            this.recentTrackList = db.getAllLocalUserTrack();
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    notifyDataSetChanged();
+                }
+            });
+        }
     }
 
     class RecentTrackListViewHolder extends RecyclerView.ViewHolder {

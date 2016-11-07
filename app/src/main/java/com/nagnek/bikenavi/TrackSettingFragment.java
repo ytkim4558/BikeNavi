@@ -27,6 +27,7 @@ import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.StringRequest;
+import com.google.gson.Gson;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.app.AppController;
 import com.nagnek.bikenavi.customview.DelayAutoCompleteTextView;
@@ -174,12 +175,12 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
             db.updateLastUsedAtTrack(track);
             redirectTrackActivity();
         } else {
-            addOrUpdateUserTrackToServer(track);
+            addOrUpdateUserTrackToServer(track, AppConfig.ListType.RECENT);
         }
     }
 
     // 서버에 경로 저장.
-    private void addOrUpdateUserTrackToServer(Track track) {
+    private void addOrUpdateUserTrackToServer(final Track track, final AppConfig.ListType listType) {
         // Tag used to cancel the request
         String tag_string_req = "req_add_or_delete_track_to_table_bookmark_track";
 
@@ -196,30 +197,12 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
 
                     // Check for error node in json
                     if (!error) {
-                        // Now store the user in SQLite
-                        JSONObject user = jsonObject.getJSONObject("user");
-                        String name = user.getString("facebookName");
-                        String id = user.getString("facebookID");
-                        String created_at = user
-                                .getString("created_at");
-                        String updated_at = user
-                                .getString("updated_at");
-                        String last_used_at = user
-                                .getString("last_used_at");
 
-                        // Inserting row in users table
-                        User facebookUser = new User();
-                        facebookUser.facebook_id = id;
-                        facebookUser.facebook_user_name = name;
-                        db.addUser(SQLiteHandler.UserType.FACEBOOK, facebookUser, created_at, updated_at, last_used_at);
-                        Log.d(TAG, "name : " + name);
-                        Log.d(TAG, "created_at : " + created_at);
-
-                        // 서버에 반영한다음에 경로 액티비티로 넘어가자.
+                        // 서버에 반영 성공했으니 경로 액티비티로 넘어가자.
                         redirectTrackActivity();
 
                     } else {
-                        // Error in login. Get the error message
+                        // 서버에 갱신 실패. Get the error message
                         String errorMsg = jsonObject.getString("error_msg");
                         Toast.makeText(getContext().getApplicationContext(),
                                 errorMsg, Toast.LENGTH_LONG).show();
@@ -281,6 +264,21 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
                         params.put("facebookid", facebookId);
                         break;
                 }
+                params.put("START_POI_LAT_LNG", track.startPOI.latLng);
+                params.put("DEST_POI_LAT_LNG", track.destPOI.latLng);
+                if (track.stop_poi_list != null) {
+                    Gson gson = new Gson();
+                    params.put("STOP_POI_ARRAY", gson.toJson(track.stop_poi_list));
+                }
+
+                switch (listType) {
+                    case BOOKMARK:
+                        params.put("bookmark", "true");
+                        break;
+                    case RECENT:
+                        params.put("recent", "true");
+                        break;
+                }
 
                 return params;
             }
@@ -295,10 +293,14 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
         this.track = track;
         start_point.setText(track.startPOI.name);
         dest_point.setText(track.destPOI.name);
-        db.updateLastUsedAtUserTrack(track);
-        db.updateLastUsedAtTrack(track);
-        db.updateBookmarkedTrack(track);
-        redirectTrackActivity();
+        if (!session.isSessionLoggedIn()) {
+            db.updateLastUsedAtUserTrack(track);
+            db.updateLastUsedAtTrack(track);
+            db.updateBookmarkedTrack(track);
+            redirectTrackActivity();
+        } else {
+            addOrUpdateUserTrackToServer(track, AppConfig.ListType.BOOKMARK);
+        }
     }
 
     void redirectTrackActivity() {
@@ -375,7 +377,7 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
                                  * (그냥 보내고 넘어가도 되는지 모르겠다 상관없을듯도 한데 혹시라도 전송되기 전에 다른 액티비티로 넘어가서 취소가 되지는 않을까 걱정되서 이런다.)
                                  * 취소가 되는지도 모르겠다 흠흠..
                                  */
-                                addOrUpdateUserTrackToServer(track);
+                                addOrUpdateUserTrackToServer(track, AppConfig.ListType.RECENT);
                             }
                         }
                     });

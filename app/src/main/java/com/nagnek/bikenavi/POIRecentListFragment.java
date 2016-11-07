@@ -131,7 +131,7 @@ public class POIRecentListFragment extends Fragment implements POIListener {
         return rootView;
     }
 
-    // web apio로부터 데이터 가져오는 함수
+    // web api 로부터 데이터 가져오는 함수
     private void getData() throws JSONException {
         // Tag used to cancel the request
         String tag_string_req = "req_range_recent_poi";
@@ -229,64 +229,6 @@ public class POIRecentListFragment extends Fragment implements POIListener {
 
         // Tag used to cancel the request
         String tag_string_req = "req_range_recent_poi";
-
-        // progressbar 보여주기
-        progressBar.setVisibility(View.VISIBLE);
-
-        //JsonArrayRequest of volley
-        final StringRequest strReq = new StringRequest(Request.Method.POST, AppConfig.URL_POILIST_LOAD,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        //Calling method parsePOIList to parse the json response
-                        try {
-                            Log.d(TAG, "response : " + response);
-                            JSONObject jsonObject = new JSONObject(response);
-                            boolean error = jsonObject.getBoolean("error");
-
-                            if (!error) {
-                                JSONArray poiList = jsonObject.getJSONArray("recent");
-                                parsePOIList(poiList);
-                            } else {
-                                // Error in login. Get the error message
-                                String errorMsg = jsonObject.getString("error_msg");
-                                Toast.makeText(getContext().getApplicationContext(),
-                                        errorMsg, Toast.LENGTH_LONG).show();
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-                        //Hiding the progressbar
-                        progressBar.setVisibility(View.GONE);
-                    }
-                },
-
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        progressBar.setVisibility(View.GONE);
-                        //If an error occurs that means end of the list has reached
-                        Toast.makeText(getContext().getApplicationContext(), "더 이상 장소가 없습니다.", Toast.LENGTH_SHORT).show();
-                    }
-                }) {
-            @Override
-            protected HashMap<String, String> getParams() {
-                HashMap<String, String> mRequestParams = new HashMap<String, String>();
-                mRequestParams.put("page", String.valueOf(requestCount));
-                mRequestParams.put("recent", "true");
-                mRequestParams = inputUserInfoToInputParams(mRequestParams);
-
-                return mRequestParams;
-            }
-        };
-
-        //Returning the request
-        return strReq;
-    }
-
-    // 특정 POI 삭제 요청
-    private StringRequest removeDataFromServer(POI poi) throws JSONException {
 
         // progressbar 보여주기
         progressBar.setVisibility(View.VISIBLE);

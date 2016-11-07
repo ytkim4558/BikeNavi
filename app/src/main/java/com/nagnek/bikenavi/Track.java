@@ -15,4 +15,7 @@ public class Track implements Serializable {
     public POI startPOI;
     public POI destPOI;
     public ArrayList<POI> stop_poi_list;    // 경유지 리스트;
+    public String created_at;
+    public String updated_at;
+    public String last_used_at;
 }
