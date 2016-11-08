@@ -41,7 +41,7 @@ import java.util.Map;
 
 import static com.nagnek.bikenavi.util.NagneUtil.getStringFromResources;
 
-public class SearchActivity extends AppCompatActivity implements POIRecentListFragment.OnPoiSelectedListener {
+public class SearchActivity extends AppCompatActivity implements POIListOfRecentUsedFragment.OnPoiSelectedListener {
     private static final String TAG = SearchActivity.class.getSimpleName();
     DelayAutoCompleteTextView searchPoint = null;
     TextInputLayout textInputLayout = null;

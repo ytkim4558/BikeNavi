@@ -35,9 +35,9 @@ public class POIPagerAdapter extends FragmentPagerAdapter {
 
         switch (position) {
             case 0:
-                return new POIRecentListFragment();
+                return new POIListOfRecentUsedFragment();
             case 1:
-                return new POIRecentListFragment();
+                return new POIListOfRecentUsedFragment();
         }
 
         return null;

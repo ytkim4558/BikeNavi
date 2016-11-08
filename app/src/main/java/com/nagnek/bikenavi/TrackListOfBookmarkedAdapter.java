@@ -26,8 +26,8 @@ import java.util.List;
  * Created by user on 2016-10-27.
  */
 
-class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookmarkedListAdapter.BookmarkedTrackListViewHolder> {
-    private static final String TAG = TrackBookmarkedListAdapter.class.getSimpleName();
+class TrackListOfBookmarkedAdapter extends RecyclerView.Adapter<TrackListOfBookmarkedAdapter.BookmarkedTrackListViewHolder> {
+    private static final String TAG = TrackListOfBookmarkedAdapter.class.getSimpleName();
     LayoutInflater inflater;
     private Context context;
     private List<Track> bookmarkedTrackList = new ArrayList<>();
@@ -36,7 +36,7 @@ class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookmarkedLis
     private SessionManager session; // 로그인했는지 확인용 변수
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    TrackBookmarkedListAdapter(Context context, List<Track> trackList, TrackListListener trackListListener) {
+    TrackListOfBookmarkedAdapter(Context context, List<Track> trackList, TrackListListener trackListListener) {
 
         this.context = context;
         this.bookmarkedTrackList = trackList;

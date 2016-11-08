@@ -17,8 +17,8 @@ import android.widget.TextView;
  */
 
 public class TrackPagerAdapter extends FragmentPagerAdapter {
-    public TrackRecentListFragment recentTrackFragment;
-    public TrackBookmarkedListFragment trackBookmarkedListFragment;
+    public TrackListOfRecentUsedFragment recentTrackFragment;
+    public TrackListOfBookmarkedFragment trackListOfBookmarkedFragment;
     String tabTitles[] = new String[]{"최근 검색", "즐겨 찾기"};
     Context context;
 
@@ -37,11 +37,11 @@ public class TrackPagerAdapter extends FragmentPagerAdapter {
 
         switch (position) {
             case 0:
-                recentTrackFragment = new TrackRecentListFragment();
+                recentTrackFragment = new TrackListOfRecentUsedFragment();
                 return recentTrackFragment;
             case 1:
-                trackBookmarkedListFragment = new TrackBookmarkedListFragment();
-                return trackBookmarkedListFragment;
+                trackListOfBookmarkedFragment = new TrackListOfBookmarkedFragment();
+                return trackListOfBookmarkedFragment;
         }
 
         return null;

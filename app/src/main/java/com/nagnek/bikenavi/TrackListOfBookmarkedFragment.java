@@ -40,20 +40,20 @@ import java.util.List;
  * Created by user on 2016-10-29.
  */
 
-public class TrackBookmarkedListFragment extends Fragment implements TrackListListener {
-    private static final String TAG = TrackBookmarkedListFragment.class.getSimpleName();
+public class TrackListOfBookmarkedFragment extends Fragment implements TrackListListener {
+    private static final String TAG = TrackListOfBookmarkedFragment.class.getSimpleName();
     public List<Track> trackList;
     //The request counter to send ?page=1, ?page=2  requests
     // 리스트뷰의 페이지 요청
     public int requestCount = 1;
-    TrackBookmarkedListFragment.OnTrackSelectedListener mCallback;
+    TrackListOfBookmarkedFragment.OnTrackSelectedListener mCallback;
     SQLiteHandler db;
-    TrackBookmarkedListAdapter adapter;
+    TrackListOfBookmarkedAdapter adapter;
     RecyclerView rv;
     ProgressBar progressBar;
     private SessionManager session; // 로그인했는지 확인용 변수
 
-    public TrackBookmarkedListFragment() {
+    public TrackListOfBookmarkedFragment() {
         // Required empty public constructor
     }
 
@@ -99,9 +99,9 @@ public class TrackBookmarkedListFragment extends Fragment implements TrackListLi
         if (session.isSessionLoggedIn()) {
             // Displaying Progressbar
             progressBar.setVisibility(View.VISIBLE);
-            adapter = new TrackBookmarkedListAdapter(getContext().getApplicationContext(), trackList, this);
+            adapter = new TrackListOfBookmarkedAdapter(getContext().getApplicationContext(), trackList, this);
         } else {
-            adapter = new TrackBookmarkedListAdapter(getContext().getApplicationContext(), db.getAllBookmarkedTrack(), this);
+            adapter = new TrackListOfBookmarkedAdapter(getContext().getApplicationContext(), db.getAllBookmarkedTrack(), this);
         }
 
         rv.setAdapter(adapter);
@@ -110,7 +110,7 @@ public class TrackBookmarkedListFragment extends Fragment implements TrackListLi
         rv.setLayoutManager(llm);
 
         try {
-            mCallback = (TrackBookmarkedListFragment.OnTrackSelectedListener) getParentFragment();
+            mCallback = (TrackListOfBookmarkedFragment.OnTrackSelectedListener) getParentFragment();
             if (mCallback == null) {
                 Log.d(TAG, "mCallback은 null이야 ㅠ");
             }

@@ -41,7 +41,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TrackSettingFragment extends Fragment implements TrackRecentListFragment.OnTrackSelectedListener, TrackBookmarkedListFragment.OnTrackSelectedListener {
+public class TrackSettingFragment extends Fragment implements TrackListOfRecentUsedFragment.OnTrackSelectedListener, TrackListOfBookmarkedFragment.OnTrackSelectedListener {
     static final int SEARCH_INTEREST_POINT = 1; // 장소 검색 request code
     private static final String TAG = TrackSettingFragment.class.getSimpleName();
     DelayAutoCompleteTextView start_point, dest_point;
@@ -167,22 +167,22 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
                     }
                 }
             }
-            if (trackPagerAdapter.trackBookmarkedListFragment != null) {
-                if (trackPagerAdapter.trackBookmarkedListFragment.adapter != null) {
+            if (trackPagerAdapter.trackListOfBookmarkedFragment != null) {
+                if (trackPagerAdapter.trackListOfBookmarkedFragment.adapter != null) {
                     // 북마크 경로 리스트 갱신
                     if (session.isSessionLoggedIn()) {
                         try {
-                            if (trackPagerAdapter.trackBookmarkedListFragment.trackList != null) {
-                                trackPagerAdapter.trackBookmarkedListFragment.trackList.clear();
+                            if (trackPagerAdapter.trackListOfBookmarkedFragment.trackList != null) {
+                                trackPagerAdapter.trackListOfBookmarkedFragment.trackList.clear();
                                 Log.d(TAG, "새로 북마크 경로 목록 생성");
                             }
-                            trackPagerAdapter.trackBookmarkedListFragment.requestCount = 1;
-                            trackPagerAdapter.trackBookmarkedListFragment.getData();
+                            trackPagerAdapter.trackListOfBookmarkedFragment.requestCount = 1;
+                            trackPagerAdapter.trackListOfBookmarkedFragment.getData();
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                     } else {
-                        trackPagerAdapter.trackBookmarkedListFragment.adapter.refresh();
+                        trackPagerAdapter.trackListOfBookmarkedFragment.adapter.refresh();
                     }
                 }
             }

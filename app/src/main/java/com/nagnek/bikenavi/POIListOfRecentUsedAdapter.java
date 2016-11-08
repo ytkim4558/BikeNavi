@@ -24,7 +24,7 @@ import java.util.List;
  * 최근 장소 어댑터
  */
 
-public class POIRecentListAdapter extends RecyclerView.Adapter<POIRecentListAdapter.RecentPOIListViewHolder> {
+public class POIListOfRecentUsedAdapter extends RecyclerView.Adapter<POIListOfRecentUsedAdapter.RecentPOIListViewHolder> {
 
     LayoutInflater inflater;
     private Context context;
@@ -33,7 +33,7 @@ public class POIRecentListAdapter extends RecyclerView.Adapter<POIRecentListAdap
     private SQLiteHandler db;   // sqlite
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public POIRecentListAdapter(Context context, List<POI> poiList, POIListener POIListener) {
+    public POIListOfRecentUsedAdapter(Context context, List<POI> poiList, POIListener POIListener) {
 
         this.context = context;
         this.recentPOIList = poiList;
