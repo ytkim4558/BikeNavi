@@ -490,19 +490,27 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
         if (requestCode == SEARCH_INTEREST_POINT_TRACK_SETTING_FRAGMENT) { // 장소검색 요청한게 돌아온 경우
             Log.d(TAG, "SEARCH_INTEREST_POINT_TRACK_SETTING_FRAGMENT");
             if (resultCode == RESULT_OK) {// 장소 검색 결과 리턴
-                TrackSettingFragment trackSettingFragment = (TrackSettingFragment) getSupportFragmentManager().findFragmentById(R.id.content_frame);
+                try {
+                    TrackSettingFragment trackSettingFragment = (TrackSettingFragment) getSupportFragmentManager().findFragmentById(R.id.content_frame);
 
-                if (trackSettingFragment != null) {
-                    trackSettingFragment.onActivityResult(requestCode, resultCode, data);
+                    if (trackSettingFragment != null) {
+                        trackSettingFragment.onActivityResult(requestCode, resultCode, data);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         } else if (requestCode == SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT) {
             Log.d(TAG, "SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT");
             if (resultCode == RESULT_OK) {// 장소 검색 결과 리턴
-                POISearchFragment poiSearchFragment = (POISearchFragment) getSupportFragmentManager().findFragmentById(R.id.content_frame);
+                try {
+                    POISearchFragment poiSearchFragment = (POISearchFragment) getSupportFragmentManager().findFragmentById(R.id.content_frame);
 
-                if (poiSearchFragment != null) {
-                    poiSearchFragment.onActivityResult(requestCode, resultCode, data);
+                    if (poiSearchFragment != null) {
+                        poiSearchFragment.onActivityResult(requestCode, resultCode, data);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
