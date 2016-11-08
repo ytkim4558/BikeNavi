@@ -148,22 +148,22 @@ public class TrackSettingFragment extends Fragment implements TrackListOfRecentU
     public void onStart() {
         // 다른 액티비티로 갔다가 올때마다. 또는 화면이 다시 뿌려질때마다 경로 리스트 화면들 갱신
         if (trackPagerAdapter != null) {
-            if (trackPagerAdapter.recentTrackFragment != null) {
-                if (trackPagerAdapter.recentTrackFragment.adapter != null) {
+            if (trackPagerAdapter.trackListOfRecentUsedFragment != null) {
+                if (trackPagerAdapter.trackListOfRecentUsedFragment.adapter != null) {
                     // 최근 경로 리스트 갱신
                     if (session.isSessionLoggedIn()) {
                         try {
-                            if (trackPagerAdapter.recentTrackFragment.trackList != null) {
-                                trackPagerAdapter.recentTrackFragment.trackList.clear();
+                            if (trackPagerAdapter.trackListOfRecentUsedFragment.trackList != null) {
+                                trackPagerAdapter.trackListOfRecentUsedFragment.trackList.clear();
                                 Log.d(TAG, "새로 최근 경로 목록 생성");
                             }
-                            trackPagerAdapter.recentTrackFragment.requestCount = 1;
-                            trackPagerAdapter.recentTrackFragment.getData();
+                            trackPagerAdapter.trackListOfRecentUsedFragment.requestCount = 1;
+                            trackPagerAdapter.trackListOfRecentUsedFragment.getData();
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                     } else {
-                        trackPagerAdapter.recentTrackFragment.adapter.refresh();
+                        trackPagerAdapter.trackListOfRecentUsedFragment.adapter.refresh();
                     }
                 }
             }
@@ -393,10 +393,10 @@ public class TrackSettingFragment extends Fragment implements TrackListOfRecentU
                                     db.addTrack(track);
                                     db.addLocalUserTrack(track);
                                 }
-//                                if (trackPagerAdapter.recentTrackFragment != null) {
+//                                if (trackPagerAdapter.trackListOfRecentUsedFragment != null) {
 //
 //                                    // 화면에 보이는 경로 리스트의 내용을 다시 최근 db의 내용으로 업데이트 해놓는다.
-//                                    trackPagerAdapter.recentTrackFragment.addOrUpdateTrack(track);
+//                                    trackPagerAdapter.trackListOfRecentUsedFragment.addOrUpdateTrack(track);
 //                                }
                                 // 이제 경로를 그려주는 액티비티 화면으로 넘어가자.
                                 redirectTrackActivity();

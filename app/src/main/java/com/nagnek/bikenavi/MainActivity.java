@@ -34,6 +34,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.PolyUtil;
@@ -43,11 +47,14 @@ import com.kakao.usermgmt.UserManagement;
 import com.kakao.usermgmt.callback.LogoutResponseCallback;
 import com.nagnek.bikenavi.activity.LoginActivity;
 import com.nagnek.bikenavi.app.AppConfig;
+import com.nagnek.bikenavi.app.AppController;
 import com.nagnek.bikenavi.customview.ClearableSqliteAutoCompleteTextView;
 import com.nagnek.bikenavi.helper.IPManager;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.helper.SessionManager;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 
 import java.io.StringWriter;
@@ -226,6 +233,15 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
             LoginManager.getInstance().logOut();
         }
         mAdapter.swap(null, "로그인 해주세요", null);
+        refreshRecentUsedTrackListAndBookmarkedTrackList();
+    }
+
+    void refreshRecentUsedTrackListAndBookmarkedTrackList() {
+        Fragment fragment = new TrackSettingFragment();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.content_frame, fragment)
+                .commit();
     }
 
     @Override
@@ -498,6 +514,11 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    try {
+                        sendErrorReportToServer(e.toString());
+                    } catch (JSONException e1) {
+                        e1.printStackTrace();
+                    }
                 }
             }
         } else if (requestCode == SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT) {
@@ -511,9 +532,97 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    try {
+                        sendErrorReportToServer(e.toString());
+                    } catch (JSONException e1) {
+                        e1.printStackTrace();
+                    }
                 }
             }
         }
+    }
+
+    // 에러 전송
+    private void sendErrorReportToServer(final String errorMessage) throws JSONException {
+
+        // Tag used to cancel the request
+        String tag_string_req = "send_error_report.";
+
+        //JsonArrayRequest of volley
+        final StringRequest strReq = new StringRequest(Request.Method.POST, AppConfig.URL_USER_ERROR_REPORT,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        //Calling method parsePOIList to parse the json response
+                        try {
+                            Log.d(TAG, "response : " + response);
+                            JSONObject jsonObject = new JSONObject(response);
+                            boolean error = jsonObject.getBoolean("error");
+
+                            if (!error) {
+                                Log.d(TAG, "에러전송완료");
+                            } else {
+                                // Error in login. Get the error message
+                                String errorMsg = jsonObject.getString("error_msg");
+                                Log.d(TAG, errorMsg);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Log.d(TAG, e.toString());
+                        }
+                    }
+                },
+
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        //If an error occurs that means end of the list has reached
+                        Log.d(TAG, error.toString());
+                    }
+                }) {
+            @Override
+            protected HashMap<String, String> getParams() {
+                HashMap<String, String> mRequestParams = new HashMap<String, String>();
+                mRequestParams = inputUserInfoToInputParams(mRequestParams);
+                mRequestParams.put("MESSAGE", errorMessage);
+
+                return mRequestParams;
+            }
+        };
+
+        // Adding request to request queue
+        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+    }
+
+    private HashMap<String, String> inputUserInfoToInputParams(HashMap<String, String> params) {
+        SQLiteHandler.UserType loginUserType = session.getUserType();
+        HashMap<String, String> user = db.getLoginedUserDetails(loginUserType);
+
+        switch (loginUserType) {
+            case BIKENAVI:
+                String email = user.get(SQLiteHandler.KEY_EMAIL);
+                params.put("email", email);
+                Log.d(TAG, "bikenavi타입 유저네" + email);
+                break;
+            case GOOGLE:
+                String googleemail = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
+                params.put("googleemail", googleemail);
+                Log.d(TAG, "구글 유저네" + googleemail);
+                break;
+            case KAKAO:
+                String kakaoId = user.get(SQLiteHandler.KEY_KAKAO_ID);
+                params.put("kakaoid", kakaoId);
+                Log.d(TAG, "카카오 유저네" + kakaoId);
+                break;
+            case FACEBOOK:
+                String facebookId = user.get(SQLiteHandler.KEY_FACEBOOK_ID);
+                params.put("facebookid", facebookId);
+                Log.d(TAG, "페북 유저네" + facebookId);
+                break;
+        }
+
+        return params;
+
     }
 
     private String getStringFromResources(final int id) {
