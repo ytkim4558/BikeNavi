@@ -514,11 +514,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    try {
-                        sendErrorReportToServer(e.toString());
-                    } catch (JSONException e1) {
-                        e1.printStackTrace();
-                    }
+                    sendErrorReportToServer(e.toString());
                 }
             }
         } else if (requestCode == SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT) {
@@ -532,18 +528,14 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    try {
-                        sendErrorReportToServer(e.toString());
-                    } catch (JSONException e1) {
-                        e1.printStackTrace();
-                    }
+                    sendErrorReportToServer(e.toString());
                 }
             }
         }
     }
 
     // 에러 전송
-    private void sendErrorReportToServer(final String errorMessage) throws JSONException {
+    private void sendErrorReportToServer(final String errorMessage) {
 
         // Tag used to cancel the request
         String tag_string_req = "send_error_report.";
@@ -583,7 +575,9 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
             @Override
             protected HashMap<String, String> getParams() {
                 HashMap<String, String> mRequestParams = new HashMap<String, String>();
-                mRequestParams = inputUserInfoToInputParams(mRequestParams);
+                if (session.isSessionLoggedIn()) {
+                    mRequestParams = inputUserInfoToInputParams(mRequestParams);
+                }
                 mRequestParams.put("MESSAGE", errorMessage);
 
                 return mRequestParams;
@@ -595,6 +589,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     }
 
     private HashMap<String, String> inputUserInfoToInputParams(HashMap<String, String> params) {
+
         SQLiteHandler.UserType loginUserType = session.getUserType();
         HashMap<String, String> user = db.getLoginedUserDetails(loginUserType);
 

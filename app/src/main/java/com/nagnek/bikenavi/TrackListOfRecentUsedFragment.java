@@ -142,7 +142,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
 
         progressBar.setVisibility(View.VISIBLE);
 
-        // id 와 이름을 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
+        // id 와 이름을 내 서버(유저 경로 삭제하는 함수가 동작하는 페이지 ip)로 HTTP POST를 이용해 보낸다
         StringRequest strReq = new StringRequest(Request.Method.POST,
                 AppConfig.URL_USER_TRACK_DELETE, new Response.Listener<String>() {
             @Override
@@ -156,13 +156,13 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
 
                     // Check for error node in json
                     if (!error) {
-                        // Error in login. Get the error message
+                        // TODO: adapter 초기화할까?
+                        Log.d(TAG, "트랙 정보 삭제됨");
+                    } else {
+                        // Error in delete. Get the error message
                         String errorMsg = jsonObject.getString("error_msg");
                         Toast.makeText(getContext().getApplicationContext(),
                                 errorMsg, Toast.LENGTH_LONG).show();
-                    } else {
-                        // TODO: adapter 초기화할까?
-                        Log.d(TAG, "트랙 정보 삭제됨");
                     }
                 } catch (JSONException e) {
                     // JSON error

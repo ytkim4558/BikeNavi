@@ -19,7 +19,7 @@ import android.widget.TextView;
 public class TrackPagerAdapter extends FragmentPagerAdapter {
     public TrackListOfRecentUsedFragment trackListOfRecentUsedFragment;
     public TrackListOfBookmarkedFragment trackListOfBookmarkedFragment;
-    String tabTitles[] = new String[]{"최근 검색", "즐겨 찾기"};
+    String tabTitles[] = new String[]{"최근 이용", "즐겨 찾기"};
     Context context;
 
     public TrackPagerAdapter(FragmentManager fm, Context context) {

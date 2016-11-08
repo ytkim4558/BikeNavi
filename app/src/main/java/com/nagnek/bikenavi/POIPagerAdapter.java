@@ -17,7 +17,7 @@ import android.widget.TextView;
  */
 
 public class POIPagerAdapter extends FragmentPagerAdapter {
-    String tabTitles[] = new String[]{"최근 검색", "즐겨 찾기"};
+    String tabTitles[] = new String[]{"최근 이용", "즐겨 찾기"};
     Context context;
 
     public POIPagerAdapter(FragmentManager fm, Context context) {
