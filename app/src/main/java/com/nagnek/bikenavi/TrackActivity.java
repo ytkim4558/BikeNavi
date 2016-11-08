@@ -93,6 +93,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
     TMapPoint mDest;
     String start_poi_name;
     String dest_poi_name;
+    ImageButton bookMarkButton;
     private Animator animator = new Animator();
     private GoogleMap mGoogleMap;
     private SessionManager session; // 로그인했는지 확인용 변수
@@ -124,17 +125,17 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         track = (Track) receivedIntent.getSerializableExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.current_track_for_transition));
 
         TextView route = (TextView) findViewById(R.id.track_log);
-        final ImageButton bookMarkButton = (ImageButton) findViewById(R.id.bookmark_button);
+        bookMarkButton = (ImageButton) findViewById(R.id.bookmark_button);
 
         if (session.isSessionLoggedIn()) {
             if (track.bookmarked) {
-                bookMarkButton.setPressed(true);
+                bookMarkButton.setSelected(true);
             } else {
-                bookMarkButton.setPressed(false);
+                bookMarkButton.setSelected(false);
             }
         } else {
             if (db.checkIFBookmarkedTrackExists(track)) {
-                bookMarkButton.setPressed(true);
+                bookMarkButton.setSelected(true);
             }
         }
 
@@ -156,7 +157,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                             });
                             alert.setMessage("북마크 되었습니다.");
                             alert.show();
-                            bookMarkButton.setPressed(true);
+                            bookMarkButton.setSelected(true);
                         } else {
                             db.deleteBookmarkedTrackRow(track);
                             AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this);
@@ -168,7 +169,6 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                             });
                             alert.setMessage("북마크 해제 되었습니다.");
                             alert.show();
-                            bookMarkButton.setPressed(false);
                         }
                     } else {
                         if (track.bookmarked) {
@@ -176,6 +176,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                             showDialog();
                             deleteBookMarkUserTrackToServer(track);
                             track.bookmarked = false;
+                            bookMarkButton.setSelected(false);
                         } else {
                             pDialog.setMessage("북마크 추가중 ...");
                             showDialog();
@@ -237,6 +238,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                             }
                         });
                         alert.setMessage("북마크 해제 되었습니다.");
+                        bookMarkButton.setSelected(false);
                         alert.show();
 
                         Log.d(TAG, "북마크 삭제가 성공했길 바랍니다 (__)");
@@ -341,6 +343,16 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                     if (!error) {
 
                         // 서버에 반영 성공했다. 딱히 뭐 할거 있나..?
+                        AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this);
+                        alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();   // 닫기
+                            }
+                        });
+                        alert.setMessage("북마크 되었습니다.");
+                        alert.show();
+                        bookMarkButton.setSelected(true);
                         Log.d(TAG, "북마크 추가 성공했길 바랍니다 (__)");
                     } else {
                         // Error in login. Get the error message
