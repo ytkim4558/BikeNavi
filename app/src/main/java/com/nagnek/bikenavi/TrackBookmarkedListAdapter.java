@@ -130,8 +130,8 @@ class TrackBookmarkedListAdapter extends RecyclerView.Adapter<TrackBookmarkedLis
     }
 
     void updateTrack(Track track, int position) {
-        bookmarkedTrackList.remove(position);
-        bookmarkedTrackList.add(0, track);
+//        bookmarkedTrackList.remove(position);
+//        bookmarkedTrackList.add(0, track);
         notifyDataSetChanged();
     }
 

@@ -42,17 +42,16 @@ import java.util.List;
 
 public class TrackRecentListFragment extends Fragment implements TrackListListener {
     private static final String TAG = TrackRecentListFragment.class.getSimpleName();
+    public List<Track> trackList;
+    //The request counter to send ?page=1, ?page=2  requests
+    // 리스트뷰의 페이지 요청
+    public int requestCount = 1;
     OnTrackSelectedListener mCallback;
     SQLiteHandler db;
     TrackRecentListAdapter adapter;
     RecyclerView rv;
     ProgressBar progressBar;
     private SessionManager session; // 로그인했는지 확인용 변수
-    private List<Track> trackList;
-
-    //The request counter to send ?page=1, ?page=2  requests
-    // 리스트뷰의 페이지 요청
-    private int requestCount = 1;
 
     public TrackRecentListFragment() {
         // Required empty public constructor
@@ -101,7 +100,7 @@ public class TrackRecentListFragment extends Fragment implements TrackListListen
         if (session.isSessionLoggedIn()) {
             //Displaying Progressbar
             progressBar.setVisibility(View.VISIBLE);
-            adapter = new TrackRecentListAdapter(getActivity(), trackList, this);
+            adapter = new TrackRecentListAdapter(getContext().getApplicationContext(), trackList, this);
         } else {
             adapter = new TrackRecentListAdapter(getContext().getApplicationContext(), db.getAllLocalUserTrack(), this);
         }
@@ -123,7 +122,7 @@ public class TrackRecentListFragment extends Fragment implements TrackListListen
     }
 
     // web api 로부터 데이터 가져오는 함수
-    private void getData() throws JSONException {
+    public void getData() throws JSONException {
         // Tag used to cancel the request
         String tag_string_req = "req_range_recent_track";
 
@@ -153,17 +152,17 @@ public class TrackRecentListFragment extends Fragment implements TrackListListen
 
                 try {
                     JSONObject jsonObject = new JSONObject(response);
-                    boolean delete = jsonObject.getBoolean("delete");
+                    boolean error = jsonObject.getBoolean("error");
 
                     // Check for error node in json
-                    if (delete) {
-                        // TODO: adapter 초기화할까?
-                        Log.d(TAG, "트랙 정보 삭제됨");
-                    } else {
+                    if (!error) {
                         // Error in login. Get the error message
                         String errorMsg = jsonObject.getString("error_msg");
                         Toast.makeText(getContext().getApplicationContext(),
                                 errorMsg, Toast.LENGTH_LONG).show();
+                    } else {
+                        // TODO: adapter 초기화할까?
+                        Log.d(TAG, "트랙 정보 삭제됨");
                     }
                 } catch (JSONException e) {
                     // JSON error
@@ -201,7 +200,6 @@ public class TrackRecentListFragment extends Fragment implements TrackListListen
                 // Posting parameters to login url
                 HashMap<String, String> params = new HashMap<String, String>();
                 params = inputUserInfoToInputParams(params);
-                params.put("START_POI_LAT_LNG", track.startPOI.latLng);
                 params.put("START_POI_LAT_LNG", track.startPOI.latLng);
                 params.put("DEST_POI_LAT_LNG", track.destPOI.latLng);
                 if (track.stop_poi_list != null) {
@@ -332,6 +330,7 @@ public class TrackRecentListFragment extends Fragment implements TrackListListen
                 track.created_at = jsonObject.getString(SQLiteHandler.KEY_CREATED_AT);
                 track.updated_at = jsonObject.getString(SQLiteHandler.KEY_UPDATED_AT);
                 track.last_used_at = jsonObject.getString(SQLiteHandler.KEY_LAST_USED_AT);
+                track.bookmarked = jsonObject.getBoolean("bookmarked");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -343,6 +342,7 @@ public class TrackRecentListFragment extends Fragment implements TrackListListen
 
         // Notifying the adapter that data has been added or changed
         adapter.notifyDataSetChanged();
+        Log.d(TAG, "notifyDataSetChanged");
     }
 
     private POI savePOIUsingJsonObject(JSONObject jsonObject) throws JSONException {
@@ -373,14 +373,6 @@ public class TrackRecentListFragment extends Fragment implements TrackListListen
         Log.d(TAG, "click track : " + gson.toJson(track));
         mCallback.onRecentTrackSelected(track);
         adapter.updateTrack(track, position);
-    }
-
-    public void addOrUpdateTrack(Track track) {
-        if (db.checkIfTrackExists(track)) {
-            adapter.refresh();
-        } else {
-            adapter.addTrack(track);
-        }
     }
 
     // 부모 프래그먼트는 항상 이 인터페이스를 구현 해야한다

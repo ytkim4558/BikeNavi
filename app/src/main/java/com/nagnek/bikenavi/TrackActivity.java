@@ -55,6 +55,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.gson.Gson;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.app.AppController;
 import com.nagnek.bikenavi.guide.GuideContent;
@@ -125,8 +126,16 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         TextView route = (TextView) findViewById(R.id.track_log);
         final ImageButton bookMarkButton = (ImageButton) findViewById(R.id.bookmark_button);
 
-        if (db.checkIFBookmarkedTrackExists(track)) {
-            bookMarkButton.setPressed(true);
+        if (session.isSessionLoggedIn()) {
+            if (track.bookmarked) {
+                bookMarkButton.setPressed(true);
+            } else {
+                bookMarkButton.setPressed(false);
+            }
+        } else {
+            if (db.checkIFBookmarkedTrackExists(track)) {
+                bookMarkButton.setPressed(true);
+            }
         }
 
         route.setText(start_poi_name + "=>" + dest_poi_name);
@@ -162,9 +171,17 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                             bookMarkButton.setPressed(false);
                         }
                     } else {
-                        pDialog.setMessage("북마크 추가중 ...");
-                        showDialog();
-                        addOrDeleteBookMarkUserTrackToServer(track);
+                        if (track.bookmarked) {
+                            pDialog.setMessage("북마크 삭제중 ...");
+                            showDialog();
+                            deleteBookMarkUserTrackToServer(track);
+                            track.bookmarked = false;
+                        } else {
+                            pDialog.setMessage("북마크 추가중 ...");
+                            showDialog();
+                            addOrUpdateBookMarkUserTrackToServer(track);
+                            track.bookmarked = true;
+                        }
                     }
                 } else {
                     Log.d(TAG, "트랙이 null입니다");
@@ -193,16 +210,16 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         }
     }
 
-    private void addOrDeleteBookMarkUserTrackToServer(Track track) {
+    private void deleteBookMarkUserTrackToServer(final Track track) {
         // Tag used to cancel the request
-        String tag_string_req = "req_add_or_delete_track_to_table_bookmark_track";
+        String tag_string_req = "req_delete_bookmark_track";
 
         // track정보 와 유저정보를 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
         StringRequest strReq = new StringRequest(Request.Method.POST,
-                AppConfig.URL_USER_TRACK_REGISTER_OR_UPDATE_OR_DELETE, new Response.Listener<String>() {
+                AppConfig.URL_USER_TRACK_DELETE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "북마크 추가 또는 삭제의 Response: " + response);
+                Log.d(TAG, "북마크 삭제의 Response: " + response);
                 hideDialog();
 
                 try {
@@ -211,26 +228,18 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
 
                     // Check for error node in json
                     if (!error) {
-                        // Now store the user in SQLite
-                        JSONObject user = jsonObject.getJSONObject("user");
-                        String name = user.getString("facebookName");
-                        String id = user.getString("facebookID");
-                        String created_at = user
-                                .getString("created_at");
-                        String updated_at = user
-                                .getString("updated_at");
-                        String last_used_at = user
-                                .getString("last_used_at");
+                        // 서버에 반영 성공했다. 딱히 뭐 할거 있나..?
+                        AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this);
+                        alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();   // 닫기
+                            }
+                        });
+                        alert.setMessage("북마크 해제 되었습니다.");
+                        alert.show();
 
-                        // Inserting row in users table
-                        User facebookUser = new User();
-                        facebookUser.facebook_id = id;
-                        facebookUser.facebook_user_name = name;
-                        db.addUser(SQLiteHandler.UserType.FACEBOOK, facebookUser, created_at, updated_at, last_used_at);
-                        Log.d(TAG, "name : " + name);
-                        Log.d(TAG, "created_at : " + created_at);
-
-
+                        Log.d(TAG, "북마크 삭제가 성공했길 바랍니다 (__)");
                     } else {
                         // Error in login. Get the error message
                         String errorMsg = jsonObject.getString("error_msg");
@@ -296,6 +305,116 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                         break;
                 }
 
+                params.put("START_POI_LAT_LNG", track.startPOI.latLng);
+                params.put("DEST_POI_LAT_LNG", track.destPOI.latLng);
+                if (track.stop_poi_list != null) {
+                    Gson gson = new Gson();
+                    params.put("STOP_POI_ARRAY", gson.toJson(track.stop_poi_list));
+                }
+
+                params.put("bookmark", "true");
+                return params;
+            }
+        };
+
+        // Adding request to request queue
+        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+    }
+
+    private void addOrUpdateBookMarkUserTrackToServer(final Track track) {
+        // Tag used to cancel the request
+        String tag_string_req = "req_add_or_update_track_to_table_bookmark_track";
+
+        // track정보 와 유저정보를 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
+        StringRequest strReq = new StringRequest(Request.Method.POST,
+                AppConfig.URL_USER_TRACK_REGISTER_OR_UPDATE, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "북마크 추가 Response: " + response);
+                hideDialog();
+
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    boolean error = jsonObject.getBoolean("error");
+
+                    // Check for error node in json
+                    if (!error) {
+
+                        // 서버에 반영 성공했다. 딱히 뭐 할거 있나..?
+                        Log.d(TAG, "북마크 추가 성공했길 바랍니다 (__)");
+                    } else {
+                        // Error in login. Get the error message
+                        String errorMsg = jsonObject.getString("error_msg");
+                        Toast.makeText(getApplicationContext(),
+                                errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                } catch (JSONException e) {
+                    // JSON error
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (error instanceof TimeoutError) {
+                    Log.e(TAG, "Login Error: 서버가 응답하지 않습니다." + error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            "Login Error: 서버가 응답하지 않습니다.", Toast.LENGTH_LONG).show();
+                } else if (error instanceof ServerError) {
+                    Log.e(TAG, "서버 에러래" + error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            "Login Error: 서버 Error.", Toast.LENGTH_LONG).show();
+                } else {
+                    Log.e(TAG, error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            error.getMessage(), Toast.LENGTH_LONG).show();
+                }
+
+                Toast.makeText(getApplicationContext(),
+                        error.getMessage(), Toast.LENGTH_LONG).show();
+                hideDialog();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                // Posting parameters to login url
+                Map<String, String> params = new HashMap<String, String>();
+                // 로그인 한 경우
+                SQLiteHandler.UserType loginUserType = session.getUserType();
+                HashMap<String, String> user = db.getLoginedUserDetails(loginUserType);
+
+                switch (loginUserType) {
+                    case BIKENAVI:
+                        String email = user.get(SQLiteHandler.KEY_EMAIL);
+                        params.put("email", email);
+
+                        break;
+                    case GOOGLE:
+                        String googleemail = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
+                        params.put("googleemail", googleemail);
+                        break;
+                    case KAKAO:
+                        String kakaoId = user.get(SQLiteHandler.KEY_KAKAO_ID);
+                        params.put("kakaoid", kakaoId);
+                        break;
+                    case FACEBOOK:
+                        String facebookId = user.get(SQLiteHandler.KEY_FACEBOOK_ID);
+                        params.put("facebookid", facebookId);
+                        break;
+                }
+
+                params.put("START_POI_LAT_LNG", track.startPOI.latLng);
+                params.put("DEST_POI_LAT_LNG", track.destPOI.latLng);
+                if (track.stop_poi_list != null) {
+                    Gson gson = new Gson();
+                    params.put("STOP_POI_ARRAY", gson.toJson(track.stop_poi_list));
+                }
+
+                params.put("bookmark", "true");
                 return params;
             }
         };

@@ -140,7 +140,6 @@ public class TrackRecentListAdapter extends RecyclerView.Adapter<TrackRecentList
 
     void refresh() {
         if (session.isSessionLoggedIn()) {
-
         } else {
             this.recentTrackList = db.getAllLocalUserTrack();
             new Handler(Looper.getMainLooper()).post(new Runnable() {

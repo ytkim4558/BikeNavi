@@ -506,27 +506,31 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         String selectQuery = "SELECT * FROM " + TABLE_USER;
 
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
-        // Move to first row
-        cursor.moveToFirst();
-        if (cursor.getCount() > 0) {
-            switch (userType) {
-                case BIKENAVI:
-                    user.put(KEY_EMAIL, cursor.getString(cursor.getColumnIndex(KEY_EMAIL)));
-                    break;
-                case FACEBOOK:
-                    user.put(KEY_FACEBOOK_ID, cursor.getString(cursor.getColumnIndex(KEY_FACEBOOK_ID)));
-                    break;
-                case KAKAO:
-                    user.put(KEY_KAKAO_ID, cursor.getString(cursor.getColumnIndex(KEY_KAKAO_ID)));
-                    break;
-                case GOOGLE:
-                    user.put(KEY_GOOGLE_EMAIL, cursor.getString(cursor.getColumnIndex(KEY_GOOGLE_EMAIL)));
-                    break;
+        if (db != null) {
+            Cursor cursor = db.rawQuery(selectQuery, null);
+            // Move to first row
+            if (cursor != null) {
+                cursor.moveToFirst();
+                if (cursor.getCount() > 0) {
+                    switch (userType) {
+                        case BIKENAVI:
+                            user.put(KEY_EMAIL, cursor.getString(cursor.getColumnIndex(KEY_EMAIL)));
+                            break;
+                        case FACEBOOK:
+                            user.put(KEY_FACEBOOK_ID, cursor.getString(cursor.getColumnIndex(KEY_FACEBOOK_ID)));
+                            break;
+                        case KAKAO:
+                            user.put(KEY_KAKAO_ID, cursor.getString(cursor.getColumnIndex(KEY_KAKAO_ID)));
+                            break;
+                        case GOOGLE:
+                            user.put(KEY_GOOGLE_EMAIL, cursor.getString(cursor.getColumnIndex(KEY_GOOGLE_EMAIL)));
+                            break;
+                    }
+                }
+                cursor.close();
             }
+            db.close();
         }
-        cursor.close();
-        db.close();
         // return user
         Log.d(TAG, "Fetching user from Sqlite: " + user.toString());
 

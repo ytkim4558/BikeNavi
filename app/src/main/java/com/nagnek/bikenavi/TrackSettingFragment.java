@@ -151,13 +151,39 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
             if (trackPagerAdapter.recentTrackFragment != null) {
                 if (trackPagerAdapter.recentTrackFragment.adapter != null) {
                     // 최근 경로 리스트 갱신
-                    trackPagerAdapter.recentTrackFragment.adapter.refresh();
+                    if (session.isSessionLoggedIn()) {
+                        try {
+                            if (trackPagerAdapter.recentTrackFragment.trackList != null) {
+                                trackPagerAdapter.recentTrackFragment.trackList.clear();
+                                Log.d(TAG, "새로 최근 경로 목록 생성");
+                            }
+                            trackPagerAdapter.recentTrackFragment.requestCount = 1;
+                            trackPagerAdapter.recentTrackFragment.getData();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        trackPagerAdapter.recentTrackFragment.adapter.refresh();
+                    }
                 }
             }
             if (trackPagerAdapter.trackBookmarkedListFragment != null) {
                 if (trackPagerAdapter.trackBookmarkedListFragment.adapter != null) {
                     // 북마크 경로 리스트 갱신
-                    trackPagerAdapter.trackBookmarkedListFragment.adapter.refresh();
+                    if (session.isSessionLoggedIn()) {
+                        try {
+                            if (trackPagerAdapter.trackBookmarkedListFragment.trackList != null) {
+                                trackPagerAdapter.trackBookmarkedListFragment.trackList.clear();
+                                Log.d(TAG, "새로 북마크 경로 목록 생성");
+                            }
+                            trackPagerAdapter.trackBookmarkedListFragment.requestCount = 1;
+                            trackPagerAdapter.trackBookmarkedListFragment.getData();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        trackPagerAdapter.trackBookmarkedListFragment.adapter.refresh();
+                    }
                 }
             }
         }
@@ -168,9 +194,11 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
     @Override
     public void onRecentTrackSelected(Track track) {
         this.track = track;
+        start_poi = track.startPOI;
+        dest_poi = track.destPOI;
+        start_point.setText(track.startPOI.name);
+        dest_point.setText(track.destPOI.name);
         if (!session.isSessionLoggedIn()) {
-            start_point.setText(track.startPOI.name);
-            dest_point.setText(track.destPOI.name);
             db.updateLastUsedAtUserTrack(track);
             db.updateLastUsedAtTrack(track);
             redirectTrackActivity();
@@ -186,13 +214,14 @@ public class TrackSettingFragment extends Fragment implements TrackRecentListFra
 
         // track정보 와 유저정보를 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
         StringRequest strReq = new StringRequest(Request.Method.POST,
-                AppConfig.URL_USER_TRACK_REGISTER_OR_UPDATE_OR_DELETE, new Response.Listener<String>() {
+                AppConfig.URL_USER_TRACK_REGISTER_OR_UPDATE, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Log.d(TAG, "경로 추가 또는 수정의 Response: " + response);
 
                 try {
                     JSONObject jsonObject = new JSONObject(response);
+                    Log.d(TAG, "response : " + response.toString());
                     boolean error = jsonObject.getBoolean("error");
 
                     // Check for error node in json

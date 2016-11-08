@@ -25,6 +25,7 @@ import com.nagnek.bikenavi.kakao.KakaoSDKAdapter;
  * 앱 시작할때 실행됨.
  * 카카오톡 로그인을 위한 소스추가 : 2016-10-09 참고 : http://uareuni.tistory.com/13
  */
+
 public class AppController extends Application {
 
     /**

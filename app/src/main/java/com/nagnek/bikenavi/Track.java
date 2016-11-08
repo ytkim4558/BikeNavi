@@ -18,4 +18,5 @@ public class Track implements Serializable {
     public String created_at;
     public String updated_at;
     public String last_used_at;
+    boolean bookmarked; // 북마크되었는지 여부 - 서버용 변수
 }
