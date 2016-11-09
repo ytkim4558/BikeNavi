@@ -248,7 +248,6 @@ public class AppController extends Application {
     /**
      * 이미지 로더를 반환한다.
      *
-     * @param 이미지 로더
      */
     public ImageLoader getImageLoader() {
         return imageLoader;
