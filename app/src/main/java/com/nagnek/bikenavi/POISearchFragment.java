@@ -18,6 +18,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -36,6 +39,9 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback {
     private static final String TAG = POISearchFragment.class.getSimpleName();
     DelayAutoCompleteTextView searchPoint = null;
     TextInputLayout textInputLayout = null;
+    RelativeLayout detailPOILayout;
+    TextView poiNameView, poiAddressView;
+    ImageButton bookmarkImageButton;
     private GoogleMap mGoogleMap;
 
     @Override
@@ -50,6 +56,14 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback {
         Log.d(TAG, "onCreateView");
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_poisearch, container, false);
+        detailPOILayout = (RelativeLayout) rootView.findViewById(R.id.poi_detail_layout);
+
+        if (detailPOILayout.getVisibility() != View.GONE) {
+            detailPOILayout.setVisibility(View.GONE);
+        }
+        poiNameView = (TextView) rootView.findViewById(R.id.text_poi_name);
+        poiAddressView = (TextView) rootView.findViewById(R.id.text_poi_address);
+        bookmarkImageButton = (ImageButton) rootView.findViewById(R.id.bookmark_button);
 
         // Get the ViewPager and set it's recentPOIPagerAdapter so that it can display items
         long start = System.currentTimeMillis();
@@ -96,6 +110,15 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback {
                 double wgs_84x = data.getDoubleExtra(NagneUtil.getStringFromResources(getActivity(), R.string.wgs_84_x), 0.0);
                 double wgs_84y = data.getDoubleExtra(NagneUtil.getStringFromResources(getActivity(), R.string.wgs_84_y), 0.0);
                 moveCameraToPOIAndDisplay(wgs_84x, wgs_84y, selectPointName, address);
+                View rootView = getView();
+
+                // 장소 상세확인 내용창 표시
+                if (rootView != null) {
+                    detailPOILayout.setVisibility(View.VISIBLE);
+                    poiNameView.setText(selectPointName);
+                    poiAddressView.setText(address);
+                    Log.d(TAG, "상세창 높이 : " + detailPOILayout.getLayoutParams().height);
+                }
             }
         }
     }

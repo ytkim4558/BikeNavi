@@ -38,6 +38,7 @@
     <string name="wgs_84_x">위도</string>
     <string name="wgs_84_y">경도</string>
     <string name="searchview_transition_name">장소검색창전환</string>
+    <string name="name_bookmark_button">즐겨찾기</string>
 
     <!--지도 액티비티에 필요한 변수-->
     <string name="hint_start_point">출발 장소를 입력하세요</string>

@@ -104,8 +104,6 @@ public class AppController extends Application {
 
     @Override
     public void onCreate() {
-        super.onCreate();
-        mInstance = this;
 
         /**
          * 크래쉬 방지용 코드 추가
@@ -113,6 +111,9 @@ public class AppController extends Application {
          */
         mUncaughtExceptionhandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(new uncaughtExceptionHandlerApplication());
+
+        super.onCreate();
+        mInstance = this;
 
         /**
          * 카카오톡
