@@ -168,6 +168,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                                 }
                             });
                             alert.setMessage("북마크 해제 되었습니다.");
+                            bookMarkButton.setSelected(false);
                             alert.show();
                         }
                     } else {
@@ -175,13 +176,10 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                             pDialog.setMessage("북마크 삭제중 ...");
                             showDialog();
                             deleteBookMarkUserTrackToServer(track);
-                            track.bookmarked = false;
-                            bookMarkButton.setSelected(false);
                         } else {
                             pDialog.setMessage("북마크 추가중 ...");
                             showDialog();
                             addOrUpdateBookMarkUserTrackToServer(track);
-                            track.bookmarked = true;
                         }
                     }
                 } else {
@@ -239,6 +237,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                         });
                         alert.setMessage("북마크 해제 되었습니다.");
                         bookMarkButton.setSelected(false);
+                        track.bookmarked = false;
                         alert.show();
 
                         Log.d(TAG, "북마크 삭제가 성공했길 바랍니다 (__)");
@@ -353,6 +352,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                         alert.setMessage("북마크 되었습니다.");
                         alert.show();
                         bookMarkButton.setSelected(true);
+                        track.bookmarked = true;
                         Log.d(TAG, "북마크 추가 성공했길 바랍니다 (__)");
                     } else {
                         // Error in login. Get the error message

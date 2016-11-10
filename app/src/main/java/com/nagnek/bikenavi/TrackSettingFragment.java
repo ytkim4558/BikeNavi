@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.TabLayout;
-import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -96,10 +95,6 @@ public class TrackSettingFragment extends Fragment implements TrackListOfRecentU
             }
         }
 
-        long start = System.currentTimeMillis();
-
-        final TextInputLayout ti_start = (TextInputLayout) rootView.findViewById(R.id.ti_start_point);
-        final TextInputLayout ti_dest = (TextInputLayout) rootView.findViewById(R.id.ti_dest_point);
         /**
          * 출발지나 도착지 입력창을 클릭하면 검색 액티비티로 넘어간다.
          */

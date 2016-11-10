@@ -19,24 +19,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/ti_search_point"
+        <!--flagNoExtractUtil : 입력창이 전체화면으로 가려지는것을 막음-->
+        <!--actionSearch : 키보드의 엔터가 검색으로 글자가 바뀜-->
+        <com.nagnek.bikenavi.customview.DelayAutoCompleteTextView
+            android:id="@+id/search_point"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <!--flagNoExtractUtil : 입력창이 전체화면으로 가려지는것을 막음-->
-            <!--actionSearch : 키보드의 엔터가 검색으로 글자가 바뀜-->
-            <com.nagnek.bikenavi.customview.DelayAutoCompleteTextView
-                android:id="@+id/search_point"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:focusable="false"
-                android:hint="@string/hint_search_point"
-                android:imeOptions="flagNoExtractUi|actionSearch"
-                android:inputType="textCapSentences"
-                android:transitionName="@string/searchview_transition_name" />
-
-        </android.support.design.widget.TextInputLayout>
-
+            android:layout_height="wrap_content"
+            android:focusable="false"
+            android:hint="@string/hint_search_point"
+            android:imeOptions="flagNoExtractUi|actionSearch"
+            android:inputType="textCapSentences"
+            android:transitionName="@string/searchview_transition_name" />
 
         <ProgressBar
             android:id="@+id/pb_loading_indicator1"
