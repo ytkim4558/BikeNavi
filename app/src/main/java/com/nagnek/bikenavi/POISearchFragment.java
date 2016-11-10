@@ -95,9 +95,6 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback {
         View rootView = inflater.inflate(R.layout.fragment_poisearch, container, false);
         detailPOILayout = (RelativeLayout) rootView.findViewById(R.id.poi_detail_layout);
 
-        if (detailPOILayout.getVisibility() != View.GONE) {
-            detailPOILayout.setVisibility(View.GONE);
-        }
         poiNameView = (TextView) rootView.findViewById(R.id.text_poi_name);
         poiAddressView = (TextView) rootView.findViewById(R.id.text_poi_address);
         bookmarkImageButton = (ImageButton) rootView.findViewById(R.id.bookmark_button);
@@ -456,6 +453,7 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback {
         CameraUpdate center = CameraUpdateFactory.newLatLng(new LatLng(wgs84_x, wgs84_y));
         Log.d("tag", "좌표위치 가져옴" + "Lat:" + latLng.latitude + ", Long : " + latLng.longitude);
         CameraUpdate zoom = CameraUpdateFactory.zoomTo(15);
+        mGoogleMap.clear();
 
         // 카메라 좌표를 검색 지역으로 이동
         mGoogleMap.moveCamera(center);
