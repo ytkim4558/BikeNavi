@@ -17,4 +17,5 @@ public class POI implements Serializable {
     public String created_at;
     public String updated_at;
     public String last_used_at;
+    boolean bookmarked;
 }

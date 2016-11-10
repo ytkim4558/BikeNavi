@@ -41,7 +41,7 @@ import java.util.Map;
 
 import static com.nagnek.bikenavi.util.NagneUtil.getStringFromResources;
 
-public class SearchActivity extends AppCompatActivity implements POIListOfRecentUsedFragment.OnPoiSelectedListener {
+public class SearchActivity extends AppCompatActivity implements POIListOfRecentUsedFragment.OnPoiSelectedListener, POIListOfBookmarkedFragment.OnPoiSelectedListener {
     private static final String TAG = SearchActivity.class.getSimpleName();
     DelayAutoCompleteTextView searchPoint = null;
     TextInputLayout textInputLayout = null;
@@ -51,7 +51,22 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
     private SQLiteHandler db;   // sqlite
 
     @Override
-    public void onPOISelected(POI poi) {
+    public void onBookmarkedPOISelected(POI poi) {
+        if (!session.isSessionLoggedIn()) {
+            if (db != null) {
+                db.updateLastUsedAtPOI(poi.latLng);
+                db.updateLastUsedAtUserPOI(poi);
+                db.updateLastUsedAtBookmarkedPOI(poi);
+                redirectCalledActvity(poi);
+            }
+        } else {
+            addOrUpdatePOIToServer(poi);
+        }
+    }
+
+    // 주의 : 북마크된 리스트를 눌러도 북마크 테이블의 사용시각은 갱신이 안됨. 최근 유저 사용시각만 갱신됨. 북마크의 경우 생성 시각 기준으로 정렬하기 때문에 고려 안함.
+    @Override
+    public void onRecentPOISelected(POI poi) {
         if (!session.isSessionLoggedIn()) {
             if (db != null) {
                 db.updateLastUsedAtPOI(poi.latLng);
@@ -68,8 +83,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
         searchPoint.setText(poi.name);
         Intent intent = new Intent();
         intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.current_point_text_for_transition), searchPoint.getText().toString());
-        intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.select_poi_address_for_transition), poi.address);
-        intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.select_poi_name_for_transition), poi.name);
         String[] splitStr = poi.latLng.split(",");
         Double wgs84_x = Double.parseDouble(splitStr[0]);
         Double wgs84_y = Double.parseDouble(splitStr[1]);
@@ -190,8 +203,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
 
                 Intent intent = new Intent();
                 intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.current_point_text_for_transition), locationName.getText().toString());
-                intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.select_poi_address_for_transition), address);
-                intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.select_poi_name_for_transition), poiName);
                 intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.wgs_84_x), wgs84_x);
                 intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.wgs_84_y), wgs84_y);
                 intent.putExtra(getStringFromResources(SearchActivity.this.getApplicationContext(), R.string.name_purpose_search_point), searchPurpose);
@@ -208,9 +219,9 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
     }
 
     // 유저정보와 POI 정보를 Server에 보내서 서버에 있는 mysql에 저장하기
-    private void addOrUpdatePOIToServer(final POI poi) {
+    private void addOrUpdateBookmarkedPOIToServer(final POI poi) {
         // Tag used to cancel the request
-        String tag_string_req = "req_add_or_update_poi_to_table_bookmark_track";
+        String tag_string_req = "req_add_or_update_poi_to_table_bookmark_poi";
 
         // poi정보와 유저정보를 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
         StringRequest strReq = new StringRequest(Request.Method.POST,
@@ -299,6 +310,109 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
                 params.put("POI_NAME", poi.name);
                 params.put("POI_ADDRESS", poi.address);
                 params.put("POI_LAT_LNG", poi.latLng);
+                params.put("bookmark", "true");
+
+                return params;
+            }
+        };
+
+        // Adding request to request queue
+        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+    }
+
+    // 유저정보와 POI 정보를 Server에 보내서 서버에 있는 mysql에 저장하기
+    private void addOrUpdatePOIToServer(final POI poi) {
+        // Tag used to cancel the request
+        String tag_string_req = "req_add_or_update_poi_to_table_recent_poi";
+
+        // poi정보와 유저정보를 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
+        StringRequest strReq = new StringRequest(Request.Method.POST,
+                AppConfig.URL_POI_REGISTER_OR_UPDATE, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "POI add or update Response: " + response);
+                hideDialog();
+
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    boolean error = jsonObject.getBoolean("error");
+
+                    // Check for error node in json
+                    if (!error) {
+                        // Now store or update the poi in SQLite
+                        JSONObject poiObject = jsonObject.getJSONObject("poi");
+                        Log.d(TAG, "poi : " + poiObject.toString());
+                        redirectCalledActvity(poi);
+                    } else {
+                        // Error in login. Get the error message
+                        String errorMsg = jsonObject.getString("error_msg");
+                        Toast.makeText(getApplicationContext(),
+                                errorMsg, Toast.LENGTH_LONG).show();
+                    }
+                } catch (JSONException e) {
+                    // JSON error
+                    e.printStackTrace();
+                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                if (error instanceof TimeoutError) {
+                    Log.e(TAG, "POI 등록 또는 업데이트 에러 : 서버 응답시간이 초과되었습니다." + error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            "POI 등록 또는 업데이트 에러 : 서버가 응답하지 않습니다." + error.getMessage(), Toast.LENGTH_LONG).show();
+                } else if (error instanceof ServerError) {
+                    Log.e(TAG, "서버 에러래" + error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            "POI 등록 또는 업데이트 에러 : 서버 Error." + error.getMessage(), Toast.LENGTH_LONG).show();
+                } else {
+                    Log.e(TAG, error.getMessage());
+                    VolleyLog.e(TAG, error.getMessage());
+                    Toast.makeText(getApplicationContext(),
+                            error.getMessage(), Toast.LENGTH_LONG).show();
+                }
+                hideDialog();
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                // Posting parameters to login url
+                Map<String, String> params = new HashMap<String, String>();
+                // 로그인 한 경우
+                SQLiteHandler.UserType loginUserType = session.getUserType();
+                HashMap<String, String> user = db.getLoginedUserDetails(loginUserType);
+
+                switch (loginUserType) {
+                    case BIKENAVI:
+                        String email = user.get(SQLiteHandler.KEY_EMAIL);
+                        params.put("email", email);
+                        Log.d(TAG, "bikenavi타입 유저네" + email);
+                        break;
+                    case GOOGLE:
+                        String googleemail = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
+                        params.put("googleemail", googleemail);
+                        Log.d(TAG, "구글 유저네" + googleemail);
+                        break;
+                    case KAKAO:
+                        String kakaoId = user.get(SQLiteHandler.KEY_KAKAO_ID);
+                        params.put("kakaoid", kakaoId);
+                        Log.d(TAG, "카카오 유저네" + kakaoId);
+                        break;
+                    case FACEBOOK:
+                        String facebookId = user.get(SQLiteHandler.KEY_FACEBOOK_ID);
+                        params.put("facebookid", facebookId);
+                        Log.d(TAG, "페북 유저네" + facebookId);
+                        break;
+                }
+                // poi를 final로 선언한 이유가 이곳에서 error 떠서 인데 나중에
+                // poi정보를 서버측에서 바꾼다면.. 뭐 상관없나 값이 바뀌는거야.. 객체가 삭제되는게 아니니까 =_=a;
+                params.put("POI_NAME", poi.name);
+                params.put("POI_ADDRESS", poi.address);
+                params.put("POI_LAT_LNG", poi.latLng);
+                params.put("recent", "true");
 
                 return params;
             }

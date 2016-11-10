@@ -349,16 +349,16 @@ public class TrackSettingFragment extends Fragment implements TrackListOfRecentU
         if (requestCode == SEARCH_INTEREST_POINT) { // 장소검색 요청한게 돌아온 경우
             Log.d(TAG, "SEARCH_INTEREST_POINT_TRACK_SETTING_FRAGMENT");
             if (resultCode == Activity.RESULT_OK) {// 장소 검색 결과 리턴
+                POI currentpoi = (POI) data.getSerializableExtra(NagneUtil.getStringFromResources(getActivity(), R.string.current_point_poi_for_transition));
                 String purposePoint = data.getStringExtra(NagneUtil.getStringFromResources(getActivity(), R.string.name_purpose_search_point));
                 Log.d(TAG, "장소입력한 곳은? " + purposePoint);
-                String selectPoint = data.getStringExtra(NagneUtil.getStringFromResources(getActivity(), R.string.select_poi_name_for_transition));
-                String address = data.getStringExtra(NagneUtil.getStringFromResources(getActivity(), R.string.select_poi_address_for_transition));
+                String selectPointName = currentpoi.name;
                 if (purposePoint.equals("출발")) {
-                    start_point.setText(selectPoint);
-                    start_poi = (POI) data.getSerializableExtra(NagneUtil.getStringFromResources(getActivity(), R.string.current_point_poi_for_transition));
+                    start_point.setText(selectPointName);
+                    start_poi = currentpoi;
                 } else if (purposePoint.equals("도착")) {
-                    dest_point.setText(selectPoint);
-                    dest_poi = (POI) data.getSerializableExtra(NagneUtil.getStringFromResources(getActivity(), R.string.current_point_poi_for_transition));
+                    dest_point.setText(selectPointName);
+                    dest_poi = currentpoi;
                 } else {
                     Log.d(TAG, "purposePoint에 값이 없나? 아님 이상한가?");
                 }

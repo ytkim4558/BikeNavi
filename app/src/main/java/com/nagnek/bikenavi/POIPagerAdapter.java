@@ -37,7 +37,7 @@ public class POIPagerAdapter extends FragmentPagerAdapter {
             case 0:
                 return new POIListOfRecentUsedFragment();
             case 1:
-                return new POIListOfRecentUsedFragment();
+                return new POIListOfBookmarkedFragment();
         }
 
         return null;

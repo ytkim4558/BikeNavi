@@ -82,7 +82,7 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
             }
         }
 
-        rv = (RecyclerView) rootView.findViewById(R.id.recenet_search_recyclerView);
+        rv = (RecyclerView) rootView.findViewById(R.id.bookmarked_recyclerView);
         rv.setHasFixedSize(true);
 
         rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -212,6 +212,7 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
                 params.put("POI_NAME", poi.name);
                 params.put("POI_ADDRESS", poi.address);
                 params.put("POI_LAT_LNG", poi.latLng);
+                params.put("recent", "true");
 
                 return params;
             }
@@ -333,6 +334,7 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
                 poi.created_at = jsonObject.getString(SQLiteHandler.KEY_CREATED_AT);
                 poi.updated_at = jsonObject.getString(SQLiteHandler.KEY_UPDATED_AT);
                 poi.last_used_at = jsonObject.getString(SQLiteHandler.KEY_LAST_USED_AT);
+                poi.bookmarked = jsonObject.getBoolean("bookmarked");
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -368,11 +370,11 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
 
     @Override
     public void poiClickToSet(POI poi) {
-        mCallback.onPOISelected(poi);
+        mCallback.onRecentPOISelected(poi);
     }
 
     // 액티비티는 항상 이 인터페이스를 구현 해야한다
     public interface OnPoiSelectedListener {
-        void onPOISelected(POI poi);
+        void onRecentPOISelected(POI poi);
     }
 }

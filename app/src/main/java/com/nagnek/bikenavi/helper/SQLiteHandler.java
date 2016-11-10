@@ -618,6 +618,38 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     }
 
     /**
+     * Storing bookmarked poi detailes in database
+     */
+    public void addBookmarkedPOI(POI poi) {
+        Gson gson = new Gson();
+        if (!checkIFBookmarkedPOIExists(poi)) {
+            SQLiteDatabase db = this.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+            values.put(KEY_POI_ID, getPOIID(poi));
+            Log.d(TAG, "values.put 장소 아이디 : " + getPOIID(poi));
+
+            String created_at = getDateTime();
+            values.put(KEY_CREATED_AT, created_at); // created_at
+            Log.d(TAG, "values.put created_at: " + created_at);
+
+            values.put(KEY_UPDATED_AT, created_at); // created_at 값 복사 , 어차피 같은 시각이므로
+            Log.d(TAG, "values.put updated_at: " + created_at);
+
+            values.put(KEY_LAST_USED_AT, created_at); // created_at 값 복사
+            Log.d(TAG, "values.put last_used_at: " + created_at);
+
+            // Inserting Row
+            long id = db.insert(TABLE_BOOKMARK_POI, null, values);
+            db.close(); // Closing database connection
+
+            Log.d(TAG, "New bookmarked poi inserted into sqlite: " + id);
+        } else {
+            Log.d(TAG, "poi already existed in sqlite bookmarekd poi table: " + gson.toJson(poi));
+        }
+    }
+
+    /**
      * Storing poi detailes in database
      */
     public void addPOI(POI poi) {
@@ -733,6 +765,57 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         }
 
         return lastUsedAt;
+    }
+
+    // 사용한 시각 내림차순으로 정렬됨.
+    public List<POI> getAllLocalUserBookmarkPOI() {
+
+        List<POI> poiDetails = new ArrayList<>();
+
+        String POI_DETAIL_SELECT_QUERY_ORDER_BY_LAST_USED_AT =
+                "SELECT " + KEY_POI_ID + " FROM " + TABLE_BOOKMARK_POI + " ORDER BY " + KEY_CREATED_AT + " ASC";
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(POI_DETAIL_SELECT_QUERY_ORDER_BY_LAST_USED_AT, null);
+
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    int poiID = cursor.getInt(cursor.getColumnIndex(KEY_POI_ID));
+
+                    String POI_SELECT_QUERY =
+                            "SELECT * FROM " + TABLE_POI + " WHERE " + KEY_ID + " = " + poiID;
+
+                    SQLiteDatabase db2 = getReadableDatabase();
+                    Cursor cursor2 = db2.rawQuery(POI_SELECT_QUERY, null);
+
+                    try {
+                        if (cursor2.moveToFirst()) {
+                            POI poi = new POI();
+                            poi.name = cursor2.getString(cursor2.getColumnIndex(KEY_POI_NAME));
+                            poi.address = cursor2.getString(cursor2.getColumnIndex(KEY_POI_ADDRESS));
+                            poi.latLng = cursor2.getString(cursor2.getColumnIndex(KEY_POI_LAT_LNG));
+
+                            poiDetails.add(poi);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error while trying to get posts from database", e);
+                    } finally {
+                        if (cursor2 != null && !cursor2.isClosed()) {
+                            cursor2.close();
+                        }
+                    }
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error while trying to get posts from database", e);
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return poiDetails;
     }
 
     // 사용한 시각 내림차순으로 정렬됨.
@@ -926,6 +1009,10 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         }
     }
 
+    public boolean checkIFBookmarkedPOIExists(POI poi) {
+        return checkIfExists(KEY_ID, TABLE_BOOKMARK_POI, KEY_POI_ID, getPOIID(poi));
+    }
+
     public boolean checkIFBookmarkedTrackExists(Track track) {
         return checkIfExists(KEY_ID, TABLE_BOOKMARK_TRACK, KEY_TRACK_ID, getTrackIDUsingTrack(track));
     }
@@ -958,6 +1045,28 @@ public class SQLiteHandler extends SQLiteOpenHelper {
             Log.d(TAG, "New track inserted into sqlite: " + id);
         } else {
             Log.d(TAG, "trackinfo already existed in sqlite: " + gson.toJson(track));
+        }
+    }
+
+    public void updateLastUsedAtBookmarkedPOI(POI poi) {
+        Gson gson = new Gson();
+        if (checkIFBookmarkedPOIExists(poi)) {
+            SQLiteDatabase db = this.getWritableDatabase();
+
+            ContentValues values = new ContentValues();
+
+            String last_used_at = getDateTime();
+
+            values.put(KEY_LAST_USED_AT, last_used_at); // 현재 시각
+            Log.d(TAG, "values.put last_used_at: " + last_used_at);
+
+            // Inserting Row
+            long id = db.update(TABLE_BOOKMARK_POI, values, KEY_POI_ID + " = " + getPOIID(poi), null);
+            db.close(); // Closing database connection
+
+            Log.d(TAG, "update bookmark poi into sqlite: " + id);
+        } else {
+            Log.d(TAG, "poiinfo not existed in sqlite bookmarked poi table: " + gson.toJson(poi));
         }
     }
 
@@ -1231,7 +1340,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         List<Track> bookmarkedTrackDetails = new ArrayList<>();
 
         String BOOKMARKED_TRACK_DETAIL_SELECT_QUERY_ORDER_BY_CREATED_AT =
-                "SELECT " + KEY_TRACK_ID + " FROM " + TABLE_BOOKMARK_TRACK + " ORDER BY " + KEY_CREATED_AT + " DESC";
+                "SELECT " + KEY_TRACK_ID + " FROM " + TABLE_BOOKMARK_TRACK + " ORDER BY " + KEY_CREATED_AT + " ASC";
 
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(BOOKMARKED_TRACK_DETAIL_SELECT_QUERY_ORDER_BY_CREATED_AT, null);
@@ -1276,6 +1385,22 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         return bookmarkedTrackDetails;
     }
 
+    /**
+     * bookmark poi 정보 삭제
+     */
+    public void deleteBookmarkedPOIRow(POI poi) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        try {
+            db.beginTransaction();
+            db.execSQL("delete from " + TABLE_BOOKMARK_POI + " where " + KEY_POI_ID + " = " + getPOIID(poi));
+            db.setTransactionSuccessful();
+        } catch (SQLException e) {
+            Log.e(TAG, "Error while tryign to delete user detail", e);
+        } finally {
+            db.endTransaction();
+        }
+    }
 
     /**
      * bookmark track 정보 삭제

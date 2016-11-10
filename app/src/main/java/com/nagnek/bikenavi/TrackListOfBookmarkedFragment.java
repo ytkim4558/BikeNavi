@@ -68,7 +68,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_bookmarked_track, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_bookmarked, container, false);
         Log.d(TAG, "inflater.inflate");
         db = SQLiteHandler.getInstance(getContext().getApplicationContext());
         Log.d(TAG, "SQLiteHandler.getInstance");
@@ -82,7 +82,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
         //Initializing ProgressBar
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
 
-        rv = (RecyclerView) rootView.findViewById(R.id.recenet_search_recyclerView);
+        rv = (RecyclerView) rootView.findViewById(R.id.bookmarked_recyclerView);
         rv.setHasFixedSize(true);
 
         if (session.isSessionLoggedIn()) {
