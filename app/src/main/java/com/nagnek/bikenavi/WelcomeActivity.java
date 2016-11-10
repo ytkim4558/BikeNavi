@@ -10,15 +10,8 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
-import com.facebook.login.LoginManager;
-import com.kakao.network.ErrorResult;
-import com.kakao.usermgmt.UserManagement;
-import com.kakao.usermgmt.callback.LogoutResponseCallback;
-import com.nagnek.bikenavi.activity.LoginActivity;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.helper.SessionManager;
 
@@ -30,7 +23,6 @@ import java.util.HashMap;
 public class WelcomeActivity extends AppCompatActivity {
     private static final String TAG = WelcomeActivity.class.getSimpleName();
     private TextView textEmail;
-    private Button btnLogout;
 
     private SQLiteHandler db;
     private SessionManager sessionManager;
@@ -44,7 +36,6 @@ public class WelcomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_welcome);
 
         textEmail = (TextView) findViewById(R.id.email);
-        btnLogout = (Button) findViewById(R.id.btnLogout);
 
         // SqLite database handler
         db = SQLiteHandler.getInstance(getApplicationContext());
@@ -77,94 +68,9 @@ public class WelcomeActivity extends AppCompatActivity {
         // Displaying th euser details on the screen
         textEmail.setText(email + "님 환영합니다.");
 
-        // Logout button click event
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                logoutUser();
-            }
-        });
-
         mSplashLodingHandler = new Handler();
         mSplashRunnable = new SplashRunnable();
         mSplashLodingHandler.postDelayed(mSplashRunnable, 3000);
-    }
-
-    /**
-     * Logging out the user. Will set isLoggedIn flag to false in shared
-     * preferences Clears the user data from sqlite users table
-     */
-    private void logoutUser() {
-        db.deleteUsers();
-        mSplashLodingHandler.removeCallbacks(mSplashRunnable);
-        if (sessionManager.isLoggedIn()) {
-            sessionManager.setLogin(false);
-            redirectLoginActivity();
-        } else if (sessionManager.isGoogleLoggedIn()) {
-            sessionManager.setGoogleLogin(false);
-            redirectLoginActivity();
-        } else if (sessionManager.isKakaoLoggedIn()) {
-            Log.d(TAG, "카카오로갓");
-            sessionManager.setKakaoLogin(false);
-            UserManagement.requestLogout(new LogoutResponseCallback() {
-                @Override
-                public void onCompleteLogout() {
-                    Log.d(TAG, "로갓 성공");
-                    redirectLoginActivity();
-                }
-
-                @Override
-                public void onFailure(ErrorResult errorResult) {
-
-                    super.onFailure(errorResult);
-                    redirectLoginActivity();
-                }
-
-                @Override
-                public void onSessionClosed(ErrorResult errorResult) {
-
-                    super.onSessionClosed(errorResult);
-                    redirectLoginActivity();
-                }
-
-                @Override
-                public void onSuccess(Long result) {
-                    super.onSuccess(result);
-                    redirectLoginActivity();
-                }
-
-                @Override
-                public void onNotSignedUp() {
-                    super.onNotSignedUp();
-                    redirectLoginActivity();
-                }
-
-                @Override
-                public void onDidEnd() {
-                    super.onDidEnd();
-                    redirectLoginActivity();
-                }
-
-                @Override
-                public void onFailureForUiThread(ErrorResult errorResult) {
-                    super.onFailureForUiThread(errorResult);
-                    redirectLoginActivity();
-                }
-
-            });
-        } else if (sessionManager.isFacebookIn()) {
-            sessionManager.setFacebookLogin(false);
-            LoginManager.getInstance().logOut();
-            redirectLoginActivity();
-        } else {
-            redirectLoginActivity();
-        }
-    }
-
-    private void redirectLoginActivity() { // Launching the login activity
-        Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
-        startActivity(intent);
-        finish();
     }
 
     // 로딩화면

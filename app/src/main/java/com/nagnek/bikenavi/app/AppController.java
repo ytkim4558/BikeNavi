@@ -65,6 +65,7 @@ public class AppController extends Application {
     private Thread.UncaughtExceptionHandler mUncaughtExceptionhandler;
     private ImageLoader imageLoader;
     private RequestQueue mRequestQueue;
+    private SessionManager session; // 로그인했는지 확인용 변수
 
     /**
      * 카카오톡
@@ -120,6 +121,9 @@ public class AppController extends Application {
          * 이미지 로더, 이미지 캐시, 요청 큐를 초기화한다.
          */
         instance = this;
+
+        // Session manager
+        session = new SessionManager(getApplicationContext());
 
         KakaoSDK.init(new KakaoSDKAdapter());
 
@@ -203,7 +207,9 @@ public class AppController extends Application {
             @Override
             protected HashMap<String, String> getParams() {
                 HashMap<String, String> mRequestParams = new HashMap<String, String>();
-                mRequestParams = inputUserInfoToInputParams(mRequestParams);
+                if (session.isSessionLoggedIn()) {
+                    mRequestParams = inputUserInfoToInputParams(mRequestParams);
+                }
                 mRequestParams.put("MESSAGE", errorMessage);
 
                 return mRequestParams;

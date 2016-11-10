@@ -20,6 +20,7 @@ public class AppConfig {
     public static String URL_POI_REGISTER_OR_UPDATE = "http://" + HOSTING_IP + "/android_login_api/request_add_or_update_poi.php";  // poi 정보를 추가하거나 업데이트
     public static String URL_POI_DELETE = "http://" + HOSTING_IP + "/android_login_api/request_delete_poi.php";  // poi 정보를 삭제
     public static String URL_POILIST_LOAD = "http://" + HOSTING_IP + "/android_login_api/request_range_user_poi.php";  // poi 정보를 추가하거나 업데이트
+    public static String URL_GET_LAST_UESD_POI = "http://" + HOSTING_IP + "/android_login_api/request_last_used_user_poi.php";  // 마지막에 사용한 POI 가져오기
     public static String URL_TRACK_LIST_LOAD = "http://" + HOSTING_IP + "/android_login_api/request_range_user_track.php";  // poi 정보를 추가하거나 업데이트
     public static String URL_USER_TRACK_REGISTER_OR_UPDATE = "http://" + HOSTING_IP + "/android_login_api/request_add_or_update_user_track.php";   // 현재 경로를 유저의 최근,북마크 테이블에 추가, 수정하기 위한 주소
     public static String URL_USER_TRACK_DELETE = "http://" + HOSTING_IP + "/android_login_api/request_delete_user_track.php";   // 현재 경로삭제 하기 위한 주소

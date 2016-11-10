@@ -819,6 +819,53 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     }
 
     // 사용한 시각 내림차순으로 정렬됨.
+    public POI getLastUserPOI() {
+
+        POI poi = null;
+
+        String POI_DETAIL_SELECT_QUERY_ORDER_BY_LAST_USED_AT =
+                "SELECT " + KEY_POI_ID + " FROM " + TABLE_USER_POI + " ORDER BY " + KEY_LAST_USED_AT + " DESC";
+
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(POI_DETAIL_SELECT_QUERY_ORDER_BY_LAST_USED_AT, null);
+
+        try {
+            if (cursor.moveToFirst()) {
+                int poiID = cursor.getInt(cursor.getColumnIndex(KEY_POI_ID));
+
+                String POI_SELECT_QUERY =
+                        "SELECT * FROM " + TABLE_POI + " WHERE " + KEY_ID + " = " + poiID;
+
+                SQLiteDatabase db2 = getReadableDatabase();
+                Cursor cursor2 = db2.rawQuery(POI_SELECT_QUERY, null);
+
+                try {
+                    if (cursor2.moveToFirst()) {
+                        poi = new POI();
+                        poi.name = cursor2.getString(cursor2.getColumnIndex(KEY_POI_NAME));
+                        poi.address = cursor2.getString(cursor2.getColumnIndex(KEY_POI_ADDRESS));
+                        poi.latLng = cursor2.getString(cursor2.getColumnIndex(KEY_POI_LAT_LNG));
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error while trying to get posts from database", e);
+                } finally {
+                    if (cursor2 != null && !cursor2.isClosed()) {
+                        cursor2.close();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error while trying to get posts from database", e);
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+
+        return poi;
+    }
+
+    // 사용한 시각 내림차순으로 정렬됨.
     public List<POI> getAllLocalUserPOI() {
 
         List<POI> poiDetails = new ArrayList<>();
