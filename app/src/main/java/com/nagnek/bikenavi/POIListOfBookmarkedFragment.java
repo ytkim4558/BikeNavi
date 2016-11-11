@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -45,11 +46,11 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
     RecyclerView rv;
     SQLiteHandler.UserType loginUserType;
     HashMap<String, String> user;
+    ProgressBar progressBar;
     private List<POI> poiList;
     private SessionManager session; // 로그인했는지 확인용 변수
     //The request counter to send ?page=1, ?page=2  requests
     private int requestCount = 1;
-
     private SwipeRefreshLayout mSwipeRefresh;
 
     public POIListOfBookmarkedFragment() {
@@ -81,6 +82,10 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
         poiList = new ArrayList<>();
 
         mSwipeRefresh = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_layout);
+
+        //Initializing ProgressBar
+        progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
+
         //색상지정
         mSwipeRefresh.setOnRefreshListener(this);
         mSwipeRefresh.setColorSchemeResources(R.color.blue, R.color.red, R.color.yellow, R.color.black);
@@ -119,10 +124,8 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
         });
 
         if (session.isSessionLoggedIn()) {
-            //Displaying Progressbar
             adapter = new POIListOfBookmarkedAdapter(getActivity(), poiList, this);
         } else {
-            mSwipeRefresh.setRefreshing(false);
             adapter = new POIListOfBookmarkedAdapter(getActivity(), db.getAllLocalUserBookmarkPOI(), this);
         }
         rv.setAdapter(adapter);
@@ -158,7 +161,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
         // Tag used to cancel the request
         String tag_string_req = "req_delete_bookmark_user_poi";
 
-        mSwipeRefresh.setRefreshing(true);
+        progressBar.setVisibility(View.VISIBLE);
 
         // id 와 이름을 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
         StringRequest strReq = new StringRequest(Request.Method.POST,
@@ -166,7 +169,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
             @Override
             public void onResponse(String response) {
                 Log.d(TAG, "USER POI DELETE Response: " + response);
-                mSwipeRefresh.setRefreshing(false);
+                progressBar.setVisibility(View.GONE);
 
                 try {
                     JSONObject jsonObject = new JSONObject(response);
@@ -203,7 +206,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
                     VolleyLog.e(TAG, error.getMessage());
                     showAlertDialogMessage(error.getMessage());
                 }
-                mSwipeRefresh.setRefreshing(false);
+                progressBar.setVisibility(View.GONE);
             }
         }) {
             @Override
@@ -234,7 +237,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
         String tag_string_req = "req_range_bookmark_poi";
 
         // progressbar 보여주기
-        mSwipeRefresh.setRefreshing(true);
+        progressBar.setVisibility(View.VISIBLE);
 
         //JsonArrayRequest of volley
         final StringRequest strReq = new StringRequest(Request.Method.POST, AppConfig.URL_POILIST_LOAD,
@@ -261,6 +264,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
 
                         //Hiding the progressbar
                         mSwipeRefresh.setRefreshing(false);
+                        progressBar.setVisibility(View.GONE);
                     }
                 },
 
@@ -268,6 +272,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         mSwipeRefresh.setRefreshing(false);
+                        progressBar.setVisibility(View.GONE);
                         //If an error occurs that means end of the list has reached
                         showAlertDialogMessage(error.getMessage());
                     }
@@ -386,6 +391,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
     @Override
     public void onRefresh() {
         requestCount = 1;
+        mSwipeRefresh.setRefreshing(true);
         if (session.isSessionLoggedIn()) {
             try {
                 poiList.clear();

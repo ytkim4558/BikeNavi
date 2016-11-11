@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -52,6 +53,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
     SQLiteHandler db;
     TrackListOfBookmarkedAdapter adapter;
     RecyclerView rv;
+    ProgressBar progressBar;
     SQLiteHandler.UserType loginUserType;
     HashMap<String, String> user;
     private SessionManager session; // 로그인했는지 확인용 변수
@@ -87,6 +89,9 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
         // trackList 초기화
         trackList = new ArrayList<>();
 
+        //Initializing ProgressBar
+        progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
+
         mSwipeRefresh = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_layout);
 
         mSwipeRefresh.setOnRefreshListener(this);
@@ -107,7 +112,6 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
 
         // 로그과 비로그인 유저 구별
         if (session.isSessionLoggedIn()) {
-            // Displaying Progressbar
             adapter = new TrackListOfBookmarkedAdapter(getContext().getApplicationContext(), trackList, this);
         } else {
             adapter = new TrackListOfBookmarkedAdapter(getContext().getApplicationContext(), db.getAllBookmarkedTrack(), this);
@@ -179,7 +183,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
         // Tag used to cancel the request
         String tag_string_req = "req_delete_bookmark_user_track";
 
-        mSwipeRefresh.setRefreshing(true);
+        progressBar.setVisibility(View.VISIBLE);
 
         // id 와 이름을 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
         StringRequest strReq = new StringRequest(Request.Method.POST,
@@ -187,7 +191,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
             @Override
             public void onResponse(String response) {
                 Log.d(TAG, "USER TRACK DELETE Response: " + response);
-                mSwipeRefresh.setRefreshing(false);
+                progressBar.setVisibility(View.GONE);
 
                 try {
                     JSONObject jsonObject = new JSONObject(response);
@@ -225,9 +229,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
                     showAlertDialogMessage(error.getMessage());
                 }
 
-                Toast.makeText(getContext().getApplicationContext(),
-                        error.getMessage(), Toast.LENGTH_LONG).show();
-                mSwipeRefresh.setRefreshing(false);
+                progressBar.setVisibility(View.GONE);
             }
         }) {
             @Override
@@ -284,15 +286,21 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
     //This integer will used to specify the page number for the request ?page = requestcount
     //This method would return a JsonArrayRequest that will be added to the request queue
     private StringRequest getDataFromServer(final int requestCount) throws JSONException {
-
+        if (requestCount == 1) {
+            // 첫번째 페이지일때는 recyclerview를 gone시켜서 progressbar를 위로 띄운다.
+            rv.setVisibility(View.GONE);
+        }
         // progressbar 보여주기
-        mSwipeRefresh.setRefreshing(true);
+        progressBar.setVisibility(View.VISIBLE);
 
         //JsonArrayRequest of volley
         final StringRequest strReq = new StringRequest(Request.Method.POST, AppConfig.URL_TRACK_LIST_LOAD,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        if (requestCount == 1) {
+                            rv.setVisibility(View.VISIBLE);
+                        }
                         //Calling method parsePOIList to parse the json response
                         try {
                             Log.d(TAG, "response : " + response);
@@ -313,6 +321,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
 
                         //Hiding the progressbar
                         mSwipeRefresh.setRefreshing(false);
+                        progressBar.setVisibility(View.GONE);
                     }
                 },
 
@@ -320,6 +329,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         mSwipeRefresh.setRefreshing(false);
+                        progressBar.setVisibility(View.GONE);
                         //If an error occurs that means end of the list has reached
                         showAlertDialogMessage(error.getMessage());
                     }
@@ -426,6 +436,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
     @Override
     public void onRefresh() {
         requestCount = 1;
+        mSwipeRefresh.setRefreshing(true);
         if (session.isSessionLoggedIn()) {
             try {
                 trackList.clear();
@@ -434,6 +445,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
                 e.printStackTrace();
             }
         } else {
+            adapter.refresh();
             mSwipeRefresh.setRefreshing(false);
         }
     }

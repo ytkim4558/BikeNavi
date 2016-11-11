@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -45,6 +46,7 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
     RecyclerView rv;
     SQLiteHandler.UserType loginUserType;
     HashMap<String, String> user;
+    ProgressBar progressBar;
     private List<POI> poiList;
     private SessionManager session; // 로그인했는지 확인용 변수
     private SwipeRefreshLayout mSwipeRefresh;
@@ -75,6 +77,9 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
         poiList = new ArrayList<>();
 
         mSwipeRefresh = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_layout);
+
+        //Initializing ProgressBar
+        progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
 
         if (session.isSessionLoggedIn()) {
             loginUserType = session.getUserType();
@@ -117,7 +122,6 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
         });
 
         if (session.isSessionLoggedIn()) {
-            //Displaying Progressbar
             adapter = new POIListOfRecentUsedAdapter(getActivity(), poiList, this);
         } else {
             adapter = new POIListOfRecentUsedAdapter(getActivity(), db.getAllLocalUserPOI(), this);
@@ -155,7 +159,7 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
         // Tag used to cancel the request
         String tag_string_req = "req_delete_user_poi";
 
-        mSwipeRefresh.setRefreshing(true);
+        progressBar.setVisibility(View.VISIBLE);
 
         // id 와 이름을 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
         StringRequest strReq = new StringRequest(Request.Method.POST,
@@ -163,7 +167,7 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
             @Override
             public void onResponse(String response) {
                 Log.d(TAG, "USER POI DELETE Response: " + response);
-                mSwipeRefresh.setRefreshing(false);
+                progressBar.setVisibility(View.GONE);
 
                 try {
                     JSONObject jsonObject = new JSONObject(response);
@@ -200,7 +204,7 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
                     VolleyLog.e(TAG, error.getMessage());
                     showAlertDialogMessage(error.getMessage());
                 }
-                mSwipeRefresh.setRefreshing(false);
+                progressBar.setVisibility(View.GONE);
             }
         }) {
             @Override
@@ -226,12 +230,12 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
     //This integer will used to specify the page number for the request ?page = requestcount
     //This method would return a JsonArrayRequest that will be added to the request queue
     private StringRequest getDataFromServer(final int requestCount) throws JSONException {
-
-        // Tag used to cancel the request
-        String tag_string_req = "req_range_recent_poi";
-
+        if (requestCount == 1) {
+            // 첫번째 페이지일때는 recyclerview를 gone시켜서 progressbar를 위로 띄운다.
+            rv.setVisibility(View.GONE);
+        }
         // progressbar 보여주기
-        mSwipeRefresh.setRefreshing(true);
+        progressBar.setVisibility(View.VISIBLE);
 
         //JsonArrayRequest of volley
         final StringRequest strReq = new StringRequest(Request.Method.POST, AppConfig.URL_POILIST_LOAD,
@@ -258,6 +262,7 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
 
                         //Hiding the progressbar
                         mSwipeRefresh.setRefreshing(false);
+                        progressBar.setVisibility(View.GONE);
                     }
                 },
 
@@ -265,6 +270,7 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         mSwipeRefresh.setRefreshing(false);
+                        progressBar.setVisibility(View.GONE);
                         //If an error occurs that means end of the list has reached
                         showAlertDialogMessage(error.getMessage());
                     }
@@ -383,6 +389,7 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
     @Override
     public void onRefresh() {
         requestCount = 1;
+        mSwipeRefresh.setRefreshing(true);
         if (session.isSessionLoggedIn()) {
             try {
                 poiList.clear();
