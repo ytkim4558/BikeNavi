@@ -4,8 +4,10 @@
 
 package com.nagnek.bikenavi;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -87,25 +89,21 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
 
         rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-
-                //onScrollStateChanged will be fire every time you scroll
-                //Perform your operation here
-
-                // ifscrolled at last then
-                if (isLastItemDisplaying(recyclerView)) {
-                    // Calling the method getdata again
-                    try {
-                        if (session.isSessionLoggedIn()) {
-                            getData();
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0) {
+                    // check for scroll down
+                    if (isLastItemDisplaying(recyclerView)) {
+                        // Calling the method getdata again
+                        try {
+                            if (session.isSessionLoggedIn()) {
+                                getData();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Log.e(TAG, e.toString());
                         }
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        Log.e(TAG, e.toString());
                     }
                 }
-
             }
         });
 
@@ -251,8 +249,7 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
                             } else {
                                 // Error in login. Get the error message
                                 String errorMsg = jsonObject.getString("error_msg");
-                                Toast.makeText(getContext().getApplicationContext(),
-                                        errorMsg, Toast.LENGTH_LONG).show();
+                                showAlertDialogMessage(errorMsg);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -268,7 +265,7 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
                     public void onErrorResponse(VolleyError error) {
                         progressBar.setVisibility(View.GONE);
                         //If an error occurs that means end of the list has reached
-                        Toast.makeText(getContext().getApplicationContext(), "더 이상 장소가 없습니다.", Toast.LENGTH_SHORT).show();
+                        showAlertDialogMessage(error.getMessage());
                     }
                 }) {
             @Override
@@ -284,6 +281,18 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
 
         //Returning the request
         return strReq;
+    }
+
+    void showAlertDialogMessage(String message) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
+        alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();   // 닫기
+            }
+        });
+        alert.setMessage(message);
+        alert.show();
     }
 
     private HashMap<String, String> inputUserInfoToInputParams(HashMap<String, String> params) {

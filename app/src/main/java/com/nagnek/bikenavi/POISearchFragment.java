@@ -142,8 +142,7 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback, G
                             } else {
                                 // Error in login. Get the error message
                                 String errorMsg = jsonObject.getString("error_msg");
-                                Toast.makeText(getContext().getApplicationContext(),
-                                        errorMsg, Toast.LENGTH_LONG).show();
+                                showAlertDialogMessage(errorMsg);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -157,7 +156,7 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback, G
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         //If an error occurs that means end of the list has reached
-                        Toast.makeText(getContext().getApplicationContext(), "더 이상 장소가 없습니다.", Toast.LENGTH_SHORT).show();
+                        showAlertDialogMessage(error.getMessage());
                     }
                 }) {
             @Override
@@ -172,6 +171,18 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback, G
 
         // Adding request to request queue
         AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
+    }
+
+    void showAlertDialogMessage(String message) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
+        alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();   // 닫기
+            }
+        });
+        alert.setMessage(message);
+        alert.show();
     }
 
     private HashMap<String, String> inputUserInfoToInputParams(HashMap<String, String> params) {

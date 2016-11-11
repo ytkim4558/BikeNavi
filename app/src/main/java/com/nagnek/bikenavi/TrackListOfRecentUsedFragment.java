@@ -4,8 +4,10 @@
 
 package com.nagnek.bikenavi;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -51,6 +53,8 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
     TrackListOfRecentUsedAdapter adapter;
     RecyclerView rv;
     ProgressBar progressBar;
+    SQLiteHandler.UserType loginUserType;
+    HashMap<String, String> user;
     private SessionManager session; // 로그인했는지 확인용 변수
 
     public TrackListOfRecentUsedFragment() {
@@ -76,6 +80,9 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
         // Session manager
         session = new SessionManager(getContext().getApplicationContext());
 
+        loginUserType = session.getUserType();
+        user = db.getLoginedUserDetails(loginUserType);
+
         // trackList 초기화
         trackList = new ArrayList<>();
 
@@ -84,6 +91,25 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
 
         rv = (RecyclerView) rootView.findViewById(R.id.bookmarked_recyclerView);
         rv.setHasFixedSize(true);
+        rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0) {
+                    // check for scroll down
+                    if (isLastItemDisplaying(recyclerView)) {
+                        // Calling the method getdata again
+                        try {
+                            if (session.isSessionLoggedIn()) {
+                                getData();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Log.e(TAG, e.toString());
+                        }
+                    }
+                }
+            }
+        });
 
         Log.d(TAG, "rootView.findViewById(R.id.recenet_search_recyclerView");
 
@@ -119,6 +145,16 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
         }
 
         return rootView;
+    }
+
+    //This method would check that the recyclerview scroll has reached the bottom or not
+    private boolean isLastItemDisplaying(RecyclerView recyclerView) {
+        if (recyclerView.getAdapter().getItemCount() != 0) {
+            int lastVisibleItemPosition = ((LinearLayoutManager) recyclerView.getLayoutManager()).findLastCompletelyVisibleItemPosition();
+            if (lastVisibleItemPosition != RecyclerView.NO_POSITION && lastVisibleItemPosition == recyclerView.getAdapter().getItemCount() - 1)
+                return true;
+        }
+        return false;
     }
 
     // web api 로부터 데이터 가져오는 함수
@@ -217,8 +253,6 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
     }
 
     private HashMap<String, String> inputUserInfoToInputParams(HashMap<String, String> params) {
-        SQLiteHandler.UserType loginUserType = session.getUserType();
-        HashMap<String, String> user = db.getLoginedUserDetails(loginUserType);
 
         switch (loginUserType) {
             case BIKENAVI:
@@ -264,7 +298,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        //Calling method parsePOIList to parse the json response
+                        //Calling method parseTrackList to parse the json response
                         try {
                             Log.d(TAG, "response : " + response);
                             JSONObject jsonObject = new JSONObject(response);
@@ -276,8 +310,8 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
                             } else {
                                 // Error in login. Get the error message
                                 String errorMsg = jsonObject.getString("error_msg");
-                                Toast.makeText(getContext().getApplicationContext(),
-                                        errorMsg, Toast.LENGTH_LONG).show();
+                                Log.d(TAG, "더 이상 저장된 경로가 없습니다.");
+                                showAlertDialogMessage(errorMsg);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -293,7 +327,10 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
                     public void onErrorResponse(VolleyError error) {
                         progressBar.setVisibility(View.GONE);
                         //If an error occurs that means end of the list has reached
-                        Toast.makeText(getContext().getApplicationContext(), "더 이상 저장된 경로가 없습니다.", Toast.LENGTH_SHORT).show();
+                        if (getContext() != null) {
+                            Log.d(TAG, "더 이상 저장된 경로가 없습니다.");
+                            showAlertDialogMessage(error.getMessage());
+                        }
                     }
                 }) {
             @Override
@@ -309,6 +346,18 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
 
         //Returning the request
         return strReq;
+    }
+
+    void showAlertDialogMessage(String message) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
+        alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();   // 닫기
+            }
+        });
+        alert.setMessage(message);
+        alert.show();
     }
 
     // json Data 파싱
