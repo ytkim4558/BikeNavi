@@ -92,6 +92,9 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
 
         // 새로고침시 돌아가는 애니메이션의 색상을 지정합니다. int color를 넣어준 순서대로 효과가 적용 됩니다.
 
+        rv = (RecyclerView) rootView.findViewById(R.id.bookmark_recyclerView);
+        rv.setHasFixedSize(true);
+
         if (session.isSessionLoggedIn()) {
             try {
                 getData();
@@ -99,9 +102,6 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
                 e.printStackTrace();
             }
         }
-
-        rv = (RecyclerView) rootView.findViewById(R.id.bookmark_recyclerView);
-        rv.setHasFixedSize(true);
 
         rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -232,18 +232,24 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
     //This integer will used to specify the page number for the request ?page = requestcount
     //This method would return a JsonArrayRequest that will be added to the request queue
     private StringRequest getDataFromServer(final int requestCount) throws JSONException {
+        if (requestCount == 1) {
+            // 첫번째 페이지일때는 SwipeRefreshLayout을 gone시켜서 progressbar를 위로 띄운다.
+            mSwipeRefresh.setVisibility(View.GONE);
+        }
 
-        // Tag used to cancel the request
-        String tag_string_req = "req_range_bookmark_poi";
-
-        // progressbar 보여주기
-        progressBar.setVisibility(View.VISIBLE);
+        // progressbar 보여주기 단 refreshing이 아닐때만
+        if (!mSwipeRefresh.isRefreshing()) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
 
         //JsonArrayRequest of volley
         final StringRequest strReq = new StringRequest(Request.Method.POST, AppConfig.URL_POILIST_LOAD,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        if (requestCount == 1) {
+                            mSwipeRefresh.setVisibility(View.VISIBLE);
+                        }
                         //Calling method parsePOIList to parse the json response
                         try {
                             Log.d(TAG, "response : " + response);
@@ -264,7 +270,9 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
 
                         //Hiding the progressbar
                         mSwipeRefresh.setRefreshing(false);
-                        progressBar.setVisibility(View.GONE);
+                        if (progressBar.getVisibility() == View.VISIBLE) {
+                            progressBar.setVisibility(View.GONE);
+                        }
                     }
                 },
 

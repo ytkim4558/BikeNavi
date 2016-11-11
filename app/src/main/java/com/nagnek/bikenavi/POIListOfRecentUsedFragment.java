@@ -87,17 +87,6 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
         }
         mSwipeRefresh.setOnRefreshListener(this);
         mSwipeRefresh.setColorSchemeResources(R.color.blue, R.color.red, R.color.yellow, R.color.black);
-
-        // 새로고침시 돌아가는 애니메이션의 색상을 지정합니다. int color를 넣어준 순서대로 효과가 적용 됩니다.
-
-        if (session.isSessionLoggedIn()) {
-            try {
-                getData();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
         rv = (RecyclerView) rootView.findViewById(R.id.recent_recyclerView);
         rv.setHasFixedSize(true);
 
@@ -120,6 +109,16 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
                 }
             }
         });
+
+        // 새로고침시 돌아가는 애니메이션의 색상을 지정합니다. int color를 넣어준 순서대로 효과가 적용 됩니다.
+
+        if (session.isSessionLoggedIn()) {
+            try {
+                getData();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
 
         if (session.isSessionLoggedIn()) {
             adapter = new POIListOfRecentUsedAdapter(getActivity(), poiList, this);
@@ -231,17 +230,22 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
     //This method would return a JsonArrayRequest that will be added to the request queue
     private StringRequest getDataFromServer(final int requestCount) throws JSONException {
         if (requestCount == 1) {
-            // 첫번째 페이지일때는 recyclerview를 gone시켜서 progressbar를 위로 띄운다.
-            rv.setVisibility(View.GONE);
+            // 첫번째 페이지일때는 SwipeRefreshLayout을 gone시켜서 progressbar를 위로 띄운다.
+            mSwipeRefresh.setVisibility(View.GONE);
         }
-        // progressbar 보여주기
-        progressBar.setVisibility(View.VISIBLE);
+        // progressbar 보여주기 단 refreshing이 아닐때만
+        if (!mSwipeRefresh.isRefreshing()) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
 
         //JsonArrayRequest of volley
         final StringRequest strReq = new StringRequest(Request.Method.POST, AppConfig.URL_POILIST_LOAD,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        if (requestCount == 1) {
+                            mSwipeRefresh.setVisibility(View.VISIBLE);
+                        }
                         //Calling method parsePOIList to parse the json response
                         try {
                             Log.d(TAG, "response : " + response);
@@ -262,7 +266,9 @@ public class POIListOfRecentUsedFragment extends Fragment implements POIListener
 
                         //Hiding the progressbar
                         mSwipeRefresh.setRefreshing(false);
-                        progressBar.setVisibility(View.GONE);
+                        if (progressBar.getVisibility() == View.VISIBLE) {
+                            progressBar.setVisibility(View.GONE);
+                        }
                     }
                 },
 

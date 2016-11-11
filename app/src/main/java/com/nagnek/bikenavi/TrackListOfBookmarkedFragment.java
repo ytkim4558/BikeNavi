@@ -287,11 +287,13 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
     //This method would return a JsonArrayRequest that will be added to the request queue
     private StringRequest getDataFromServer(final int requestCount) throws JSONException {
         if (requestCount == 1) {
-            // 첫번째 페이지일때는 recyclerview를 gone시켜서 progressbar를 위로 띄운다.
-            rv.setVisibility(View.GONE);
+            // 첫번째 페이지일때는 SwipeRefreshLayout을 gone시켜서 progressbar를 위로 띄운다.
+            mSwipeRefresh.setVisibility(View.GONE);
         }
-        // progressbar 보여주기
-        progressBar.setVisibility(View.VISIBLE);
+        // progressbar 보여주기 단 refreshing이 아닐때만
+        if (!mSwipeRefresh.isRefreshing()) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
 
         //JsonArrayRequest of volley
         final StringRequest strReq = new StringRequest(Request.Method.POST, AppConfig.URL_TRACK_LIST_LOAD,
@@ -299,7 +301,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
                     @Override
                     public void onResponse(String response) {
                         if (requestCount == 1) {
-                            rv.setVisibility(View.VISIBLE);
+                            mSwipeRefresh.setVisibility(View.VISIBLE);
                         }
                         //Calling method parsePOIList to parse the json response
                         try {
@@ -321,7 +323,9 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
 
                         //Hiding the progressbar
                         mSwipeRefresh.setRefreshing(false);
-                        progressBar.setVisibility(View.GONE);
+                        if (progressBar.getVisibility() == View.VISIBLE) {
+                            progressBar.setVisibility(View.GONE);
+                        }
                     }
                 },
 

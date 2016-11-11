@@ -715,8 +715,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
     private void resetMarkers() {
         Log.d("tag", "초기화");
         for (Marker marker : this.markers) {
-            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
-            Log.d("tag", "색깔변함");
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
         }
     }
 
