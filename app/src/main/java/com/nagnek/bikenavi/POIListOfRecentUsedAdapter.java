@@ -5,6 +5,8 @@
 package com.nagnek.bikenavi;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -93,6 +95,16 @@ public class POIListOfRecentUsedAdapter extends RecyclerView.Adapter<POIListOfRe
     @Override
     public int getItemCount() {
         return recentPOIList.size();
+    }
+
+    void refresh() {
+        this.recentPOIList = db.getAllLocalUserPOI();
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                notifyDataSetChanged();
+            }
+        });
     }
 
     class RecentPOIListViewHolder extends RecyclerView.ViewHolder {

@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -53,7 +52,6 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
     SQLiteHandler db;
     TrackListOfRecentUsedAdapter adapter;
     RecyclerView rv;
-    ProgressBar progressBar;
     SQLiteHandler.UserType loginUserType;
     HashMap<String, String> user;
     private SessionManager session; // 로그인했는지 확인용 변수
@@ -85,6 +83,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
         mSwipeRefresh = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_layout);
 
         mSwipeRefresh.setOnRefreshListener(this);
+        mSwipeRefresh.setColorSchemeResources(R.color.yellow, R.color.red, R.color.black, R.color.blue);
 
         if (session.isSessionLoggedIn()) {
             loginUserType = session.getUserType();
@@ -93,9 +92,6 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
 
         // trackList 초기화
         trackList = new ArrayList<>();
-
-        //Initializing ProgressBar
-        progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
 
         rv = (RecyclerView) rootView.findViewById(R.id.recent_recyclerView);
         rv.setHasFixedSize(true);
@@ -133,7 +129,6 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
         // 로그인과 비로그인 유저 구별
         if (session.isSessionLoggedIn()) {
             //Displaying Progressbar
-            progressBar.setVisibility(View.VISIBLE);
             adapter = new TrackListOfRecentUsedAdapter(getContext().getApplicationContext(), trackList, this);
         } else {
             adapter = new TrackListOfRecentUsedAdapter(getContext().getApplicationContext(), db.getAllLocalUserTrack(), this);
@@ -184,7 +179,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
         // Tag used to cancel the request
         String tag_string_req = "req_delete_recent_user_track";
 
-        progressBar.setVisibility(View.VISIBLE);
+        mSwipeRefresh.setRefreshing(true);
 
         // id 와 이름을 내 서버(유저 경로 삭제하는 함수가 동작하는 페이지 ip)로 HTTP POST를 이용해 보낸다
         StringRequest strReq = new StringRequest(Request.Method.POST,
@@ -192,7 +187,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
             @Override
             public void onResponse(String response) {
                 Log.d(TAG, "USER TRACK DELETE Response: " + response);
-                progressBar.setVisibility(View.GONE);
+                mSwipeRefresh.setRefreshing(false);
 
                 try {
                     JSONObject jsonObject = new JSONObject(response);
@@ -236,7 +231,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
 
                 Toast.makeText(getContext().getApplicationContext(),
                         error.getMessage(), Toast.LENGTH_LONG).show();
-                progressBar.setVisibility(View.GONE);
+                mSwipeRefresh.setRefreshing(false);
             }
         }) {
             @Override
@@ -299,7 +294,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
         String tag_string_req = "req_range_recent_track";
 
         // progressbar 보여주기
-        progressBar.setVisibility(View.VISIBLE);
+        mSwipeRefresh.setRefreshing(true);
 
         //JsonArrayRequest of volley
         final StringRequest strReq = new StringRequest(Request.Method.POST, AppConfig.URL_TRACK_LIST_LOAD,
@@ -326,7 +321,6 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
                         }
 
                         //Hiding the progressbar
-                        progressBar.setVisibility(View.GONE);
                         mSwipeRefresh.setRefreshing(false);
                     }
                 },
@@ -334,7 +328,6 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        progressBar.setVisibility(View.GONE);
                         mSwipeRefresh.setRefreshing(false);
                         //If an error occurs that means end of the list has reached
                         if (getContext() != null) {
@@ -437,7 +430,6 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
     @Override
     public void onRefresh() {
         requestCount = 1;
-        progressBar.setVisibility(View.VISIBLE);
         if (session.isSessionLoggedIn()) {
             try {
                 trackList.clear();
@@ -446,6 +438,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
                 e.printStackTrace();
             }
         } else {
+            adapter.refresh();
             mSwipeRefresh.setRefreshing(false);
         }
     }

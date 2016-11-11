@@ -5,6 +5,8 @@
 package com.nagnek.bikenavi;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -89,6 +91,16 @@ public class POIListOfBookmarkedAdapter extends RecyclerView.Adapter<POIListOfBo
     @Override
     public int getItemCount() {
         return bookmarkedPOIList.size();
+    }
+
+    void refresh() {
+        this.bookmarkedPOIList = db.getAllLocalUserBookmarkPOI();
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                notifyDataSetChanged();
+            }
+        });
     }
 
     class BookmarkedPOIListViewHolder extends RecyclerView.ViewHolder {
