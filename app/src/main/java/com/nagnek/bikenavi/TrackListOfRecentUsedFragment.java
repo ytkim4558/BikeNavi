@@ -83,7 +83,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
         mSwipeRefresh = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_layout);
 
         mSwipeRefresh.setOnRefreshListener(this);
-        mSwipeRefresh.setColorSchemeResources(R.color.yellow, R.color.red, R.color.black, R.color.blue);
+        mSwipeRefresh.setColorSchemeResources(R.color.blue, R.color.red, R.color.yellow, R.color.black);
 
         if (session.isSessionLoggedIn()) {
             loginUserType = session.getUserType();
