@@ -7,6 +7,7 @@ package com.nagnek.bikenavi;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -37,18 +38,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class POIListOfBookmarkedFragment extends Fragment implements POIListener {
+public class POIListOfBookmarkedFragment extends Fragment implements POIListener, SwipeRefreshLayout.OnRefreshListener {
     private static final String TAG = POIListOfBookmarkedFragment.class.getSimpleName();
     OnPoiSelectedListener mCallback;
     SQLiteHandler db;
     POIListOfBookmarkedAdapter adapter;
     RecyclerView rv;
     ProgressBar progressBar;
+    SQLiteHandler.UserType loginUserType;
+    HashMap<String, String> user;
     private List<POI> poiList;
     private SessionManager session; // 로그인했는지 확인용 변수
-
     //The request counter to send ?page=1, ?page=2  requests
     private int requestCount = 1;
+
+    private SwipeRefreshLayout mSwipeRefresh;
 
     public POIListOfBookmarkedFragment() {
         // Required empty public constructor
@@ -70,11 +74,22 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
         // Session manager
         session = new SessionManager(getContext().getApplicationContext());
 
+        if (session.isSessionLoggedIn()) {
+            loginUserType = session.getUserType();
+            user = db.getLoginedUserDetails(loginUserType);
+        }
+
         // poiList 초기화
         poiList = new ArrayList<>();
 
         //Initializing ProgressBar
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
+
+        mSwipeRefresh = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_layout);
+
+        mSwipeRefresh.setOnRefreshListener(this);
+
+        // 새로고침시 돌아가는 애니메이션의 색상을 지정합니다. int color를 넣어준 순서대로 효과가 적용 됩니다.
 
         if (session.isSessionLoggedIn()) {
             try {
@@ -84,7 +99,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
             }
         }
 
-        rv = (RecyclerView) rootView.findViewById(R.id.bookmarked_recyclerView);
+        rv = (RecyclerView) rootView.findViewById(R.id.bookmark_recyclerView);
         rv.setHasFixedSize(true);
 
         rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -257,6 +272,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
 
                         //Hiding the progressbar
                         progressBar.setVisibility(View.GONE);
+                        mSwipeRefresh.setRefreshing(false);
                     }
                 },
 
@@ -264,6 +280,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         progressBar.setVisibility(View.GONE);
+                        mSwipeRefresh.setRefreshing(false);
                         //If an error occurs that means end of the list has reached
                         showAlertDialogMessage(error.getMessage());
                     }
@@ -296,9 +313,6 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
     }
 
     private HashMap<String, String> inputUserInfoToInputParams(HashMap<String, String> params) {
-        SQLiteHandler.UserType loginUserType = session.getUserType();
-        HashMap<String, String> user = db.getLoginedUserDetails(loginUserType);
-
         switch (loginUserType) {
             case BIKENAVI:
                 String email = user.get(SQLiteHandler.KEY_EMAIL);
@@ -380,6 +394,22 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
     @Override
     public void poiClickToSet(POI poi) {
         mCallback.onBookmarkedPOISelected(poi);
+    }
+
+    @Override
+    public void onRefresh() {
+        requestCount = 1;
+        progressBar.setVisibility(View.VISIBLE);
+        if (session.isSessionLoggedIn()) {
+            try {
+                poiList.clear();
+                getData();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            mSwipeRefresh.setRefreshing(false);
+        }
     }
 
     // 액티비티는 항상 이 인터페이스를 구현 해야한다

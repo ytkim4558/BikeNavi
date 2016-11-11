@@ -7,6 +7,7 @@ package com.nagnek.bikenavi;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -42,7 +43,7 @@ import java.util.List;
  * Created by user on 2016-10-29.
  */
 
-public class TrackListOfBookmarkedFragment extends Fragment implements TrackListListener {
+public class TrackListOfBookmarkedFragment extends Fragment implements TrackListListener, SwipeRefreshLayout.OnRefreshListener {
     private static final String TAG = TrackListOfBookmarkedFragment.class.getSimpleName();
     public List<Track> trackList;
     //The request counter to send ?page=1, ?page=2  requests
@@ -56,6 +57,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
     SQLiteHandler.UserType loginUserType;
     HashMap<String, String> user;
     private SessionManager session; // 로그인했는지 확인용 변수
+    private SwipeRefreshLayout mSwipeRefresh;
 
     public TrackListOfBookmarkedFragment() {
         // Required empty public constructor
@@ -90,7 +92,11 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
         //Initializing ProgressBar
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
 
-        rv = (RecyclerView) rootView.findViewById(R.id.bookmarked_recyclerView);
+        mSwipeRefresh = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_layout);
+
+        mSwipeRefresh.setOnRefreshListener(this);
+
+        rv = (RecyclerView) rootView.findViewById(R.id.bookmark_recyclerView);
         rv.setHasFixedSize(true);
 
         if (session.isSessionLoggedIn()) {
@@ -316,6 +322,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
 
                         //Hiding the progressbar
                         progressBar.setVisibility(View.GONE);
+                        mSwipeRefresh.setRefreshing(false);
                     }
                 },
 
@@ -323,6 +330,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         progressBar.setVisibility(View.GONE);
+                        mSwipeRefresh.setRefreshing(false);
                         //If an error occurs that means end of the list has reached
                         showAlertDialogMessage(error.getMessage());
                     }
@@ -423,6 +431,22 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
             adapter.refresh();
         } else {
             adapter.addTrack(track);
+        }
+    }
+
+    @Override
+    public void onRefresh() {
+        requestCount = 1;
+        progressBar.setVisibility(View.VISIBLE);
+        if (session.isSessionLoggedIn()) {
+            try {
+                trackList.clear();
+                getData();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            mSwipeRefresh.setRefreshing(false);
         }
     }
 

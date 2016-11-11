@@ -7,6 +7,7 @@ package com.nagnek.bikenavi;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -42,7 +43,7 @@ import java.util.List;
  * Created by user on 2016-10-27.
  */
 
-public class TrackListOfRecentUsedFragment extends Fragment implements TrackListListener {
+public class TrackListOfRecentUsedFragment extends Fragment implements TrackListListener, SwipeRefreshLayout.OnRefreshListener {
     private static final String TAG = TrackListOfRecentUsedFragment.class.getSimpleName();
     public List<Track> trackList;
     //The request counter to send ?page=1, ?page=2  requests
@@ -56,6 +57,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
     SQLiteHandler.UserType loginUserType;
     HashMap<String, String> user;
     private SessionManager session; // 로그인했는지 확인용 변수
+    private SwipeRefreshLayout mSwipeRefresh;
 
     public TrackListOfRecentUsedFragment() {
         // Required empty public constructor
@@ -80,8 +82,14 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
         // Session manager
         session = new SessionManager(getContext().getApplicationContext());
 
-        loginUserType = session.getUserType();
-        user = db.getLoginedUserDetails(loginUserType);
+        mSwipeRefresh = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_layout);
+
+        mSwipeRefresh.setOnRefreshListener(this);
+
+        if (session.isSessionLoggedIn()) {
+            loginUserType = session.getUserType();
+            user = db.getLoginedUserDetails(loginUserType);
+        }
 
         // trackList 초기화
         trackList = new ArrayList<>();
@@ -89,7 +97,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
         //Initializing ProgressBar
         progressBar = (ProgressBar) rootView.findViewById(R.id.progressBar);
 
-        rv = (RecyclerView) rootView.findViewById(R.id.bookmarked_recyclerView);
+        rv = (RecyclerView) rootView.findViewById(R.id.recent_recyclerView);
         rv.setHasFixedSize(true);
         rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -319,6 +327,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
 
                         //Hiding the progressbar
                         progressBar.setVisibility(View.GONE);
+                        mSwipeRefresh.setRefreshing(false);
                     }
                 },
 
@@ -326,6 +335,7 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         progressBar.setVisibility(View.GONE);
+                        mSwipeRefresh.setRefreshing(false);
                         //If an error occurs that means end of the list has reached
                         if (getContext() != null) {
                             Log.d(TAG, "더 이상 저장된 경로가 없습니다.");
@@ -422,6 +432,22 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
         Log.d(TAG, "click track : " + gson.toJson(track));
         mCallback.onRecentTrackSelected(track);
         adapter.updateTrack(track, position);
+    }
+
+    @Override
+    public void onRefresh() {
+        requestCount = 1;
+        progressBar.setVisibility(View.VISIBLE);
+        if (session.isSessionLoggedIn()) {
+            try {
+                trackList.clear();
+                getData();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else {
+            mSwipeRefresh.setRefreshing(false);
+        }
     }
 
     // 부모 프래그먼트는 항상 이 인터페이스를 구현 해야한다
