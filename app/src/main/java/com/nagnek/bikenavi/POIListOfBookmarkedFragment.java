@@ -6,6 +6,7 @@ package com.nagnek.bikenavi;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -13,6 +14,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
@@ -52,6 +54,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
     //The request counter to send ?page=1, ?page=2  requests
     private int requestCount = 1;
     private SwipeRefreshLayout mSwipeRefresh;
+    private float rvDownY, rvUPY; // recyclervew 누른 Y위치, 뗀 Y위치
 
     public POIListOfBookmarkedFragment() {
         // Required empty public constructor
@@ -103,10 +106,50 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
             }
         }
 
+        rv.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return false;
+            }
+        });
+
+        rv.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        rvDownY = event.getY();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        rvUPY = event.getY();
+
+                        float deltaY = rvUPY - rvDownY;
+
+                        if (deltaY > 0) {
+                            // check for scroll down
+                            if (isLastItemDisplaying((RecyclerView) v)) {
+                                // Calling the method getdata again
+                                try {
+                                    if (session.isSessionLoggedIn()) {
+                                        getData();
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                    Log.e(TAG, e.toString());
+                                }
+                            }
+                        }
+                        break;
+                }
+                return true;
+            }
+        });
+
+        rv.setScrollingTouchSlop(RecyclerView.TOUCH_SLOP_PAGING);
         rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if (dy > 0) {
+                if (dy > 0 && progressBar.getVisibility() == View.GONE && mSwipeRefresh.isRefreshing() == false) {
                     // check for scroll down
                     if (isLastItemDisplaying(recyclerView)) {
                         // Calling the method getdata again
@@ -179,6 +222,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
                     if (!error) {
                         // TODO: adapter 초기화할까?
                         Log.d(TAG, "북마크 장소 정보 삭제됨");
+                        Snackbar.make(mSwipeRefresh, "삭제되었습니다.", Snackbar.LENGTH_SHORT).show();
                     } else {
                         // Error in login. Get the error message
                         String errorMsg = jsonObject.getString("error_msg");
@@ -262,7 +306,7 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
                             } else {
                                 // Error in login. Get the error message
                                 String errorMsg = jsonObject.getString("error_msg");
-                                showAlertDialogMessage(errorMsg);
+                                Snackbar.make(mSwipeRefresh, errorMsg, Snackbar.LENGTH_SHORT).show();
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();

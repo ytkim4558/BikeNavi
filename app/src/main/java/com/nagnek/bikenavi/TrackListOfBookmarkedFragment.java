@@ -6,6 +6,7 @@ package com.nagnek.bikenavi;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -118,10 +119,11 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
         }
 
         rv.setAdapter(adapter);
+        rv.setScrollingTouchSlop(RecyclerView.TOUCH_SLOP_PAGING);
         rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if (dy > 0) {
+                if (dy > 0 && progressBar.getVisibility() == View.GONE && mSwipeRefresh.isRefreshing() == false) {
                     // check for scroll down
                     if (isLastItemDisplaying(recyclerView)) {
                         // Calling the method getdata again
@@ -201,6 +203,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
                     if (!error) {
                         // TODO: adapter 초기화할까?
                         Log.d(TAG, "트랙 정보 삭제됨");
+                        Snackbar.make(mSwipeRefresh, "삭제되었습니다.", Snackbar.LENGTH_SHORT).show();
                     } else {
                         // Error in Delete. Get the error message
                         String errorMsg = jsonObject.getString("error_msg");
@@ -315,7 +318,7 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
                             } else {
                                 // Error in login. Get the error message
                                 String errorMsg = jsonObject.getString("error_msg");
-                                showAlertDialogMessage(errorMsg);
+                                Snackbar.make(mSwipeRefresh, errorMsg, Snackbar.LENGTH_SHORT).show();
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
