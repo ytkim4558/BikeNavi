@@ -247,6 +247,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "메인액티비티 onCreate");
         setContentView(R.layout.activity_main);
         Fragment fragment = new TrackSettingFragment();
         FragmentManager fragmentManager = getSupportFragmentManager();

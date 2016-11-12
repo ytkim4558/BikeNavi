@@ -47,6 +47,13 @@
             android:visibility="gone" />
     </FrameLayout>
 
+    <Button
+        android:id="@+id/current_my_point"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/mycurrentpoint"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
     <android.support.design.widget.TabLayout
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"

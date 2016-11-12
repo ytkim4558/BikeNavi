@@ -43,6 +43,7 @@
     <string name="hint_destination">도착 장소를 입력하세요</string>
     <string name="hint_search_point">검색할 장소를 입력하세요</string>
     <string name="detail_route">상세 경로</string>
+    <string name="mycurrentpoint">현재 위치</string>
     <string name="descript_map_dummy_view">더미 지도 뷰</string>
     <string name="openDrawer">열기</string>
     <string name="closeDrawer">닫기</string>

@@ -88,17 +88,17 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback, G
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
                     .build();
-            // SqLite database handler 초기화
-            db = SQLiteHandler.getInstance(getContext().getApplicationContext());
+        }
+        // SqLite database handler 초기화
+        db = SQLiteHandler.getInstance(getContext().getApplicationContext());
 
-            // Session manager
-            session = new SessionManager(getContext().getApplicationContext());
+        // Session manager
+        session = new SessionManager(getContext().getApplicationContext());
 
-            if (session.isSessionLoggedIn()) {
-                getLastUsedPOI();
-            } else {
-                currentPOI = db.getLastUserPOI();
-            }
+        if (session.isSessionLoggedIn()) {
+            getLastUsedPOI();
+        } else {
+            currentPOI = db.getLastUserPOI();
         }
         Log.d(TAG, "onCreate");
     }

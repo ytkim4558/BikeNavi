@@ -110,6 +110,7 @@ public class AppController extends Application {
          * 크래쉬 방지용 코드 추가
          * 참조 : http://www.kmshack.kr/2013/03/uncaughtexceptionhandler%EB%A5%BC-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EC%95%B1-%EB%B9%84%EC%A0%95%EC%83%81-%EC%A2%85%EB%A3%8C%EC%8B%9C-log%EC%A0%84%EC%86%A1-%EB%B0%8F-%EC%9E%AC%EC%8B%A4%ED%96%89-%ED%95%98/
          */
+        Log.d(TAG, "onCreate시작");
         mUncaughtExceptionhandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(new uncaughtExceptionHandlerApplication());
 
@@ -125,6 +126,7 @@ public class AppController extends Application {
         // Session manager
         session = new SessionManager(getApplicationContext());
 
+        Log.d(TAG, "카카오톡 시작전");
         KakaoSDK.init(new KakaoSDKAdapter());
 
         final RequestQueue requestQueue = Volley.newRequestQueue(this);
@@ -144,6 +146,7 @@ public class AppController extends Application {
         };
 
         imageLoader = new ImageLoader(requestQueue, imageCache);
+        Log.d(TAG, "AppController시작");
     }
 
     /**
