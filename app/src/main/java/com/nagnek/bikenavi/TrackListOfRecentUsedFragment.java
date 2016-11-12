@@ -319,9 +319,12 @@ public class TrackListOfRecentUsedFragment extends Fragment implements TrackList
                                 parseTrackList(new JSONArray(recentTrackList));
                             } else {
                                 // Error in login. Get the error message
-                                String errorMsg = jsonObject.getString("error_msg");
-                                Log.d(TAG, "더 이상 저장된 경로가 없습니다.");
-                                Snackbar.make(mSwipeRefresh, errorMsg, Snackbar.LENGTH_SHORT).show();
+                                boolean non_result = jsonObject.getBoolean("non_result");
+                                if (!non_result) {
+                                    String errorMsg = jsonObject.getString("error_msg");
+                                    Log.d(TAG, "더 이상 저장된 경로가 없습니다.");
+                                    Snackbar.make(mSwipeRefresh, errorMsg, Snackbar.LENGTH_SHORT).show();
+                                }
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();

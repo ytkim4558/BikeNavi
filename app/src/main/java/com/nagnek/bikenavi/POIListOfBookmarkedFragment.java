@@ -304,9 +304,12 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
                                 JSONArray poiList = jsonObject.getJSONArray("bookmark");
                                 parsePOIList(poiList);
                             } else {
-                                // Error in login. Get the error message
-                                String errorMsg = jsonObject.getString("error_msg");
-                                Snackbar.make(mSwipeRefresh, errorMsg, Snackbar.LENGTH_SHORT).show();
+                                boolean non_result = jsonObject.getBoolean("non_result");
+                                if (!non_result) {
+                                    // Error in login. Get the error message
+                                    String errorMsg = jsonObject.getString("error_msg");
+                                    Snackbar.make(mSwipeRefresh, errorMsg, Snackbar.LENGTH_SHORT).show();
+                                }
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();

@@ -317,8 +317,11 @@ public class TrackListOfBookmarkedFragment extends Fragment implements TrackList
                                 parseTrackList(new JSONArray(recentTrackList));
                             } else {
                                 // Error in login. Get the error message
-                                String errorMsg = jsonObject.getString("error_msg");
-                                Snackbar.make(mSwipeRefresh, errorMsg, Snackbar.LENGTH_SHORT).show();
+                                boolean non_result = jsonObject.getBoolean("non_result");
+                                if (!non_result) {
+                                    String errorMsg = jsonObject.getString("error_msg");
+                                    Snackbar.make(mSwipeRefresh, errorMsg, Snackbar.LENGTH_SHORT).show();
+                                }
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();

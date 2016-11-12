@@ -71,22 +71,59 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
 
     @Override
     public void onBookmarkedPOISelected(POI poi) {
-        addOrUpdatePOIToServer(poi);
-        updateBookmarkPOIToServer(poi);
+        addOrupdateBookmarkPOIToDBOrServer(poi);
     }
 
     // 주의 : 북마크된 리스트를 눌러도 북마크 테이블의 사용시각은 갱신이 안됨. 최근 유저 사용시각만 갱신됨. 북마크의 경우 생성 시각 기준으로 정렬하기 때문에 고려 안함.
     @Override
     public void onRecentPOISelected(POI poi) {
-        addOrUpdatePOIToServer(poi);
+        addOrUpdateRecentPOIToDBOrServer(poi);
     }
 
-    void addOrUPdatePOIToDBOrServer(POI poi) {
+    // 북마크된 POI 를 db나 서버에 추가하거나 업데이트한다.
+    void addOrupdateBookmarkPOIToDBOrServer(POI poi) {
         if (!session.isSessionLoggedIn()) {
             if (db != null) {
-                db.updateLastUsedAtPOI(poi.latLng);
-                db.updateLastUsedAtUserPOI(poi);
-                db.updateLastUsedAtBookmarkedPOI(poi);
+                if (db.checkIfPOIExists(poi.latLng)) {
+                    db.updateLastUsedAtPOI(poi.latLng);
+                    if (db.checkIfUserPOIExists(poi)) {
+                        db.updateLastUsedAtPOI(poi.latLng);
+                        db.updateLastUsedAtUserPOI(poi);
+                        if (db.checkIFBookmarkedPOIExists(poi)) {
+                            db.updateLastUsedAtBookmarkedPOI(poi);
+                        } else {
+                            db.addBookmarkedPOI(poi);
+                        }
+                    } else {
+                        db.addLocalUserPOI(poi);
+                    }
+                } else {
+                    db.addPOI(poi);
+                    db.addLocalUserPOI(poi);
+                }
+                redirectCalledActvity(poi);
+            }
+        } else {
+            addOrUpdatePOIToServer(poi);
+            updateBookmarkPOIToServer(poi);
+        }
+    }
+
+    void addOrUpdateRecentPOIToDBOrServer(POI poi) {
+        if (!session.isSessionLoggedIn()) {
+            if (db != null) {
+                if (db.checkIfPOIExists(poi.latLng)) {
+                    db.updateLastUsedAtPOI(poi.latLng);
+                    if (db.checkIfUserPOIExists(poi)) {
+                        db.updateLastUsedAtPOI(poi.latLng);
+                        db.updateLastUsedAtUserPOI(poi);
+                    } else {
+                        db.addLocalUserPOI(poi);
+                    }
+                } else {
+                    db.addPOI(poi);
+                    db.addLocalUserPOI(poi);
+                }
                 redirectCalledActvity(poi);
             }
         } else {
@@ -256,7 +293,7 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
         poi.name = poiName;
         poi.address = address;
         poi.latLng = "" + wgs84_x + "," + wgs84_y;
-        addOrUPdatePOIToDBOrServer(poi);
+        addOrUpdateRecentPOIToDBOrServer(poi);
         redirectCalledActvity(poi);
     }
 
