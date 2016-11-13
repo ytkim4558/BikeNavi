@@ -38,6 +38,7 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+import com.facebook.FacebookSdk;
 import com.facebook.login.LoginManager;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.PolyUtil;
@@ -230,6 +231,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
             });
         } else if (session.isFacebookIn()) {
             session.setFacebookLogin(false);
+            FacebookSdk.sdkInitialize(getApplicationContext());
             LoginManager.getInstance().logOut();
         }
         mAdapter.swap(null, "로그인 해주세요", null);

@@ -714,9 +714,15 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
 
     private void resetMarkers() {
         Log.d("tag", "초기화");
-        for (Marker marker : this.markers) {
+        for (Marker marker : this.descriptorMarkers) {
             marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
         }
+    }
+
+    @Override
+    protected void onStop() {
+        animator.stopAnimation();
+        super.onStop();
     }
 
     public class Animator implements Runnable {
@@ -755,8 +761,12 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         }
 
         public void stop() {
-            trackingMarker.remove();
-            mHandler.removeCallbacks(animator);
+            if (trackingMarker != null) {
+                trackingMarker.remove();
+            }
+            if (animator != null) {
+                mHandler.removeCallbacks(animator);
+            }
 
         }
 
@@ -764,7 +774,6 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
             reset();
             this.showPolyline = showPolyLine;
 
-            highLightMarker(0, 0);
             Log.d("tag", "descriptorIndex :" + descriptorMarkerIndex);
 
             if (showPolyLine) {
@@ -794,7 +803,9 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                                                     LatLng secondPos) {
 
             float bearing = bearingBetweenLatLngs(markerPos, secondPos);
-
+            if (trackingMarker != null) {
+                trackingMarker.remove();
+            }
             trackingMarker = mGoogleMap.addMarker(new MarkerOptions().position(markerPos)
                     .title("접니다")
                     .snippet("자전거에요"));
@@ -876,6 +887,10 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
             LatLng newPosition = new LatLng(lat, lng);
 
             trackingMarker.setPosition(newPosition);
+
+            if (movingCurrentMarkerIndex == 0) {
+                highLightMarker(0, 0);
+            }
 
             if (showPolyline) {
                 updatePolyLine(newPosition);

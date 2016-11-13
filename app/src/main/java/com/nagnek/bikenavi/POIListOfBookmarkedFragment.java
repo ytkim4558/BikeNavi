@@ -113,38 +113,6 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
             }
         });
 
-        rv.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        rvDownY = event.getY();
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        rvUPY = event.getY();
-
-                        float deltaY = rvUPY - rvDownY;
-
-                        if (deltaY > 0) {
-                            // check for scroll down
-                            if (isLastItemDisplaying((RecyclerView) v)) {
-                                // Calling the method getdata again
-                                try {
-                                    if (session.isSessionLoggedIn()) {
-                                        getData();
-                                    }
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                    Log.e(TAG, e.toString());
-                                }
-                            }
-                        }
-                        break;
-                }
-                return true;
-            }
-        });
-
         rv.setScrollingTouchSlop(RecyclerView.TOUCH_SLOP_PAGING);
         rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -455,8 +423,8 @@ public class POIListOfBookmarkedFragment extends Fragment implements POIListener
                 e.printStackTrace();
             }
         } else {
-            adapter.refresh();
             mSwipeRefresh.setRefreshing(false);
+            adapter.refresh();
         }
     }
 

@@ -364,13 +364,13 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         if (objectName3 != null) {
             cursor = db.rawQuery("SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
                     + fieldObjectName1 + " = " + objectName1 + " AND " + fieldObjectName2 + " = " + objectName2 + " AND " + fieldObjectName3 + " = '" + objectName3 + "'", null);
-            Log.d(TAG, "SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
-                    + fieldObjectName1 + " = " + objectName1 + " AND " + fieldObjectName2 + " = " + objectName2 + " AND " + fieldObjectName3 + " = '" + objectName3);
+//            Log.d(TAG, "SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
+//                    + fieldObjectName1 + " = " + objectName1 + " AND " + fieldObjectName2 + " = " + objectName2 + " AND " + fieldObjectName3 + " = '" + objectName3);
         } else {
             cursor = db.rawQuery("SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
                     + fieldObjectName1 + " = " + objectName1 + " AND " + fieldObjectName2 + " = " + objectName2, null);
-            Log.d(TAG, "SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
-                    + fieldObjectName1 + " = " + objectName1 + " AND " + fieldObjectName2 + " = " + objectName2);
+//            Log.d(TAG, "SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
+//                    + fieldObjectName1 + " = " + objectName1 + " AND " + fieldObjectName2 + " = " + objectName2);
         }
         // SELECT 필드아이디 FROM 테이블이름 WHERE 필드명 = '변수명'
 
@@ -395,13 +395,13 @@ public class SQLiteHandler extends SQLiteOpenHelper {
         if (objectName3 != null) {
             cursor = db.rawQuery("SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
                     + fieldObjectName1 + " = '" + objectName1 + "'" + " AND " + fieldObjectName2 + " = '" + objectName2 + "'" + " AND " + fieldObjectName3 + " = '" + objectName3 + "'", null);
-            Log.d(TAG, "SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
-                    + fieldObjectName1 + " = '" + objectName1 + "'" + " AND " + fieldObjectName2 + " = '" + objectName2 + "'" + " AND " + fieldObjectName3 + " = '" + objectName3);
+//            Log.d(TAG, "SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
+//                    + fieldObjectName1 + " = '" + objectName1 + "'" + " AND " + fieldObjectName2 + " = '" + objectName2 + "'" + " AND " + fieldObjectName3 + " = '" + objectName3);
         } else {
             cursor = db.rawQuery("SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
                     + fieldObjectName1 + " = '" + objectName1 + "'" + " AND " + fieldObjectName2 + " = '" + objectName2 + "'", null);
-            Log.d(TAG, "SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
-                    + fieldObjectName1 + " = '" + objectName1 + "'" + " AND " + fieldObjectName2 + " = '" + objectName2 + "'" + " AND " + fieldObjectName3 + " = '" + objectName3);
+//            Log.d(TAG, "SELECT " + fieldObjectId + " FROM " + tableName + " WHERE "
+//                    + fieldObjectName1 + " = '" + objectName1 + "'" + " AND " + fieldObjectName2 + " = '" + objectName2 + "'" + " AND " + fieldObjectName3 + " = '" + objectName3);
         }
         // SELECT 필드아이디 FROM 테이블이름 WHERE 필드명 = '변수명'
 
@@ -1142,7 +1142,7 @@ public class SQLiteHandler extends SQLiteOpenHelper {
     // 출발지, 도착지, 경유지 리스트들을 보고 이미 있었는지 확인
     public boolean checkIfUserTrackExists(Track track) {
         int trackID = getTrackIDUsingTrack(track); // 출발장소 POI id
-        Log.d(TAG, "track id: " + trackID);
+//        Log.d(TAG, "track id: " + trackID);
         return checkIfExists(KEY_ID, TABLE_USER_TRACK, KEY_TRACK_ID, trackID);
     }
 
