@@ -5,6 +5,7 @@
 package com.nagnek.bikenavi;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -15,6 +16,7 @@ import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -65,6 +67,8 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
     String search_purpose;
     GoogleApiClient mGoogleApiClient = null;
     Location myLocation = null;
+    SQLiteHandler.UserType loginUserType;
+    HashMap<String, String> user;
     private ProgressDialog progressDialog;
     private SessionManager session; // 로그인했는지 확인용 변수
     private SQLiteHandler db;   // sqlite
@@ -195,6 +199,9 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(getApplicationContext());
 
+        loginUserType = session.getUserType();
+        user = db.getLoginedUserDetails(loginUserType);
+
         // ProgressDialog
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);    // 백키로 캔슬 가능안하게끔 설정
@@ -203,6 +210,7 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
         myLocationButton.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
+                chkGpsService();
                 if (myLocation == null) {
                     if (ActivityCompat.checkSelfPermission(SearchActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                             != PackageManager.PERMISSION_GRANTED) {
@@ -323,6 +331,41 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
         }
     }
 
+    //GPS 설정 체크
+    private boolean chkGpsService() {
+
+        String gps = android.provider.Settings.Secure.getString(getContentResolver(), android.provider.Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+
+        Log.d(gps, "aaaa");
+
+        if (!(gps.matches(".*gps.*") && gps.matches(".*network.*"))) {
+
+            // GPS OFF 일때 Dialog 표시
+            AlertDialog.Builder gsDialog = new AlertDialog.Builder(this);
+            gsDialog.setTitle("위치 서비스 설정");
+            gsDialog.setMessage("무선 네트워크 사용, GPS 위성 사용을 모두 체크하셔야 정확한 위치 서비스가 가능합니다.\n위치 서비스 기능을 설정하시겠습니까?");
+            gsDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    // GPS설정 화면으로 이동
+                    Intent intent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                    intent.addCategory(Intent.CATEGORY_DEFAULT);
+                    startActivity(intent);
+                }
+            })
+                    .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            return;
+                        }
+                    }).create().show();
+            return false;
+
+        } else {
+            return true;
+        }
+    }
+
+
+
     // final ArrayList 는 new ArrayList() 형태로 새로 ArrayList를 만드는게 안될 뿐 add 나 remove는 가능하다.
     private void setupTmapPOIToGoogleMapAutoCompleteTextView(final DelayAutoCompleteTextView locationName, final ProgressBar progressBar, final String searchPurpose) {
         locationName.setThreshold(1);
@@ -387,108 +430,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
     }
 
     // 유저정보와 POI 정보를 Server에 보내서 서버에 있는 mysql에 저장하기
-    private void addOrUpdateBookmarkedPOIToServer(final POI poi) {
-        // Tag used to cancel the request
-        String tag_string_req = "req_add_or_update_poi_to_table_bookmark_poi";
-
-        // poi정보와 유저정보를 내 서버(회원가입쪽으로)로 HTTP POST를 이용해 보낸다
-        StringRequest strReq = new StringRequest(Request.Method.POST,
-                AppConfig.URL_POI_REGISTER_OR_UPDATE, new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "POI add or update Response: " + response);
-                hideDialog();
-
-                try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    boolean error = jsonObject.getBoolean("error");
-
-                    // Check for error node in json
-                    if (!error) {
-                        // Now store or update the poi in SQLite
-                        JSONObject poiObject = jsonObject.getJSONObject("poi");
-                        Log.d(TAG, "poi : " + poiObject.toString());
-                        redirectCalledActvity(poi);
-                    } else {
-                        // Error in login. Get the error message
-                        String errorMsg = jsonObject.getString("error_msg");
-                        Toast.makeText(getApplicationContext(),
-                                errorMsg, Toast.LENGTH_LONG).show();
-                    }
-                } catch (JSONException e) {
-                    // JSON error
-                    e.printStackTrace();
-                    Toast.makeText(getApplicationContext(), "Json error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (error instanceof TimeoutError) {
-                    Log.e(TAG, "POI 등록 또는 업데이트 에러 : 서버 응답시간이 초과되었습니다." + error.getMessage());
-                    VolleyLog.e(TAG, error.getMessage());
-                    Toast.makeText(getApplicationContext(),
-                            "POI 등록 또는 업데이트 에러 : 서버가 응답하지 않습니다." + error.getMessage(), Toast.LENGTH_LONG).show();
-                } else if (error instanceof ServerError) {
-                    Log.e(TAG, "서버 에러래" + error.getMessage());
-                    VolleyLog.e(TAG, error.getMessage());
-                    Toast.makeText(getApplicationContext(),
-                            "POI 등록 또는 업데이트 에러 : 서버 Error." + error.getMessage(), Toast.LENGTH_LONG).show();
-                } else {
-                    Log.e(TAG, error.getMessage());
-                    VolleyLog.e(TAG, error.getMessage());
-                    Toast.makeText(getApplicationContext(),
-                            error.getMessage(), Toast.LENGTH_LONG).show();
-                }
-                hideDialog();
-            }
-        }) {
-            @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                // Posting parameters to login url
-                Map<String, String> params = new HashMap<String, String>();
-                // 로그인 한 경우
-                SQLiteHandler.UserType loginUserType = session.getUserType();
-                HashMap<String, String> user = db.getLoginedUserDetails(loginUserType);
-
-                switch (loginUserType) {
-                    case BIKENAVI:
-                        String email = user.get(SQLiteHandler.KEY_EMAIL);
-                        params.put("email", email);
-                        Log.d(TAG, "bikenavi타입 유저네" + email);
-                        break;
-                    case GOOGLE:
-                        String googleemail = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
-                        params.put("googleemail", googleemail);
-                        Log.d(TAG, "구글 유저네" + googleemail);
-                        break;
-                    case KAKAO:
-                        String kakaoId = user.get(SQLiteHandler.KEY_KAKAO_ID);
-                        params.put("kakaoid", kakaoId);
-                        Log.d(TAG, "카카오 유저네" + kakaoId);
-                        break;
-                    case FACEBOOK:
-                        String facebookId = user.get(SQLiteHandler.KEY_FACEBOOK_ID);
-                        params.put("facebookid", facebookId);
-                        Log.d(TAG, "페북 유저네" + facebookId);
-                        break;
-                }
-                // poi를 final로 선언한 이유가 이곳에서 error 떠서 인데 나중에
-                // poi정보를 서버측에서 바꾼다면.. 뭐 상관없나 값이 바뀌는거야.. 객체가 삭제되는게 아니니까 =_=a;
-                params.put("POI_NAME", poi.name);
-                params.put("POI_ADDRESS", poi.address);
-                params.put("POI_LAT_LNG", poi.latLng);
-                params.put("bookmark", "true");
-
-                return params;
-            }
-        };
-
-        // Adding request to request queue
-        AppController.getInstance().addToRequestQueue(strReq, tag_string_req);
-    }
-
-    // 유저정보와 POI 정보를 Server에 보내서 서버에 있는 mysql에 저장하기
     private void addOrUpdatePOIToServer(final POI poi) {
         // Tag used to cancel the request
         String tag_string_req = "req_add_or_update_poi_to_table_recent_poi";
@@ -550,8 +491,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
                 // Posting parameters to login url
                 Map<String, String> params = new HashMap<String, String>();
                 // 로그인 한 경우
-                SQLiteHandler.UserType loginUserType = session.getUserType();
-                HashMap<String, String> user = db.getLoginedUserDetails(loginUserType);
 
                 switch (loginUserType) {
                     case BIKENAVI:
