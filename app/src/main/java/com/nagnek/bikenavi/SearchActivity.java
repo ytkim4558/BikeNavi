@@ -4,7 +4,6 @@
 
 package com.nagnek.bikenavi;
 
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -69,7 +68,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
     Location myLocation = null;
     SQLiteHandler.UserType loginUserType;
     HashMap<String, String> user;
-    private ProgressDialog progressDialog;
     private SessionManager session; // 로그인했는지 확인용 변수
     private SQLiteHandler db;   // sqlite
 
@@ -201,10 +199,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
 
         loginUserType = session.getUserType();
         user = db.getLoginedUserDetails(loginUserType);
-
-        // ProgressDialog
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setCancelable(false);    // 백키로 캔슬 가능안하게끔 설정
 
         Button myLocationButton = (Button) findViewById(R.id.current_my_point);
         myLocationButton.setOnClickListener(new Button.OnClickListener() {
@@ -440,7 +434,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
             @Override
             public void onResponse(String response) {
                 Log.d(TAG, "POI add or update Response: " + response);
-                hideDialog();
 
                 try {
                     JSONObject jsonObject = new JSONObject(response);
@@ -483,7 +476,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
                     Toast.makeText(getApplicationContext(),
                             error.getMessage(), Toast.LENGTH_LONG).show();
                 }
-                hideDialog();
             }
         }) {
             @Override
@@ -540,7 +532,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
             @Override
             public void onResponse(String response) {
                 Log.d(TAG, "POI add or update Response: " + response);
-                hideDialog();
 
                 try {
                     JSONObject jsonObject = new JSONObject(response);
@@ -583,7 +574,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
                     Toast.makeText(getApplicationContext(),
                             error.getMessage(), Toast.LENGTH_LONG).show();
                 }
-                hideDialog();
             }
         }) {
             @Override
@@ -635,18 +625,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
     public void onBackPressed() {
         textInputLayout.setHint(null);
         super.onBackPressed();
-    }
-
-    private void showDialog() {
-        if (!progressDialog.isShowing()) {
-            progressDialog.show();
-        }
-    }
-
-    private void hideDialog() {
-        if (progressDialog.isShowing()) {
-            progressDialog.dismiss();
-        }
     }
 
     @Override
