@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.nagnek.bikenavi.app.AppController;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.helper.SessionManager;
 
@@ -34,6 +35,7 @@ public class WelcomeActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
+        AppController.setCurrentActivity(this);
 
         textEmail = (TextView) findViewById(R.id.email);
 

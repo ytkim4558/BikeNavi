@@ -12,7 +12,6 @@ import com.kakao.auth.AuthType;
 import com.kakao.auth.IApplicationConfig;
 import com.kakao.auth.ISessionConfig;
 import com.kakao.auth.KakaoAdapter;
-import com.nagnek.bikenavi.app.AppController;
 
 /**
  * Created by ytkim on 2016-10-09.
@@ -59,12 +58,12 @@ public class KakaoSDKAdapter extends KakaoAdapter {
         return new IApplicationConfig() {
             @Override
             public Activity getTopActivity() {
-                return AppController.getCurrentActivity();
+                return null;
             }
 
             @Override
             public Context getApplicationContext() {
-                return AppController.getGlobalApplicationContext();
+                return null;
             }
         };
     }

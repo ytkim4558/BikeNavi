@@ -109,6 +109,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_track);
+        AppController.setCurrentActivity(this);
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(getApplicationContext());
 

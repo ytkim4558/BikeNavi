@@ -10,7 +10,6 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:contentDescription="@string/descript_map_dummy_view"
-        android:src="@drawable/dummy" />
+        android:contentDescription="@string/descript_map_dummy_view" />
 
 </LinearLayout>

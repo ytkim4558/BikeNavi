@@ -55,6 +55,7 @@ public class KakaoSignupActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        AppController.setCurrentActivity(this);
         // ProgressDialog
         progressDialog = new ProgressDialog(this);
         progressDialog.setCancelable(false);    // 백키로 캔슬 가능안하게끔 설정

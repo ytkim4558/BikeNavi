@@ -82,6 +82,7 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        AppController.setCurrentActivity(this);
         setContentView(R.layout.activity_register);
 
         ti_input_email = (TextInputLayout) findViewById(R.id.ti_email);

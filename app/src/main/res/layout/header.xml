@@ -5,7 +5,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="178dp"
-    android:background="@drawable/background_poly"
     android:orientation="vertical"
     android:weightSum="1">
 
@@ -13,14 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/circleView"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="38dp"
-            android:src="@drawable/ic_account_circle_white_24dp" />
 
         <Button
             android:id="@+id/btn_login"

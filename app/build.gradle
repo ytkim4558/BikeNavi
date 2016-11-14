@@ -5,13 +5,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 25
     buildToolsVersion '24.0.1'
 
     defaultConfig {
         applicationId "com.nagnek.bikenavi"
         minSdkVersion 21
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
@@ -48,7 +48,6 @@ dependencies {
     compile 'com.google.maps.android:android-maps-utils:0.4.4'
     compile 'com.android.volley:volley:1.0.0'
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
-    compile 'de.hdodenhof:circleimageview:2.1.0'
     compile 'com.google.code.gson:gson:2.7'
     testCompile 'junit:junit:4.12'
 }

@@ -164,6 +164,7 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
+        AppController.setCurrentActivity(this);
 
         // Create an instance of GoogleApiClient
         if (mGoogleApiClient == null) {
