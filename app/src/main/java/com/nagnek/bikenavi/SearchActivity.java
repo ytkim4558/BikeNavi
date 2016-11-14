@@ -70,6 +70,7 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
     HashMap<String, String> user;
     private SessionManager session; // 로그인했는지 확인용 변수
     private SQLiteHandler db;   // sqlite
+    private boolean registerAndRedirectStart;
 
     @Override
     public void onBookmarkedPOISelected(POI poi) {
@@ -205,6 +206,7 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
             @Override
             public void onClick(View v) {
                 chkGpsService();
+                mGoogleApiClient.connect();
                 if (myLocation == null) {
                     if (ActivityCompat.checkSelfPermission(SearchActivity.this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                             != PackageManager.PERMISSION_GRANTED) {
@@ -220,8 +222,11 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
                 }
                 if (myLocation != null) {
                     try {
-                        TMapPOIItem tMapPOIItem = getTMapPOIItemUsingCurrentLocation(myLocation);
-                        setPOIAndredirectCallingActivity(tMapPOIItem);
+                        if (registerAndRedirectStart == false) {
+                            registerAndRedirectStart = true;
+                            TMapPOIItem tMapPOIItem = getTMapPOIItemUsingCurrentLocation(myLocation);
+                            setPOIAndredirectCallingActivity(tMapPOIItem);
+                        }
                     } catch (ParserConfigurationException e) {
                         e.printStackTrace();
                     } catch (SAXException e) {
@@ -229,8 +234,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
-
                 }
             }
         });
@@ -255,7 +258,6 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
 
     @Override
     public void onStart() {
-        mGoogleApiClient.connect();
         super.onStart();
     }
 
@@ -639,8 +641,24 @@ public class SearchActivity extends AppCompatActivity implements POIListOfRecent
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        Log.d(TAG, "onConnected");
         myLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
+        if (myLocation != null) {
+            try {
+                if (registerAndRedirectStart == false) {
+                    registerAndRedirectStart = true;
+                    TMapPOIItem tMapPOIItem = getTMapPOIItemUsingCurrentLocation(myLocation);
+                    setPOIAndredirectCallingActivity(tMapPOIItem);
+                }
+            } catch (ParserConfigurationException e) {
+                e.printStackTrace();
+            } catch (SAXException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
