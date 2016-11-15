@@ -5,7 +5,9 @@
 package com.nagnek.bikenavi.app;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.support.multidex.MultiDexApplication;
+import android.support.v4.util.LruCache;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -18,6 +20,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.kakao.auth.KakaoSDK;
@@ -52,6 +55,7 @@ public class AppController extends MultiDexApplication {
      * 참조 : http://www.kmshack.kr/2013/03/uncaughtexceptionhandler%EB%A5%BC-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EC%95%B1-%EB%B9%84%EC%A0%95%EC%83%81-%EC%A2%85%EB%A3%8C%EC%8B%9C-log%EC%A0%84%EC%86%A1-%EB%B0%8F-%EC%9E%AC%EC%8B%A4%ED%96%89-%ED%95%98/
      */
     private Thread.UncaughtExceptionHandler mUncaughtExceptionhandler;
+    private ImageLoader imageLoader;
     private RequestQueue mRequestQueue;
     private SessionManager session; // 로그인했는지 확인용 변수
 
@@ -96,10 +100,36 @@ public class AppController extends MultiDexApplication {
 
         super.onCreate();
         mInstance = this;
+
+        /**
+         * 카카오톡
+         * 이미지 로더, 이미지 캐시, 요청 큐를 초기화한다.
+         */
+
         // Session manager
         session = new SessionManager(getApplicationContext());
+
+        Log.d(TAG, "카카오톡 시작전");
         KakaoSDK.init(new KakaoSDKAdapter());
+
         final RequestQueue requestQueue = Volley.newRequestQueue(this);
+
+        ImageLoader.ImageCache imageCache = new ImageLoader.ImageCache() {
+            final LruCache<String, Bitmap> imageCache = new LruCache<String, Bitmap>(3);
+
+            @Override
+            public Bitmap getBitmap(String key) {
+                return imageCache.get(key);
+            }
+
+            @Override
+            public void putBitmap(String key, Bitmap value) {
+                imageCache.put(key, value);
+            }
+        };
+
+        imageLoader = new ImageLoader(requestQueue, imageCache);
+        Log.d(TAG, "AppController시작");
     }
 
     /**
@@ -214,6 +244,13 @@ public class AppController extends MultiDexApplication {
     }
 
     /**
+     * 이미지 로더를 반환한다.
+     */
+    public ImageLoader getImageLoader() {
+        return imageLoader;
+    }
+
+    /**
      * 애플리케이션 종료시 singleton 어플리케이션 객체 초기화한다.
      */
     @Override
@@ -248,6 +285,12 @@ public class AppController extends MultiDexApplication {
     public <T> void addToRequestQueue(Request<T> req) {
         req.setTag(TAG);
         getRequestQueue().add(req);
+    }
+
+    public void cancelPendingRequests(Object tag) {
+        if (mRequestQueue != null) {
+            mRequestQueue.cancelAll(tag);
+        }
     }
 
     /**
