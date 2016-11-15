@@ -5,8 +5,6 @@
 package com.nagnek.bikenavi.app;
 
 import android.app.Activity;
-import android.content.Context;
-import android.support.multidex.MultiDex;
 import android.support.multidex.MultiDexApplication;
 import android.text.TextUtils;
 import android.util.Log;
@@ -41,12 +39,6 @@ public class AppController extends MultiDexApplication {
 
     public static synchronized AppController getInstance() {
         return mInstance;
-    }
-
-    @Override
-    protected void attachBaseContext(Context base) {
-        MultiDex.install(this);
-        super.attachBaseContext(base);
     }
 
     @Override
