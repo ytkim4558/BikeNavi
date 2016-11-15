@@ -95,6 +95,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                 }
             });
         } else {
+            holder.profile.setImageResource(profileID);           // Similarly we set the resources for header view
             holder.name.setText(name);
             holder.email.setText(email);
             if (loginState) {
@@ -144,6 +145,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         int holderId;
         TextView textView;
         ImageView imageView;
+        ImageView profile;
         TextView name;
         TextView email;
         Button loginStateButton;    // 비로그인 상태에서는 로그인 , 로그인 상태에서는 로그아웃이라고 표시되는 버튼
@@ -160,6 +162,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             } else {
                 name = (TextView) itemView.findViewById(R.id.name);         // Creating Text View object from header.xml for name
                 email = (TextView) itemView.findViewById(R.id.email);       // Creating Text View object from header.xml for email
+                profile = (ImageView) itemView.findViewById(R.id.circleView);// Creating Image view object from header.xml for profile pic
+                profile.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mCallback.onProfileImageClicked(profile);
+                    }
+                });
                 loginStateButton = (Button) itemView.findViewById(R.id.btn_login);
                 loginStateButton.setOnClickListener(new View.OnClickListener() {
                     @Override
