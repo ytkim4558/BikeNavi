@@ -31,10 +31,31 @@ public class AppController extends MultiDexApplication {
      */
     public static final String TAG = AppController.class.getSimpleName();
     private static volatile AppController mInstance;
+    private static volatile Activity currentActivity = null;
     private RequestQueue mRequestQueue;
 
+    /**
+     * 카카오톡
+     *
+     * @param
+     */
+    public static Activity getCurrentActivity() {
+        return currentActivity;
+    }
+
     public static void setCurrentActivity(Activity activity) {
-//        AppController.currentActivity = activity;
+        AppController.currentActivity = activity;
+    }
+
+    /**
+     * singleton 애플리케이션 객체를 얻는다.
+     *
+     * @return singleton 애플리케이션 객체
+     */
+    public static AppController getGlobalApplicationContext() {
+        if (mInstance == null)
+            throw new IllegalStateException("this application does not inherit com.kakao.GlobalApplication");
+        return mInstance;
     }
 
     public static synchronized AppController getInstance() {
