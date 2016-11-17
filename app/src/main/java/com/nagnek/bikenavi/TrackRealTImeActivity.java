@@ -84,7 +84,8 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private List<Marker> descriptorMarkers = new ArrayList<Marker>(); //markers
     private List<Marker> markers = new ArrayList<Marker>(); //markers
     private SQLiteHandler db;   // sqlite
-    private ProgressDialog pDialog; //진행 상황 확인용 다이얼로그
+    private ProgressDialog pDialog; // 진행 상황 확인용 다이얼로그
+    private TextView guideTextVIew; // 가이드
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +101,8 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         // Progress dialog
         pDialog = new ProgressDialog(this);
         pDialog.setCancelable(false);
+
+        guideTextVIew = (TextView) findViewById(R.id.guide);
 
         Intent receivedIntent = getIntent();
         start_poi_name = receivedIntent.getStringExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.start_point_text_for_transition));
@@ -617,6 +620,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                     float bearingL = bearingBetweenLatLngs(begin, end);
 
                     boolean highLighted = highLightMarker(movingCurrentMarkerIndex, descriptorMarkerIndex);
+                    guideTextVIew.setText(descriptorMarkers.get(descriptorMarkerIndex).getSnippet());
                     if (highLighted) {
                         ++descriptorMarkerIndex;
                     }
