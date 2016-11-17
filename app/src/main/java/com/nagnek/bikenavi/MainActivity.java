@@ -77,9 +77,10 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
 
     static final int SEARCH_INTEREST_POINT_TRACK_SETTING_FRAGMENT = 1; // 경로 화면에서 장소 검색 request code
     static final int SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT = 2; // 장소 검색 화면에서 장소 검색 request code
+    static final int SEARCH_INTEREST_POINT_FROM_REALTIME_TRACK_FRAGMENT = 3; // 리얼타임 경로 화면에서 장소 검색 request code
     private static final String TAG = MainActivity.class.getSimpleName();
-    final String TITLES[] = {"길찾기", "장소찾기"};
-    final int ICONS[] = {R.drawable.ic_directions_black_24dp, R.drawable.places_ic_search};
+    final String TITLES[] = {"길찾기", "장소찾기", "실시간 길찾기"};
+    final int ICONS[] = {R.drawable.ic_directions_black_24dp, R.drawable.places_ic_search, R.drawable.ic_directions_black_24dp};
     // 비슷하게 헤더뷰에 이름과 이메일을 위한 String 리소스를 생성한다.
     // 그리고나서 proifle picture 리소스를 헤더뷰에 생성한다.
     final int PROFILE = R.drawable.ic_account_circle_white_24dp;
@@ -166,6 +167,14 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
                         .commit();
             }
                 break;
+            // 실시간 경로찾기 아이콘 클릭했을 때
+            case 3: {
+                Fragment fragment = new TrackRealTimeSettingFragment();
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                fragmentManager.beginTransaction()
+                        .replace(R.id.content_frame, fragment)
+                        .commit();
+            }
         }
         // HIghlight the selected item, update the title, and close the drawer
         drawerLayout.closeDrawer(mDrawerRecyclerView);
@@ -507,7 +516,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d(TAG, "onActivityResult : requestcode = " + requestCode);
-        if (requestCode == SEARCH_INTEREST_POINT_TRACK_SETTING_FRAGMENT) { // 장소검색 요청한게 돌아온 경우
+        if (requestCode == SEARCH_INTEREST_POINT_TRACK_SETTING_FRAGMENT) { // 경로 검색용에서 장소검색 요청한게 돌아온 경우
             Log.d(TAG, "SEARCH_INTEREST_POINT_TRACK_SETTING_FRAGMENT");
             if (resultCode == RESULT_OK) {// 장소 검색 결과 리턴
                 try {
@@ -529,6 +538,20 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
 
                     if (poiSearchFragment != null) {
                         poiSearchFragment.onActivityResult(requestCode, resultCode, data);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    sendErrorReportToServer(e.toString());
+                }
+            }
+        } else if (requestCode == SEARCH_INTEREST_POINT_FROM_REALTIME_TRACK_FRAGMENT) {
+            // 실시간 네비게이션 화면용에서 장소 검색 결과 리턴
+            if (resultCode == RESULT_OK) {// 장소 검색 결과 리턴
+                try {
+                    TrackRealTimeSettingFragment trackRealTimeSettingFragment = (TrackRealTimeSettingFragment) getSupportFragmentManager().findFragmentById(R.id.content_frame);
+
+                    if (trackRealTimeSettingFragment != null) {
+                        trackRealTimeSettingFragment.onActivityResult(requestCode, resultCode, data);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

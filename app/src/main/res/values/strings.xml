@@ -51,4 +51,9 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
+    <!--네비게이션 지도 레이아웃-->
+    <string name="first_turn_guide">첫번째 턴가이드</string>
+    <string name="second_turn_guide">두번째 턴가이드</string>
+    <string name="third_turn_guide">세번째 턴가이드</string>
+
 </resources>

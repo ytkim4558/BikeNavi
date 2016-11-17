@@ -23,6 +23,7 @@ import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.facebook.stetho.Stetho;
 import com.kakao.auth.KakaoSDK;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.helper.SessionManager;
@@ -99,6 +100,7 @@ public class AppController extends MultiDexApplication {
         Thread.setDefaultUncaughtExceptionHandler(new uncaughtExceptionHandlerApplication());
 
         super.onCreate();
+        Stetho.initializeWithDefaults(this);
         mInstance = this;
 
         /**

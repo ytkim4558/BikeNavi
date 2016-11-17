@@ -4,6 +4,9 @@
 
 package com.nagnek.bikenavi;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,7 +14,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.nagnek.bikenavi.app.AppController;
 
 /**
  * Created by user on 2016-10-22.
@@ -29,6 +38,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private String name;        //String Resource for header View name
     private int profileID;        //int Resource for header view profileID picture
     private String email;       //String Resource for header view email
+
 
     MyAdapter(String titles[], int icons[], String name, String email, int profileID, ClickListener clickListener, boolean loginState) { // MyAdapter Constructor with titles and icons parameter
         // titles, icons, name, email, profileID pic are passed from the main activity as we
@@ -103,6 +113,17 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             } else {
                 holder.loginStateButton.setText("로그인");
             }
+            final LinearLayout backgroundLayout = holder.backGroundLayout;
+            Glide.with(AppController.getGlobalApplicationContext())
+                    .load(R.drawable.background_poly)
+                    .asBitmap()
+                    .into(new SimpleTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                            Drawable drawable = new BitmapDrawable(resource);
+                            backgroundLayout.setBackground(drawable);
+                        }
+                    });
         }
     }
 
@@ -149,6 +170,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         TextView name;
         TextView email;
         Button loginStateButton;    // 비로그인 상태에서는 로그인 , 로그인 상태에서는 로그아웃이라고 표시되는 버튼
+        LinearLayout backGroundLayout; // 배경
 
         public ViewHolder(View itemView, int viewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
             super(itemView);
@@ -177,6 +199,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                     }
                 });
                 holderId = 0;                                                // Setting holder id = 0 as the object being populated are of type header view
+                backGroundLayout = (LinearLayout) itemView.findViewById(R.id.backGround);
             }
         }
     }
