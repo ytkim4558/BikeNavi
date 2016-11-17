@@ -89,7 +89,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_track);
+        setContentView(R.layout.activity_track_real_time);
         AppController.setCurrentActivity(this);
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(getApplicationContext());
