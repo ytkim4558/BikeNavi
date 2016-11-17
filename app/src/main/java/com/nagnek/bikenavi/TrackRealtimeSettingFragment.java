@@ -232,9 +232,6 @@ public class TrackRealTimeSettingFragment extends Fragment implements OnMapReady
 
     private HashMap<String, String> inputUserInfoToInputParams(HashMap<String, String> params) {
 
-        SQLiteHandler.UserType loginUserType = session.getUserType();
-        HashMap<String, String> user = db.getLoginedUserDetails(loginUserType);
-
         switch (loginUserType) {
             case BIKENAVI:
                 String email = user.get(SQLiteHandler.KEY_EMAIL);
