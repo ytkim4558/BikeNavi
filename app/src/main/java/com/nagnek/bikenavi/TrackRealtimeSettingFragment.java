@@ -105,9 +105,9 @@ public class TrackRealTimeSettingFragment extends Fragment implements OnMapReady
         session = new SessionManager(getContext().getApplicationContext());
 
         if (session.isSessionLoggedIn()) {
-            getLastUsedPOI();
             loginUserType = session.getUserType();
             user = db.getLoginedUserDetails(loginUserType);
+            getLastUsedPOI();
         } else {
             currentPOI = db.getLastUserPOI();
         }
