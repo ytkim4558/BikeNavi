@@ -65,7 +65,6 @@ import com.nagnek.bikenavi.util.NagneUtil;
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
-import com.skp.Tmap.TMapPolyLine;
 import com.skp.Tmap.util.HttpConnect;
 
 import org.json.JSONException;
@@ -470,39 +469,38 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
             if (poiPositionOfStartItemArrayList != null && poiPositionOfDestItemArrayList != null) {
                 mSource = poiPositionOfStartItemArrayList.get(0).getPOIPoint();
                 mDest = poiPositionOfDestItemArrayList.get(0).getPOIPoint();
-                tmapData3.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
-                    @Override
-                    public void onFindPathData(TMapPolyLine tMapPolyLine) {
-                        pathStopPointList.clear();
-                        final ArrayList<TMapPoint> pointArrayList = tMapPolyLine.getLinePoint();
-                        for (TMapPoint point : pointArrayList) {
-                            LatLng latLng = new LatLng(point.getLatitude(), point.getLongitude());
-                            pathStopPointList.add(latLng);
-                        }
-
-                        Handler handler = new Handler(Looper.getMainLooper());
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                if (mGoogleMap != null) {
-                                    // 경로 polyline 그리기
-                                    addPolyLineUsingGoogleMap(pathStopPointList);
-                                    for (LatLng latLng : pathStopPointList) {
-                                        Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(latLng).visible(false));
-                                        markers.add(marker);
-                                    }
-                                } else {
-                                    Log.d("tag", "아직 맵이 준비안됬어");
-                                }
-                            }
-                        });
-                    }
-                });
 
                 tmapData3.findPathDataAllType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
                     @Override
                     public void onFindPathDataAll(Document document) {
+
+                        pathStopPointList.clear();
+
+                        final NodeList lineList = document.getElementsByTagName("LineString");
+
+                        for (int i = 0; i < lineList.getLength(); ++i) {
+                            Element item = (Element) lineList.item(i);
+                            String str = HttpConnect.getContentFromNode(item, "coordinates");
+                            if (str != null) {
+                                String[] str2 = str.split(" ");
+
+                                for (int k = 0; k < str2.length; ++k) {
+                                    try {
+                                        String[] e1 = str2[k].split(",");
+                                        LatLng latLng = new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
+                                        pathStopPointList.add(latLng);
+                                        Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(latLng).visible(false));
+                                        markers.add(marker);
+                                    } catch (Exception var13) {
+                                        Log.d(TAG, var13.getMessage());
+                                    }
+                                }
+                            }
+                        }
+
+                        // 경로 polyline 그리기
+                        addPolyLineUsingGoogleMap(pathStopPointList);
+
                         final NodeList list = document.getElementsByTagName("Placemark");
 //                        Log.d("count", "길이" + list.getLength());
                         int guide_length = 0;
