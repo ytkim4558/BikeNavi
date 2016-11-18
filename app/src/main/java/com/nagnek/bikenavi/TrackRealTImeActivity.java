@@ -67,7 +67,6 @@ import com.nagnek.bikenavi.util.NagneUtil;
 import com.skp.Tmap.TMapData;
 import com.skp.Tmap.TMapPOIItem;
 import com.skp.Tmap.TMapPoint;
-import com.skp.Tmap.TMapPolyLine;
 import com.skp.Tmap.util.HttpConnect;
 
 import org.w3c.dom.Document;
@@ -295,22 +294,35 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             if (poiPositionOfStartItemArrayList != null && poiPositionOfDestItemArrayList != null) {
                 mSource = poiPositionOfStartItemArrayList.get(0).getPOIPoint();
                 mDest = poiPositionOfDestItemArrayList.get(0).getPOIPoint();
-                tmapData3.findPathDataWithType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataListenerCallback() {
-                    @Override
-                    public void onFindPathData(TMapPolyLine tMapPolyLine) {
-                        pathStopPointList.clear();
-                        final ArrayList<TMapPoint> pointArrayList = tMapPolyLine.getLinePoint();
-                        for (TMapPoint point : pointArrayList) {
-                            LatLng latLng = new LatLng(point.getLatitude(), point.getLongitude());
-                            pathStopPointList.add(latLng);
-                        }
 
+                tmapData3.findPathDataAllType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
+                    @Override
+                    public void onFindPathDataAll(final Document document) {
                         Handler handler = new Handler(Looper.getMainLooper());
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-
                                 if (mGoogleMap != null) {
+                                    pathStopPointList.clear();
+
+                                    final NodeList lineList = document.getElementsByTagName("LineString");
+
+                                    for (int i = 0; i < lineList.getLength(); ++i) {
+                                        Element item = (Element) lineList.item(i);
+                                        String str = HttpConnect.getContentFromNode(item, "coordinates");
+                                        if (str != null) {
+                                            String[] str2 = str.split(" ");
+
+                                            for (int k = 0; k < str2.length; ++k) {
+                                                try {
+                                                    String[] e1 = str2[k].split(",");
+                                                    pathStopPointList.add(new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0])));
+                                                } catch (Exception var13) {
+                                                }
+                                            }
+                                        }
+                                    }
+
                                     // 경로 polyline 그리기
                                     addPolyLineUsingGoogleMap(pathStopPointList);
                                     for (LatLng latLng : pathStopPointList) {
@@ -322,12 +334,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                 }
                             }
                         });
-                    }
-                });
 
-                tmapData3.findPathDataAllType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
-                    @Override
-                    public void onFindPathDataAll(Document document) {
                         final NodeList list = document.getElementsByTagName("Placemark");
 //                        Log.d("count", "길이" + list.getLength());
                         int guide_length = 0;
@@ -395,8 +402,8 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                             }
 
                         }
-                        Handler handler = new Handler(Looper.getMainLooper());
-                        handler.post(new Runnable() {
+                        Handler handler2 = new Handler(Looper.getMainLooper());
+                        handler2.post(new Runnable() {
                             @Override
                             public void run() {
                                 if (mGoogleMap != null) {
@@ -550,7 +557,9 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     @Override
     protected void onPause() {
         super.onPause();
-        stopLocationUpdates();
+        if (mGoogleApiClient.isConnected()) {
+            stopLocationUpdates();
+        }
     }
 
     @Override
