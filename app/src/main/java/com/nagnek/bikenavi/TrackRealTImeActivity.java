@@ -302,7 +302,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                if (mGoogleMap != null) {
+                                if (mGoogleMap != null && document != null) {
                                     //마커리스트 초기화
                                     markers.clear();
 
@@ -421,7 +421,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                     fragmentTransaction.commit();
                                     Log.d("count", "길이래" + list.getLength());
                                 } else {
-                                    Log.d("tag", "아직 맵이 준비안됬어");
+                                    Log.d("tag", "아직 맵이 준비안됬어 또는 document가 없어");
                                 }
                             }
                         });
@@ -652,7 +652,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         int movingCurrentMarkerIndex = 0;
         int descriptorMarkerIndex = 0;
 
-        float tilt = 90;
         float zoom = 15.5f;
         boolean upward = true;
 
@@ -724,14 +723,16 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             }
             trackingMarker = mGoogleMap.addMarker(new MarkerOptions().position(markerPos)
                     .title("접니다")
-                    .snippet("자전거에요"));
-            trackingMarker.setIcon(getBitmapDescriptor(R.drawable.ic_directions_bike_red_24dp));
+                    .snippet("자전거에요")
+                    .anchor(0.5f, 0.5f)
+                    .rotation(bearing + BEARING_OFFSET)
+                    .flat(true));
+            trackingMarker.setIcon(getBitmapDescriptor(R.drawable.directionarrow));
 
             CameraPosition cameraPosition =
                     new CameraPosition.Builder()
                             .target(markerPos)
-                            .bearing(bearing + BEARING_OFFSET)
-                            .tilt(90)
+                            .bearing(bearing)
                             .zoom(mGoogleMap.getCameraPosition().zoom >= 16 ? mGoogleMap.getCameraPosition().zoom : 16)
                             .build();
 
@@ -846,17 +847,17 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                     CameraPosition cameraPosition =
                             new CameraPosition.Builder()
                                     .target(end) // changed this...
-                                    .bearing(bearingL + BEARING_OFFSET)
-                                    .tilt(tilt)
+                                    .bearing(bearingL)
                                     .zoom(mGoogleMap.getCameraPosition().zoom)
                                     .build();
-
 
                     mGoogleMap.animateCamera(
                             CameraUpdateFactory.newCameraPosition(cameraPosition),
                             ANIMATE_SPEEED_TURN,
                             null
                     );
+
+                    trackingMarker.setRotation(bearingL);
 
                     start = SystemClock.uptimeMillis();
                     mHandler.postDelayed(animator, 16);
@@ -877,29 +878,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
         private LatLng getBeginLatLng() {
             return markers.get(movingCurrentMarkerIndex).getPosition();
-        }
-
-        private void adjustCameraPosition() {
-            //System.out.println("tilt = " + tilt);
-            //System.out.println("upward = " + upward);
-            //System.out.println("zoom = " + zoom);
-            if (upward) {
-
-                if (tilt < 90) {
-                    tilt++;
-                    zoom -= 0.01f;
-                } else {
-                    upward = false;
-                }
-
-            } else {
-                if (tilt > 0) {
-                    tilt--;
-                    zoom += 0.01f;
-                } else {
-                    upward = true;
-                }
-            }
         }
     }
 }
