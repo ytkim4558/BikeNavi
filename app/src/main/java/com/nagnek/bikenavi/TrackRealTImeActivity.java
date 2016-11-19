@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -15,6 +16,8 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -32,6 +35,7 @@ import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -75,9 +79,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -86,7 +88,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
     protected final static String REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key";
     protected final static String LOCATION_KEY = "location-key";
-    protected final static String LAST_UPDATED_TIME_STRING_KEY = "last-updated-time-string-key";
     private static final String TAG = TrackRealTImeActivity.class.getSimpleName();
     private static final int REQUEST_CHECK_SETTINGS = 5;
     private final Handler mHandler = new Handler();
@@ -98,7 +99,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     String dest_poi_name;
     LocationRequest mLocationRequest;
     GoogleApiClient mGoogleApiClient = null;
-    String mLastUpdateTime;
+    private Marker trackingCycleMarker; // 내위치를 표시해주는 마커
     private TrackRealTImeActivity.Animator animator = new TrackRealTImeActivity.Animator();
     private GoogleMap mGoogleMap;
     private SessionManager session; // 로그인했는지 확인용 변수
@@ -111,6 +112,11 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private ProgressDialog pDialog; // 진행 상황 확인용 다이얼로그
     private TextView guideTextVIew; // 가이드
     private Location mCurrentLocation;
+    private SensorManager mSensorManager;
+    private Sensor mSensor;
+    private Polyline polyLine;
+    private PolylineOptions rectOptions;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,13 +124,16 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         setContentView(R.layout.activity_track_real_time);
         AppController.setCurrentActivity(this);
 
-        if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .build();
-        }
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+
+
+        // Update values using data stored in the Bundle.
+        updateValuesFromBundle(savedInstanceState);
+
+        // Kick off the process of building a GoogleApiClient and requesting the LocationServices
+        // API.
+        buildGoogleApiClient();
 
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(getApplicationContext());
@@ -198,15 +207,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 }
             }
         });
-
-        // Update values using data stored in the Bundle.
-        updateValuesFromBundle(savedInstanceState);
-
-        mLastUpdateTime = "";
-
-        // Kick off the process of building a GoogleApiClient and requesting the LocationServices
-        // API.
-        buildGoogleApiClient();
     }
 
     /**
@@ -224,11 +224,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 // Since LOCATION_KEY was found in the Bundle, we can be sure that mCurrentLocation
                 // is not null.
                 mCurrentLocation = savedInstanceState.getParcelable(LOCATION_KEY);
-            }
-
-            // Update the value of mLastUpdateTime from the Bundle and update the UI.
-            if (savedInstanceState.keySet().contains(LAST_UPDATED_TIME_STRING_KEY)) {
-                mLastUpdateTime = savedInstanceState.getString(LAST_UPDATED_TIME_STRING_KEY);
             }
             updateUI();
         }
@@ -423,6 +418,29 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                 } else {
                                     Log.d("tag", "아직 맵이 준비안됬어 또는 document가 없어");
                                 }
+
+                                // 현재 위치 마커 띄우기
+                                trackingCycleMarker = mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(mSource.getLatitude(), mSource.getLongitude()))
+                                        .title("접니다")
+                                        .snippet("자전거에요")
+                                        .anchor(0.5f, 0.5f)
+                                        .flat(true));
+                                trackingCycleMarker.setIcon(getBitmapDescriptor(R.drawable.directionarrow));
+                                polyLine = initializePolyLine();
+
+                                LatLng markerPos = markers.get(0).getPosition();
+                                LatLng secondPos = markers.get(1).getPosition();
+                                float bearing = bearingBetweenLatLngs(markerPos, secondPos);
+
+                                CameraPosition cameraPosition =
+                                        new CameraPosition.Builder()
+                                                .target(markerPos)
+                                                .bearing(bearing)
+                                                .zoom(mGoogleMap.getCameraPosition().zoom >= 16 ? mGoogleMap.getCameraPosition().zoom : 16)
+                                                .build();
+                                mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+                                updateUI();
                             }
                         });
                     }
@@ -546,12 +564,29 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         }
     }
 
+    private BitmapDescriptor getBitmapDescriptor(int id) {
+        Drawable vectorDrawable = TrackRealTImeActivity.this.getDrawable(id);
+        int h = vectorDrawable.getIntrinsicHeight();
+        int w = vectorDrawable.getIntrinsicWidth();
+        vectorDrawable.setBounds(0, 0, w, h);
+        Bitmap bm = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bm);
+        vectorDrawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bm);
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
         if (mGoogleApiClient.isConnected()) {
             stopLocationUpdates();
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -570,7 +605,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     @Override
     protected void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putParcelable(LOCATION_KEY, mCurrentLocation);
-        savedInstanceState.putString(LAST_UPDATED_TIME_STRING_KEY, mLastUpdateTime);
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -594,14 +628,16 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 // for ActivityCompat#requestPermissions for more details.
                 return;
             }
+            Log.d(TAG, "onConnected");
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-
+            updateUI();
         }
         startLocationUpdates();
     }
 
     protected void startLocationUpdates() {
+        Toast.makeText(this, "startLocationUpdates",
+                Toast.LENGTH_SHORT).show();
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -614,10 +650,47 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
+        Toast.makeText(this, "requestLocationUpdates호출",
+                Toast.LENGTH_SHORT).show();
     }
 
     private void updateUI() {
+        if (mCurrentLocation != null && trackingCycleMarker != null) {
+            LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+            trackingCycleMarker.setPosition(latLng);
+            updatePolyLine(latLng);
+            if (mGoogleMap != null) {
+                mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            }
+            Log.d(TAG, "업데이트 UI");
+            Toast.makeText(this, getResources().getString(R.string.updated_ui),
+                    Toast.LENGTH_SHORT).show();
+        } else if (mCurrentLocation == null) {
+            Toast.makeText(this, "mCurrentLocation이 null이야",
+                    Toast.LENGTH_SHORT).show();
+        } else if (trackingCycleMarker == null) {
+            Toast.makeText(this, "마커가 null이야",
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
 
+    private Polyline initializePolyLine() {
+        //polyLinePoints = new ArrayList<LatLng>();
+        if (polyLine != null) {
+            polyLine.remove();
+        }
+        rectOptions = new PolylineOptions().geodesic(true).color(Color.CYAN);
+        rectOptions.add(markers.get(0).getPosition());
+        return mGoogleMap.addPolyline(rectOptions);
+    }
+
+    /**
+     * Add the marker to the polyline.
+     */
+    private void updatePolyLine(LatLng latLng) {
+        List<LatLng> points = polyLine.getPoints();
+        points.add(latLng);
+        polyLine.setPoints(points);
     }
 
     @Override
@@ -625,6 +698,8 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         // The connection to Google Play services was lost for some reason. We call connect() to
         // attempt to re-establish the connection.
         Log.i(TAG, "connection suspended");
+        Toast.makeText(this, "connection suspended",
+                Toast.LENGTH_SHORT).show();
         mGoogleApiClient.connect();
     }
 
@@ -633,12 +708,16 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         // Refer to the javadoc for ConnectionResult to see what error codes might be returned in
         // onConnectionFailed.
         Log.d(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
+        Toast.makeText(this, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode(),
+                Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onLocationChanged(Location location) {
         mCurrentLocation = location;
-        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+        updateUI();
+        Toast.makeText(this, getResources().getString(R.string.location_updated_message),
+                Toast.LENGTH_SHORT).show();
     }
 
     public class Animator implements Runnable {

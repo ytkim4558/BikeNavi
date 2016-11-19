@@ -613,10 +613,6 @@ public class TrackRealTimeSettingFragment extends Fragment implements OnMapReady
         }
         mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
-        if (mLastLocation != null) {
-            moveCameraToPOI(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-            Log.d(TAG, "커넥트 이동");
-        }
     }
 
     @Override

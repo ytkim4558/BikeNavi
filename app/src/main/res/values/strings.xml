@@ -12,6 +12,8 @@
     <string name="btn_register">회원가입</string>
     <string name="btn_link_to_register">회원이 아닙니까? 지금 가입하세요.</string>
     <string name="btn_link_to_login">이미 회원이십니까? 로그인하세요! </string>
+    <string name="updated_ui">ui가 업데이트 됨</string>
+    <string name="location_updated_message">위치 변경됨</string>
     <string name="btn_delete">삭제</string>
     <string name="welcome">환영합니다.</string>
     <string name="text_email">이메일 뜨는 곳</string>
