@@ -461,8 +461,6 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
 
         TMapData tmapData3 = new TMapData();
 
-        mGoogleMap.clear();
-
         try {
             ArrayList<TMapPOIItem> poiPositionOfStartItemArrayList = tmapData3.findAddressPOI(startPOIName);
             ArrayList<TMapPOIItem> poiPositionOfDestItemArrayList = tmapData3.findAddressPOI(destPOIName);
@@ -478,6 +476,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                             handler.post(new Runnable() {
                                 @Override
                                 public void run() {
+                                    mGoogleMap.clear();
                                     pathStopPointList.clear();
                                     //마커리스트 초기화
                                     markers.clear();
@@ -660,13 +659,12 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
 
         mGoogleMap = googleMap;
 
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
+        new Thread(new Runnable() {
             @Override
             public void run() {
                 performFindRoute(start_poi_name, dest_poi_name);
             }
-        });
+        }).start();
     }
 
     /**

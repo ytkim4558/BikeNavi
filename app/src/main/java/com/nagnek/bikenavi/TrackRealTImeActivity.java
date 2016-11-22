@@ -379,8 +379,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
         TMapData tmapData3 = new TMapData();
 
-        mGoogleMap.clear();
-
         try {
             ArrayList<TMapPOIItem> poiPositionOfStartItemArrayList = tmapData3.findAddressPOI(startPOIName);
             ArrayList<TMapPOIItem> poiPositionOfDestItemArrayList = tmapData3.findAddressPOI(destPOIName);
@@ -395,6 +393,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
+                                mGoogleMap.clear();
                                 if (mGoogleMap != null && document != null) {
                                     //마커리스트 초기화
                                     markers.clear();
@@ -648,14 +647,12 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
         mGoogleMap = googleMap;
 
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-                         @Override
-                         public void run() {
-                             performFindRoute(start_poi_name, dest_poi_name);
-                         }
-                     }
-        );
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                performFindRoute(start_poi_name, dest_poi_name);
+            }
+        }).start();
     }
 
     /**
