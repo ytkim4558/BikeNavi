@@ -40,6 +40,8 @@
     <string name="searchview_transition_name">장소검색창전환</string>
     <string name="name_bookmark_button">즐겨찾기</string>
 
+    <string name="remaining_distance">%1$dm</string>
+
     <!--지도 액티비티에 필요한 변수-->
     <string name="hint_start_point">출발 장소를 입력하세요</string>
     <string name="hint_destination">도착 장소를 입력하세요</string>
@@ -57,5 +59,6 @@
     <string name="first_turn_guide">첫번째 턴가이드</string>
     <string name="second_turn_guide">두번째 턴가이드</string>
     <string name="third_turn_guide">세번째 턴가이드</string>
+    <string name="big_turn_guide">큰 턴가이드</string>
 
 </resources>

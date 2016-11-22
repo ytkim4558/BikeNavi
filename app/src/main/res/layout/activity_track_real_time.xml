@@ -47,28 +47,76 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:orientation="horizontal">
                 <!--첫번째 턴 가이드-->
-                <ImageView
-                    android:id="@+id/firstTurnGuide"
+                <LinearLayout
+                    android:id="@+id/firstFutureGuideLayout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:contentDescription="@string/first_turn_guide"
-                    android:src="@drawable/ic_directions_black_24dp" />
-                <!--두번째 턴 가이드-->
-                <ImageView
-                    android:id="@+id/secondTurnGuide"
+                    android:layout_margin="5dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/firstTurnGuide"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:contentDescription="@string/first_turn_guide"
+                        android:src="@drawable/ic_arrow_right_black_24dp" />
+
+                    <TextView
+                        android:id="@+id/firstText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="200m" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/secondFutureGuideLayout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:contentDescription="@string/second_turn_guide"
-                    android:src="@drawable/ic_directions_black_24dp" />
-                <!--세 번째 턴 가이드-->
-                <ImageView
-                    android:id="@+id/thirdTurnGuide"
+                    android:layout_margin="5dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <!--두번째 턴 가이드-->
+                    <ImageView
+                        android:id="@+id/secondTurnGuide"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/second_turn_guide"
+                        android:src="@drawable/ic_arrow_upward_black_24dp" />
+
+                    <TextView
+                        android:id="@+id/secondText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="50m" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/thirdFutureGuideLayout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:contentDescription="@string/third_turn_guide"
-                    android:src="@drawable/ic_directions_black_24dp" />
+                    android:layout_margin="5dp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+                    <!--세 번째 턴 가이드-->
+                    <ImageView
+                        android:id="@+id/thirdTurnGuide"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/third_turn_guide"
+                        android:src="@drawable/ic_left_arrow_black_24dp" />
+
+                    <TextView
+                        android:id="@+id/thirdText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/thirdTurnGuide"
+                        android:text="50m" />
+                </LinearLayout>
+
                 <!--속도 표시-->
                 <TextView
                     android:id="@+id/speed"
@@ -80,13 +128,27 @@
 
             </LinearLayout>
             <!--가이드 표시-->
-            <TextView
-                android:id="@+id/guide"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="200m앞에서 좌회전"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:layout_gravity="center"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/bigTurnGuide"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:contentDescription="@string/big_turn_guide"
+                    android:src="@drawable/ic_arrow_right_black_24dp" />
+
+                <TextView
+                    android:id="@+id/guide"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="200m"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -99,8 +161,8 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="bottom|center"
-                    android:text="남은거리 : 200m"
-                    android:textAppearance="?android:attr/textAppearanceSmall" />
+                    android:text="주행거리 : 130m"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
                 <!--총 남은 거리-->
                 <TextView
                     android:id="@+id/total_namum_distance"
@@ -108,8 +170,8 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="bottom|center"
-                    android:text="총ㄱ거리 : 2000m"
-                    android:textAppearance="?android:attr/textAppearanceSmall" />
+                    android:text="총거리 : 2000m"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
             </LinearLayout>
         </LinearLayout>
     </FrameLayout>

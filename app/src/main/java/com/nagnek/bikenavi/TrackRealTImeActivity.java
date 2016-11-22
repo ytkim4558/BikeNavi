@@ -9,6 +9,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -28,12 +29,16 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -99,6 +104,10 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     String dest_poi_name;
     LocationRequest mLocationRequest;
     GoogleApiClient mGoogleApiClient = null;
+    ImageView turnGuideFirstImage, turnGuideSecondImage, turnGuideThirdImage; // 첫번째 턴(좌회전 우회전등, 현재 시점), 두번째 턴, 세번째턴
+    TextView remainingFutureFirstText, remainingFutureSecondText, remainingFutureThirdText; // 첫번째 남은거리, 두번째 남은거리, 세번째 남은거리
+    LinearLayout firstFutureGuideLayout, secondFutureGuideLayout, thirdFutureGuideLayout; // 위의 턴과 거리를 표시하는 레이아웃의 첫번째, 두번째, 세번째
+    SparseArray<String> directionMap; // tmap 방향 정보 반환
     private Marker trackingCycleMarker; // 내위치를 표시해주는 마커
     private TrackRealTImeActivity.Animator animator = new TrackRealTImeActivity.Animator();
     private GoogleMap mGoogleMap;
@@ -106,23 +115,26 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private ArrayList<LatLng> pathStopPointList;    // 출발지 도착지를 포함한 경유지점(위도, 경도) 리스트
     private ArrayList<MarkerOptions> markerOptionsArrayList;    // 출발지 도착지 사이에 마커 리스트
     private List<Marker> descriptorMarkers = new ArrayList<Marker>(); //markers
+    private List<Integer> directionList = new ArrayList<Integer>(); // tmap 방향 전환
+    private List<Integer> distanceList = new ArrayList<Integer>(); // tmap 거리
     private List<Marker> markers = new ArrayList<Marker>(); //markers
     private SQLiteHandler db;   // sqlite
     // Keys for storing activity state in the Bundle.
     private ProgressDialog pDialog; // 진행 상황 확인용 다이얼로그
     private TextView guideTextVIew; // 가이드
+    private ImageView guideImageView; // 가이드
     private Location mCurrentLocation;
     private SensorManager mSensorManager;
     private Sensor mSensor;
     private Polyline polyLine;
     private PolylineOptions rectOptions;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_track_real_time);
         AppController.setCurrentActivity(this);
+        initialDirectionMap();
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
@@ -144,6 +156,20 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         // Progress dialog
         pDialog = new ProgressDialog(this);
         pDialog.setCancelable(false);
+
+        /**
+         * guide 레이아웃 아이디 초기화
+         */
+        guideImageView = (ImageView) findViewById(R.id.bigTurnGuide);
+        turnGuideFirstImage = (ImageView) findViewById(R.id.firstTurnGuide);
+        turnGuideSecondImage = (ImageView) findViewById(R.id.secondTurnGuide);
+        turnGuideThirdImage = (ImageView) findViewById(R.id.thirdTurnGuide);
+        remainingFutureFirstText = (TextView) findViewById(R.id.firstText);
+        remainingFutureSecondText = (TextView) findViewById(R.id.secondText);
+        remainingFutureThirdText = (TextView) findViewById(R.id.thirdText);
+        firstFutureGuideLayout = (LinearLayout) findViewById(R.id.firstFutureGuideLayout);
+        secondFutureGuideLayout = (LinearLayout) findViewById(R.id.secondFutureGuideLayout);
+        thirdFutureGuideLayout = (LinearLayout) findViewById(R.id.thirdFutureGuideLayout);
 
         guideTextVIew = (TextView) findViewById(R.id.guide);
 
@@ -215,6 +241,53 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         });
     }
 
+    void initialDirectionMap() {
+        directionMap = new SparseArray<String>();
+        directionMap.put(0, "안내 없음");
+        directionMap.put(11, "직진");
+        directionMap.put(12, "좌회전");
+        directionMap.put(13, "우회전");
+        directionMap.put(14, "U-turn");
+        directionMap.put(15, "P-turn");
+        directionMap.put(16, "8시방향 좌회전");
+        directionMap.put(17, "10시방향 좌회전");
+        directionMap.put(18, "2시방향 우회전");
+        directionMap.put(19, "4시방향 우회전");
+        directionMap.put(117, "우측");
+        directionMap.put(118, "좌측");
+        directionMap.put(119, "지하차도로 진입");
+        directionMap.put(120, "고가도로로 진입");
+        directionMap.put(121, "터널로 진입");
+        directionMap.put(122, "교량으로 진입");
+        directionMap.put(210, "지하보도로 진입");
+        directionMap.put(211, "계단으로 진입");
+        directionMap.put(212, "경사로로 진입");
+        directionMap.put(213, "계단+경사로로 진입");
+        directionMap.put(214, "토끼굴로 진입");
+        directionMap.put(123, "지하차도 옆길");
+        directionMap.put(124, "고가차도 옆길");
+        directionMap.put(131, "로타리 1시방향");
+        directionMap.put(132, "로타리 2시방향");
+        directionMap.put(133, "로타리 3시방향");
+        directionMap.put(134, "로타리 4시방향");
+        directionMap.put(135, "로타리 5시방향");
+        directionMap.put(136, "로타리 6시방향");
+        directionMap.put(137, "로타리 7시방향");
+        directionMap.put(138, "로타리 8시방향");
+        directionMap.put(139, "로타리 9시방향");
+        directionMap.put(140, "로타리 10시방향");
+        directionMap.put(141, "로타리 11시방향");
+        directionMap.put(142, "로타리 12시방향");
+        directionMap.put(200, "출발지");
+        directionMap.put(201, "목적지");
+        directionMap.put(184, "경유지");
+        directionMap.put(185, "첫번째 경유지");
+        directionMap.put(186, "두번째 경유지");
+        directionMap.put(187, "세번째 경유지");
+        directionMap.put(188, "네번째 경유지");
+        directionMap.put(189, "다섯번째 경유지");
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
@@ -273,6 +346,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         mLocationRequest.setInterval(10000);
         mLocationRequest.setFastestInterval(5000); // 수피트 간격에 대한 정확한 위치 업데이트를 반환한다.
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);   // ACCESS_FINE_LOCATION 권한과 관계 있다.
+        mLocationRequest.setSmallestDisplacement(10);   //10m 변경될때마다 알림
     }
 
     private void showDialog() {
@@ -371,6 +445,22 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
                                             String pointIndex = HttpConnect.getContentFromNode(item, "tmap:pointIndex");
                                             if (pointIndex != null) {
+                                                // 방향전환 추가
+                                                String direction = HttpConnect.getContentFromNode(item, "tmap:turnType");
+                                                if (direction != null) {
+                                                    directionList.add(Integer.valueOf(direction));
+                                                } else {
+                                                    Log.d(TAG, "distance가 없네? pointIndex : " + String.valueOf(pointIndex));
+                                                    directionList.add(null);
+                                                }
+                                                String distance = HttpConnect.getContentFromNode(item, "tmap:distance");
+                                                if (distance != null) {
+                                                    distanceList.add(Integer.valueOf(distance));
+                                                } else {
+                                                    distanceList.add(null);
+                                                }
+
+                                                // 좌표 정보 추가
                                                 String str = HttpConnect.getContentFromNode(item, "coordinates");
                                                 if (str != null) {
                                                     String[] str2 = str.split(" ");
@@ -393,6 +483,21 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
                                             String lineIndex = HttpConnect.getContentFromNode(item, "tmap:lineIndex");
                                             if (lineIndex != null) {
+                                                // 방향전환 추가
+                                                String direction = HttpConnect.getContentFromNode(item, "tmap:turnType");
+                                                if (direction != null) {
+                                                    directionList.add(Integer.valueOf(direction));
+                                                } else {
+                                                    directionList.add(11); // 직진
+                                                }
+                                                String distance = HttpConnect.getContentFromNode(item, "tmap:distance");
+                                                if (distance != null) {
+                                                    distanceList.add(Integer.valueOf(distance));
+                                                } else {
+                                                    distanceList.add(null);
+                                                }
+
+                                                // 좌표 정보 추가
                                                 String str = HttpConnect.getContentFromNode(item, "coordinates");
                                                 if (str != null) {
                                                     String[] str2 = str.split(" ");
@@ -443,6 +548,19 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                     Log.d("tag", "아직 맵이 준비안됬어 또는 document가 없어");
                                 }
 
+                                if (markers.size() < 2) {
+                                    AlertDialog.Builder alert = new AlertDialog.Builder(TrackRealTImeActivity.this);
+                                    alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            redirectMainActivity();
+                                        }
+                                    });
+                                    alert.setMessage("경로를 찾을 수 없습니다. 재 설정해주세요");
+                                    alert.show();
+                                    return;
+                                }
+
                                 // 현재 위치 마커 띄우기
                                 trackingCycleMarker = mGoogleMap.addMarker(new MarkerOptions().position(new LatLng(mSource.getLatitude(), mSource.getLongitude()))
                                         .title("접니다")
@@ -488,9 +606,13 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                     animator.stopAnimation();
                 }
                 animator.startAnimation(true);
-
             }
         });
+    }
+
+    void redirectMainActivity() {
+        startActivity(new Intent(this, MainActivity.class));
+        finish();
     }
 
     @Override
@@ -526,7 +648,14 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
         mGoogleMap = googleMap;
 
-        performFindRoute(start_poi_name, dest_poi_name);
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+                         @Override
+                         public void run() {
+                             performFindRoute(start_poi_name, dest_poi_name);
+                         }
+                     }
+        );
     }
 
     /**
@@ -660,8 +789,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     }
 
     protected void startLocationUpdates() {
-        Toast.makeText(this, "startLocationUpdates",
-                Toast.LENGTH_SHORT).show();
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -674,8 +801,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
-        Toast.makeText(this, "requestLocationUpdates호출",
-                Toast.LENGTH_SHORT).show();
     }
 
     private void updateUI() {
@@ -687,14 +812,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             }
             Log.d(TAG, "업데이트 UI");
-            Toast.makeText(this, getResources().getString(R.string.updated_ui),
-                    Toast.LENGTH_SHORT).show();
-        } else if (mCurrentLocation == null) {
-            Toast.makeText(this, "mCurrentLocation이 null이야",
-                    Toast.LENGTH_SHORT).show();
-        } else if (trackingCycleMarker == null) {
-            Toast.makeText(this, "마커가 null이야",
-                    Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -738,10 +855,22 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
     @Override
     public void onLocationChanged(Location location) {
+        // it happens
+        if (location == null) {
+            return;
+        }
+        // all location should have an accuracy
+        if (!location.hasAccuracy()) {
+            return;
+        }
+        // if its not accurate enough don't use it
+        // this value is in meters
+        if (location.getAccuracy() > 200) {
+            return;
+        }
+
         mCurrentLocation = location;
         updateUI();
-        Toast.makeText(this, getResources().getString(R.string.location_updated_message),
-                Toast.LENGTH_SHORT).show();
     }
 
     public class Animator implements Runnable {
@@ -942,6 +1071,34 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                     float bearingL = bearingBetweenLatLngs(begin, end);
 
                     boolean highLighted = highLightMarker(movingCurrentMarkerIndex, descriptorMarkerIndex);
+
+                    // 회전 정보(좌회전 우회전)를 읽어서 가이드 뷰에 표시
+                    Integer direction = directionList.get(descriptorMarkerIndex);
+                    Integer distance = distanceList.get(descriptorMarkerIndex);
+                    setDirectionImage(direction, guideImageView);
+                    setDirectionImage(direction, turnGuideFirstImage);
+                    displayRemainingDistance(distance, remainingFutureFirstText);
+                    // 사이즈가 2면 인덱스는 0과 1만 있으므로 최소한 하나 더 커야한다.
+                    if (directionList.size() > descriptorMarkerIndex + 1) {
+                        secondFutureGuideLayout.setVisibility(View.VISIBLE);
+                        direction = directionList.get(descriptorMarkerIndex + 1);
+                        distance = distanceList.get(descriptorMarkerIndex + 1);
+                        setDirectionImage(direction, turnGuideSecondImage);
+                        displayRemainingDistance(distance, remainingFutureSecondText);
+                    } else {
+                        secondFutureGuideLayout.setVisibility(View.GONE);
+                    }
+
+                    if (directionList.size() > descriptorMarkerIndex + 2) {
+                        thirdFutureGuideLayout.setVisibility(View.VISIBLE);
+                        direction = directionList.get(descriptorMarkerIndex + 2);
+                        distance = distanceList.get(descriptorMarkerIndex + 2);
+                        setDirectionImage(direction, turnGuideThirdImage);
+                        displayRemainingDistance(distance, remainingFutureThirdText);
+                    } else {
+                        thirdFutureGuideLayout.setVisibility(View.GONE);
+                    }
+
                     guideTextVIew.setText(descriptorMarkers.get(descriptorMarkerIndex).getSnippet());
                     if (highLighted) {
                         ++descriptorMarkerIndex;
@@ -981,6 +1138,36 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
         private LatLng getBeginLatLng() {
             return markers.get(movingCurrentMarkerIndex).getPosition();
+        }
+
+        void displayRemainingDistance(Integer distance, TextView distanceTextView) {
+            if (distance != null) {
+                // 남은 거리 출력
+                distanceTextView.setText(getString(R.string.remaining_distance, distance));
+            }
+        }
+
+        void setDirectionImage(Integer direction, ImageView guideImageView) {
+            if (direction != null) {
+                Log.d(TAG, "direction : " + directionMap.get(direction));
+                switch (direction) {
+                    case -1: // 아무것도 없는 경우
+                        guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_upward_black_24dp));
+                        break;
+                    case 11: //직진
+                        guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_upward_black_24dp));
+                        break;
+                    case 12: //좌회전
+                        guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_left_arrow_black_24dp));
+                        break;
+                    case 13: //우회전
+                        guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_right_black_24dp));
+                        break;
+                    default:
+                        guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_upward_black_24dp));
+                        break;
+                }
+            }
         }
     }
 }

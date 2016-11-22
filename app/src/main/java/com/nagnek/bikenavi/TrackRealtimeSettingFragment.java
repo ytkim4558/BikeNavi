@@ -379,7 +379,7 @@ public class TrackRealTimeSettingFragment extends Fragment implements OnMapReady
                     try {
                         tMapPOIItem = getTMapPOIItemUsingCurrentLocation(mLastLocation);
                         Intent intent = new Intent(getContext(), TrackRealTImeActivity.class);
-                        POI startPOI = getPOI(tMapPOIItem);
+                        POI startPOI = getPOI(tMapPOIItem, false);
                         intent.putExtra(getResources().getString(R.string.start_point_text_for_transition), startPOI.name);
                         intent.putExtra(getResources().getString(R.string.dest_point_text_for_transition), destPoint.getText().toString());
                         // 화면전환 애니메이션을 생성한다. 트랜지션 이름은 양쪽 액티비티에 선언되어야한다.
@@ -398,7 +398,7 @@ public class TrackRealTimeSettingFragment extends Fragment implements OnMapReady
         }, 300);
     }
 
-    POI getPOI(TMapPOIItem tMapPOIItem) {
+    POI getPOI(TMapPOIItem tMapPOIItem, boolean updateToServer) {
         TMapPoint tMapPoint = tMapPOIItem.getPOIPoint();
 
         // 위도를 반환
@@ -416,7 +416,9 @@ public class TrackRealTimeSettingFragment extends Fragment implements OnMapReady
         poi.name = poiName;
         poi.address = address;
         poi.latLng = "" + wgs84_x + "," + wgs84_y;
-        addOrUpdateRecentPOIToDBOrServer(poi);
+        if (updateToServer) {
+            addOrUpdateRecentPOIToDBOrServer(poi);
+        }
        return poi;
     }
 
