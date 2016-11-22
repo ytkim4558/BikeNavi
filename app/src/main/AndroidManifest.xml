@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright (c) 2016. UGIF. All Rights Reserved
   -->
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.nagnek.bikenavi">
 
@@ -15,6 +16,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Needed only if your app targets Android 5.0 (API level 21) or higher. -->
+    <uses-feature android:name="android.hardware.location.gps" />
 
     <application
         android:name=".app.AppController"
