@@ -5,6 +5,7 @@
 package com.nagnek.bikenavi;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
@@ -43,6 +44,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
@@ -95,6 +97,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     protected final static String LOCATION_KEY = "location-key";
     private static final String TAG = TrackRealTImeActivity.class.getSimpleName();
     private static final int REQUEST_CHECK_SETTINGS = 5;
+    private static final int REQUEST_RESOLVE_ERROR = 6;
     private final Handler mHandler = new Handler();
     ArrayList<TMapPoint> sourceAndDest;
     boolean animating; //애니메이션 진행중인지
@@ -128,6 +131,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private Sensor mSensor;
     private Polyline polyLine;
     private PolylineOptions rectOptions;
+    private boolean resolvingError;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,9 +195,9 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         long end = System.currentTimeMillis();
         Log.d(TAG, "구글맵 로딩 시간 : " + (end - start) / 1000.0);
 
-        sourceAndDest = new ArrayList<TMapPoint>();
-        pathStopPointList = new ArrayList<LatLng>();
-        markerOptionsArrayList = new ArrayList<MarkerOptions>();
+        sourceAndDest = new ArrayList<>();
+        pathStopPointList = new ArrayList<>();
+        markerOptionsArrayList = new ArrayList<>();
 
         // 현재 위치 가져오기 https://developer.android.com/training/location/change-location-settings.html?hl=ko
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
@@ -848,6 +852,34 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         Log.d(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
         Toast.makeText(this, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode(),
                 Toast.LENGTH_SHORT).show();
+        if (resolvingError) {
+            return;
+        } else if (connectionResult.hasResolution()) {
+            try {
+                resolvingError = true;
+                connectionResult.startResolutionForResult(TrackRealTImeActivity.this, REQUEST_RESOLVE_ERROR);
+            } catch (IntentSender.SendIntentException e) {
+                mGoogleApiClient.connect();
+            }
+        } else {
+            // deprecated 해결
+            // http://stackoverflow.com/questions/31016722/googleplayservicesutil-vs-googleapiavailability
+            GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
+            int result = googleAPI.isGooglePlayServicesAvailable(this);
+            if (result != ConnectionResult.SUCCESS) {
+                if (googleAPI.isUserResolvableError(result)) {
+                    Dialog errorDialog = googleAPI.getErrorDialog(TrackRealTImeActivity.this, result, REQUEST_RESOLVE_ERROR);
+                    errorDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        @Override
+                        public void onDismiss(DialogInterface dialogInterface) {
+                            resolvingError = false;
+                        }
+                    });
+                    errorDialog.show();
+                    resolvingError = true;
+                }
+            }
+        }
     }
 
     @Override
