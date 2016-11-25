@@ -31,16 +31,16 @@ public class POIListOfBookmarkedAdapter extends RecyclerView.Adapter<POIListOfBo
     LayoutInflater inflater;
     private Context context;
     private List<POI> bookmarkedPOIList = new ArrayList<>();
-    private POIListener POIListener;
+    private POIListener poiListener;
     private SQLiteHandler db;   // sqlite
     private SessionManager session; // 로그인했는지 확인용 변수
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public POIListOfBookmarkedAdapter(Context context, List<POI> poiList, POIListener POIListener) {
+    public POIListOfBookmarkedAdapter(Context context, List<POI> poiList, POIListener poiListener) {
 
         this.context = context;
         this.bookmarkedPOIList = poiList;
-        this.POIListener = POIListener;
+        this.poiListener = poiListener;
         inflater = LayoutInflater.from(context);
         // SqLite database handler 초기화
         db = SQLiteHandler.getInstance(context.getApplicationContext());
@@ -70,7 +70,7 @@ public class POIListOfBookmarkedAdapter extends RecyclerView.Adapter<POIListOfBo
             @Override
             public void onClick(View v) {
                 int select_position = (Integer) v.getTag();
-                POIListener.poiClickToSet(bookmarkedPOIList.get(select_position));
+                poiListener.poiClickToSet(bookmarkedPOIList.get(select_position));
             }
         });
 
@@ -78,7 +78,7 @@ public class POIListOfBookmarkedAdapter extends RecyclerView.Adapter<POIListOfBo
             @Override
             public void onClick(View v) {
                 int delete_position = (Integer) v.getTag();
-                POIListener.latLngToDelete(bookmarkedPOIList.get(delete_position));
+                poiListener.latLngToDelete(bookmarkedPOIList.get(delete_position));
                 bookmarkedPOIList.remove(delete_position);
                 notifyItemRemoved(delete_position);
                 //this line below gives you the animation and also updates the

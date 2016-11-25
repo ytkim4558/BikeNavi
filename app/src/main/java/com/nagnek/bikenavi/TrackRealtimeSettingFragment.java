@@ -131,9 +131,11 @@ public class TrackRealTimeSettingFragment extends Fragment implements OnMapReady
             gsDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     // GPS설정 화면으로 이동
-                    Intent intent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                    intent.addCategory(Intent.CATEGORY_DEFAULT);
-                    startActivity(intent);
+                    if (isAdded()) {
+                        Intent intent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        intent.addCategory(Intent.CATEGORY_DEFAULT);
+                        startActivity(intent);
+                    }
                 }
             })
                     .setNegativeButton("NO", new DialogInterface.OnClickListener() {

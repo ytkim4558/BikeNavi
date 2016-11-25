@@ -37,7 +37,7 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
-import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -69,6 +69,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.PolyUtil;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.app.AppController;
 import com.nagnek.bikenavi.guide.GuideContent;
@@ -86,19 +87,31 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 public class TrackRealTImeActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    protected final static String REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key";
+    protected final static String LAST_UPDATED_TIME_STRING_KEY = "last-updated-time-string-key"; // 마지막 사용한 시각
+    protected final static String BEFORE_UPDATED_TIME_STRING_KEY = "before-updated-time-string-key"; // 이전에 사용한 시각
+    protected final static String MORE_BEFORE_UPDATED_TIME_STRING_KEY = "more-before-updated-time-string-key"; // 이전에 사용한 시각
+    protected final static int TRACK_IN_TOLERANCE = 30; // 추적 오차 완전히 벗어났다고 판단되는 거리
     protected final static String LOCATION_KEY = "location-key";
+    protected final static String LOCATION_BEFORE_KEY = "location-before_key";
+    protected final static String LOCATION_MORE_BEFORE_KEY = "location-more_before_key";
     private static final String TAG = TrackRealTImeActivity.class.getSimpleName();
     private static final int REQUEST_CHECK_SETTINGS = 5;
     private static final int REQUEST_RESOLVE_ERROR = 6;
+    private static int over_location_count = 0; // 경로에서 벗어난 횟수
     private final Handler mHandler = new Handler();
+    /**
+     * Time when the location was updated represented as a String.
+     */
+    protected String mLastUpdateTime, mBeforeUpdateTime, mMoreBeforeUpdateTime; // 이전에 저장한시각과 그 보다 이전에 저장한 시각
     ArrayList<TMapPoint> sourceAndDest;
     boolean animating; //애니메이션 진행중인지
     TMapPoint mSource;
@@ -111,11 +124,13 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     TextView remainingFutureFirstText, remainingFutureSecondText, remainingFutureThirdText; // 첫번째 남은거리, 두번째 남은거리, 세번째 남은거리
     LinearLayout firstFutureGuideLayout, secondFutureGuideLayout, thirdFutureGuideLayout; // 위의 턴과 거리를 표시하는 레이아웃의 첫번째, 두번째, 세번째
     SparseArray<String> directionMap; // tmap 방향 정보 반환
+    boolean isShowCheckingChangeRouteDialog; // 경로 변경을 선택할지 결정하는 변수
     private Marker trackingCycleMarker; // 내위치를 표시해주는 마커
     private TrackRealTImeActivity.Animator animator = new TrackRealTImeActivity.Animator();
     private GoogleMap mGoogleMap;
     private SessionManager session; // 로그인했는지 확인용 변수
     private ArrayList<LatLng> pathStopPointList;    // 출발지 도착지를 포함한 경유지점(위도, 경도) 리스트
+    private ArrayList<CustomPoint> descriptorPointList;    // 설명지를 가지고 있는 지점 (위도, 경도) 리스트
     private ArrayList<MarkerOptions> markerOptionsArrayList;    // 출발지 도착지 사이에 마커 리스트
     private List<Marker> descriptorMarkers = new ArrayList<Marker>(); //markers
     private List<Integer> directionList = new ArrayList<Integer>(); // tmap 방향 전환
@@ -126,12 +141,13 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private ProgressDialog pDialog; // 진행 상황 확인용 다이얼로그
     private TextView guideTextVIew; // 가이드
     private ImageView guideImageView; // 가이드
-    private Location mCurrentLocation;
+    private Location mCurrentLocation, mBeforeLocation, mMoreBeforeLocation;
     private SensorManager mSensorManager;
     private Sensor mSensor;
-    private Polyline polyLine;
-    private PolylineOptions rectOptions;
+    private Polyline polyLine;  // 현재 그리는 경로
+    private ArrayList<Polyline> guideSegmentPolyLines; // 안내별 분할 경로
     private boolean resolvingError;
+    private boolean enableSnapOnRoad;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -177,6 +193,19 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
         guideTextVIew = (TextView) findViewById(R.id.guide);
 
+        Button snapOnRoad = (Button) findViewById(R.id.snapOnRoad);
+        snapOnRoad.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                enableSnapOnRoad = !enableSnapOnRoad;
+                if (enableSnapOnRoad) {
+                    Toast.makeText(TrackRealTImeActivity.this, "snap On", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(TrackRealTImeActivity.this, "snap Off", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
         Intent receivedIntent = getIntent();
         start_poi_name = receivedIntent.getStringExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.start_point_text_for_transition));
         dest_poi_name = receivedIntent.getStringExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.dest_point_text_for_transition));
@@ -198,6 +227,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         sourceAndDest = new ArrayList<>();
         pathStopPointList = new ArrayList<>();
         markerOptionsArrayList = new ArrayList<>();
+        descriptorPointList = new ArrayList<>();
 
         // 현재 위치 가져오기 https://developer.android.com/training/location/change-location-settings.html?hl=ko
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
@@ -246,7 +276,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     }
 
     void initialDirectionMap() {
-        directionMap = new SparseArray<String>();
+        directionMap = new SparseArray<>();
         directionMap.put(0, "안내 없음");
         directionMap.put(11, "직진");
         directionMap.put(12, "좌회전");
@@ -326,6 +356,27 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 // is not null.
                 mCurrentLocation = savedInstanceState.getParcelable(LOCATION_KEY);
             }
+
+            if (savedInstanceState.keySet().contains(LOCATION_BEFORE_KEY)) {
+                mBeforeLocation = savedInstanceState.getParcelable(LOCATION_BEFORE_KEY);
+            }
+
+            if (savedInstanceState.keySet().contains(LOCATION_MORE_BEFORE_KEY)) {
+                mMoreBeforeLocation = savedInstanceState.getParcelable(LOCATION_MORE_BEFORE_KEY);
+            }
+
+            // Update the value of mLastUpdateTime from the Bundle and update the UI.
+            if (savedInstanceState.keySet().contains(LAST_UPDATED_TIME_STRING_KEY)) {
+                mLastUpdateTime = savedInstanceState.getString(LAST_UPDATED_TIME_STRING_KEY);
+            }
+
+            if (savedInstanceState.keySet().contains(BEFORE_UPDATED_TIME_STRING_KEY)) {
+                mBeforeUpdateTime = savedInstanceState.getString(BEFORE_UPDATED_TIME_STRING_KEY);
+            }
+
+            if (savedInstanceState.keySet().contains(MORE_BEFORE_UPDATED_TIME_STRING_KEY)) {
+                mMoreBeforeUpdateTime = savedInstanceState.getString(MORE_BEFORE_UPDATED_TIME_STRING_KEY);
+            }
             updateUI();
         }
     }
@@ -347,10 +398,9 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     // 참고 : https://developer.android.com/training/location/change-location-settings.html?hl=ko
     protected void createLocationRequest() {
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(10000);
-        mLocationRequest.setFastestInterval(5000); // 수피트 간격에 대한 정확한 위치 업데이트를 반환한다.
+        mLocationRequest.setInterval(5000);
+        mLocationRequest.setFastestInterval(2000); // 수피트 간격에 대한 정확한 위치 업데이트를 반환한다.
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);   // ACCESS_FINE_LOCATION 권한과 관계 있다.
-        mLocationRequest.setSmallestDisplacement(10);   //10m 변경될때마다 알림
     }
 
     private void showDialog() {
@@ -366,18 +416,11 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     }
 
     void performFindRoute(String startPOIName, String destPOIName) {
-        // 키보드 감추기
-        InputMethodManager immhide = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-        immhide.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
-
         // 이전에 애니메이션 시작했으면 중지 후 초기화
         if (animating) {
             animator.stopAnimation();
             clearMarkers();
         }
-        markers.clear();
-        descriptorMarkers.clear();
-        markerOptionsArrayList.clear();
 
         AppConfig.initializeTMapTapi(TrackRealTImeActivity.this);
 
@@ -401,20 +444,24 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                 if (mGoogleMap != null && document != null) {
                                     //마커리스트 초기화
                                     markers.clear();
-
+                                    descriptorMarkers.clear();
                                     pathStopPointList.clear();
+                                    descriptorPointList.clear();
 
+                                    /**
+                                     * 전체 경로 그리기
+                                     */
                                     final NodeList lineList = document.getElementsByTagName("LineString");
 
                                     for (int i = 0; i < lineList.getLength(); ++i) {
                                         Element item = (Element) lineList.item(i);
                                         String str = HttpConnect.getContentFromNode(item, "coordinates");
                                         if (str != null) {
-                                            String[] str2 = str.split(" ");
+                                            String[] coordinateList = str.split(" ");
 
-                                            for (int k = 0; k < str2.length; ++k) {
+                                            for (String coordinate : coordinateList) {
                                                 try {
-                                                    String[] e1 = str2[k].split(",");
+                                                    String[] e1 = coordinate.split(",");
                                                     LatLng latLng = new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
                                                     pathStopPointList.add(latLng);
                                                     Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(latLng).visible(false));
@@ -429,6 +476,9 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                     // 경로 polyline 그리기
                                     addPolyLineUsingGoogleMap(pathStopPointList);
 
+                                    /**
+                                     * tmap 점별, 라인 그리기
+                                     */
                                     final NodeList list = document.getElementsByTagName("Placemark");
 //                        Log.d("count", "길이" + list.getLength());
                                     int guide_length = 0;
@@ -445,6 +495,10 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                             GuideContent.GuideItem guideItem = new GuideContent.GuideItem(String.valueOf(guide_length), description);
                                             GuideContent.ITEMS.add(guideItem);
                                             ++guide_length;
+
+                                            /**
+                                             * tmap 점별 그리기
+                                             */
 
                                             String pointIndex = HttpConnect.getContentFromNode(item, "tmap:pointIndex");
                                             if (pointIndex != null) {
@@ -466,12 +520,18 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                 // 좌표 정보 추가
                                                 String str = HttpConnect.getContentFromNode(item, "coordinates");
                                                 if (str != null) {
-                                                    String[] str2 = str.split(" ");
-                                                    for (int k = 0; k < str2.length; ++k) {
+                                                    String[] coordinateList = str.split(" ");
+                                                    for (String coordinates : coordinateList) {
                                                         try {
-                                                            String[] e1 = str2[k].split(",");
+                                                            String[] e1 = coordinates.split(",");
                                                             // 마커 및 path 포인트를 추가하기 위한 위도 경도 생성
                                                             LatLng latLng = new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
+
+                                                            CustomPoint customPoint = new CustomPoint();
+                                                            customPoint.latLng = latLng;
+                                                            customPoint.pointType = PointType.point;
+                                                            descriptorPointList.add(customPoint);
+
                                                             // 마커 생성
                                                             MarkerOptions marker = new MarkerOptions().title("지점").snippet(description).position(latLng);
                                                             // 마커리스트에 추가 (addmarker는 Main 스레드에서만 되므로 이 콜백함수에서 쓸수없다. 따라서 한번에 묶어서 핸들러로 호출한다.)
@@ -484,9 +544,14 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
                                             }
 
+                                            /**
+                                             * tmap 라인 그리기
+                                             */
                                             String lineIndex = HttpConnect.getContentFromNode(item, "tmap:lineIndex");
                                             if (lineIndex != null) {
-                                                // 방향전환 추가
+                                                /**
+                                                 * 방향전환 추가
+                                                 */
                                                 String direction = HttpConnect.getContentFromNode(item, "tmap:turnType");
                                                 if (direction != null) {
                                                     directionList.add(Integer.valueOf(direction));
@@ -500,7 +565,9 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                     distanceList.add(null);
                                                 }
 
-                                                // 좌표 정보 추가
+                                                /**
+                                                 * 좌표 정보 추가
+                                                 */
                                                 String str = HttpConnect.getContentFromNode(item, "coordinates");
                                                 if (str != null) {
                                                     String[] str2 = str.split(" ");
@@ -508,6 +575,10 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                         String[] e1 = str2[str2.length / 2].split(",");
                                                         // 마커 및 path 포인트를 추가하기 위한 위도 경도 생성
                                                         LatLng latLng = new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
+                                                        CustomPoint customPoint = new CustomPoint();
+                                                        customPoint.latLng = latLng;
+                                                        customPoint.pointType = PointType.line;
+                                                        descriptorPointList.add(customPoint);
                                                         // 마커 생성
                                                         MarkerOptions marker = new MarkerOptions().title("지점").snippet(description).position(latLng);
                                                         // 마커리스트에 추가 (addmarker는 Main 스레드에서만 되므로 이 콜백함수에서 쓸수없다. 따라서 한번에 묶어서 핸들러로 호출한다.)
@@ -517,12 +588,9 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                     }
                                                 }
                                             }
-
-
                                         } else {
 //                                Log.d("dd", "공백");
                                         }
-
                                     }
 
                                     LatLngBounds.Builder builder = new LatLngBounds.Builder();
@@ -532,7 +600,11 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                         descriptorMarkers.add(marker);
                                         builder.include(markerOptions.getPosition());
                                     }
+
                                     LatLngBounds bounds = builder.build();
+
+                                    // 가이드별 polyline 생성
+                                    setGuidePolylines(pathStopPointList, descriptorPointList);
 
                                     int padding = 0; // offset from edges of the map in pixels
                                     CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
@@ -592,11 +664,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 });
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (SAXException e) {
+        } catch (IOException | ParserConfigurationException | SAXException e) {
             e.printStackTrace();
         }
 
@@ -611,6 +679,69 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 animator.startAnimation(true);
             }
         });
+    }
+
+    // 전환점설명 XXXXXXXX라인설명XXXXXXXXXXx전환점설명 XXXXX라인설명//
+    // AAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCDDDDDDDDDDDDD
+    // A(좌회전), B(신반포로 23길 직진), C(우회전), D(신반포로 25길 직진)
+//    ® 현재 설명이 전환점인 경우
+//        ◊ 현재 좌표가 설명좌표 + 2인경우
+//           } 새로운 라인을 생성한다.
+//           } 새로운 라인에 점 추가
+//           } 새로운 설명으로 넘어간다.
+//        ◊ 그 외
+//           }  해당 라인에 점을 계속 추가한다.
+//    ® 현재 설명이 라인인 경우
+//        ◊ 다음 설명 좌표(x)가 현재 위치의 +1 인 경우
+//           } 새로운 라인을 생성한다.
+//           } 새로운 라인에 점 추가
+//           } 새로운 설명으로 넘어간다.
+//        ◊ 그 외
+//           } 해당 라인에 점을 계속 추가한다.
+// 가이드 별 폴리라인들 생성
+    // 각 폴리라인을 설명 마커 별로 구분하고 , 설명 마커는 라인지점(예 : 신반포로)와 전환점(예 : 좌회전 우회전) 을 구분하여 설정한다.
+    public void setGuidePolylines(ArrayList<LatLng> stopPointList, ArrayList<CustomPoint> guidePointList) {
+        if (stopPointList != null && stopPointList.size() > 0 && guidePointList != null && guidePointList.size() > 0) {
+            guideSegmentPolyLines = new ArrayList<>();
+            // 각 경유지점에서 설명이 있는 지점에 도달할 경우 분할해서 하나의 경로를 생성한다.
+//            CustomPoint nextGuidePoint = j + 1 < guidePointList.size() ? guidePointList.get(j+1) : null;
+            int guidePointI = 0; // guidePoint와 같은 좌표를 가진 i 위치
+            // polyline 초기화
+            Polyline polyline = newPolyLine();
+            polyline.setVisible(false);
+            for (int i = 0, gudiePointIndex = 0; i < stopPointList.size(); ++i) {
+                LatLng stopLatLng = stopPointList.get(i);
+                CustomPoint guidePoint = guidePointList.get(gudiePointIndex);
+                CustomPoint nextGuidePoint = gudiePointIndex + 1 < guidePointList.size() ? guidePointList.get(gudiePointIndex + 1) : null;
+                LatLng nextPoint = null;
+                LatLng moreNextPoint = null;
+                nextPoint = i + 1 < stopPointList.size() ? stopPointList.get(i + 1) : null;
+                moreNextPoint = i + 2 < stopPointList.size() ? stopPointList.get(i + 2) : null;
+
+                switch (guidePoint.pointType) {
+                    // 다음 설명이 지점 마커의 설명인 경우
+                    case point:
+                        if (moreNextPoint != null && guidePoint.latLng.equals(moreNextPoint)) {
+                            // 새로운 설명 라인 추가한다.
+                            guideSegmentPolyLines.add(polyline);
+                            // 새로 라인 생성
+                            polyline = newPolyLine();
+                        }
+                        break;
+                    // 라인 마커인 경우
+                    case line:
+                        if (nextPoint != null && nextGuidePoint != null && nextGuidePoint.latLng.equals(nextPoint)) {
+                            // 새로운 설명 라인 추가한다.
+                            guideSegmentPolyLines.add(polyline);
+                            // 새로 라인 생성
+                            polyline = newPolyLine();
+                        }
+                        break;
+                }
+                // polyline에 점 추가
+                updatePolyLine(polyline, stopLatLng);
+            }
+        }
     }
 
     void redirectMainActivity() {
@@ -759,6 +890,11 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     @Override
     protected void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putParcelable(LOCATION_KEY, mCurrentLocation);
+        savedInstanceState.putParcelable(LOCATION_BEFORE_KEY, mBeforeLocation);
+        savedInstanceState.putParcelable(LOCATION_MORE_BEFORE_KEY, mMoreBeforeLocation);
+        savedInstanceState.putString(LAST_UPDATED_TIME_STRING_KEY, mLastUpdateTime);
+        savedInstanceState.putString(BEFORE_UPDATED_TIME_STRING_KEY, mBeforeUpdateTime);
+        savedInstanceState.putString(MORE_BEFORE_UPDATED_TIME_STRING_KEY, mMoreBeforeUpdateTime);
         super.onSaveInstanceState(savedInstanceState);
     }
 
@@ -771,6 +907,22 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        // 현재 사용한 시각 갱신
+        // 이전 사용한 시각 갱신
+        if (mLastUpdateTime != null) {
+            if (mBeforeUpdateTime != null) {
+                mMoreBeforeUpdateTime = mBeforeUpdateTime;
+            }
+            mBeforeUpdateTime = mLastUpdateTime;
+        }
+
+        // 이전과 그보다 더이전 위치 갱신
+        if (mCurrentLocation != null) {
+            if (mBeforeLocation != null) {
+                mMoreBeforeLocation = mBeforeLocation;
+            }
+            mBeforeLocation = mCurrentLocation;
+        }
         if (mCurrentLocation == null) {
             if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
@@ -783,6 +935,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 return;
             }
             Log.d(TAG, "onConnected");
+            mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             updateUI();
         }
@@ -808,7 +961,9 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         if (mCurrentLocation != null && trackingCycleMarker != null) {
             LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
             trackingCycleMarker.setPosition(latLng);
-            updatePolyLine(latLng);
+            if (polyLine != null) {
+                updatePolyLine(latLng);
+            }
             if (mGoogleMap != null) {
                 mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             }
@@ -821,7 +976,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         if (polyLine != null) {
             polyLine.remove();
         }
-        rectOptions = new PolylineOptions().geodesic(true).color(Color.CYAN);
+        PolylineOptions rectOptions = new PolylineOptions().geodesic(true).color(Color.CYAN);
         rectOptions.add(markers.get(0).getPosition());
         return mGoogleMap.addPolyline(rectOptions);
     }
@@ -830,6 +985,15 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
      * Add the marker to the polyline.
      */
     private void updatePolyLine(LatLng latLng) {
+        List<LatLng> points = polyLine.getPoints();
+        points.add(latLng);
+        polyLine.setPoints(points);
+    }
+
+    /**
+     * Add the marker to the polyline.
+     */
+    private void updatePolyLine(Polyline polyLine, LatLng latLng) {
         List<LatLng> points = polyLine.getPoints();
         points.add(latLng);
         polyLine.setPoints(points);
@@ -886,20 +1050,168 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     public void onLocationChanged(Location location) {
         // it happens
         if (location == null) {
+            Log.d(TAG, "location이 없습니다");
             return;
         }
         // all location should have an accuracy
         if (!location.hasAccuracy()) {
+            Log.d(TAG, "정확도가 없습니다");
             return;
         }
-        // if its not accurate enough don't use it
-        // this value is in meters
-        if (location.getAccuracy() > 200) {
-            return;
+        if (polyLine != null) {
+
+            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+            // 길 위에 있는지 확인
+            if (isLocationOnPath(latLng, polyLine)) {
+                location = snapOnRoad(location, polyLine);
+            } else {
+                ++over_location_count;
+                if (over_location_count >= 3 && over_location_count % 3 == 0 && !isShowCheckingChangeRouteDialog) {
+                    // 3번 연속으로 범위가 벗어난 경우 잠깐 튄것이 아니라고 판단한다.
+
+                    // 위치 변경 추적 중단
+                    if (mGoogleApiClient.isConnected()) {
+                        stopLocationUpdates();
+                    }
+                    // 위치 벗어남을 알림. 다시 길을 찾을지를 문의하는 창을 띄움.
+                    checkRefindRouteToDestinationFromCurrent();
+                }
+            }
+        }
+
+        // 현재 사용한 시각 갱신
+        // 이전 사용한 시각 갱신
+        if (mLastUpdateTime != null) {
+            if (mBeforeUpdateTime != null) {
+                mMoreBeforeUpdateTime = mBeforeUpdateTime;
+            }
+            mBeforeUpdateTime = mLastUpdateTime;
+        }
+        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+
+        // 이전과 그보다 더이전 위치 갱신
+        if (mCurrentLocation != null) {
+            if (mBeforeLocation != null) {
+                mMoreBeforeLocation = mBeforeLocation;
+            }
+            mBeforeLocation = mCurrentLocation;
         }
 
         mCurrentLocation = location;
         updateUI();
+    }
+
+    // 경로를 재설정할지 정하는 다이얼로그 띄움.
+    private void checkRefindRouteToDestinationFromCurrent() {
+        isShowCheckingChangeRouteDialog = true;
+        AlertDialog.Builder gsDialog = new AlertDialog.Builder(this);
+        gsDialog.setTitle("위치 벗어남");
+        gsDialog.setMessage("경로를 다시 설정하시겠습니까?");
+        gsDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                TMapPOIItem tMapPOIItem = null;
+                isShowCheckingChangeRouteDialog = false;
+                try {
+                    over_location_count = 0;
+                    tMapPOIItem = getTMapPOIItemUsingCurrentLocation(mCurrentLocation);
+                    performFindRoute(tMapPOIItem.getPOIName(), dest_poi_name);
+                } catch (ParserConfigurationException | SAXException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        })
+                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        isShowCheckingChangeRouteDialog = false;
+                    }
+                }).create().show();
+    }
+
+    TMapPOIItem getTMapPOIItemUsingCurrentLocation(Location location) throws ParserConfigurationException, SAXException, IOException {
+        AppConfig.initializeTMapTapi(this);
+        TMapData tmapData = new TMapData();
+        String tmapaddress = tmapData.convertGpsToAddress(location.getLatitude(), location.getLongitude());
+        ArrayList<TMapPOIItem> arTMapPOIITtem = tmapData.findAddressPOI(tmapaddress);
+        if (arTMapPOIITtem.size() > 0) {
+            return arTMapPOIITtem.get(0);
+        }
+        return null;
+    }
+
+    void setDirectionImage(Integer direction, ImageView guideImageView) {
+        if (direction != null) {
+            Log.d(TAG, "direction : " + directionMap.get(direction));
+            switch (direction) {
+                case -1: // 아무것도 없는 경우
+                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_upward_black_24dp));
+                    break;
+                case 11: //직진
+                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_upward_black_24dp));
+                    break;
+                case 12: //좌회전
+                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_left_arrow_black_24dp));
+                    break;
+                case 13: //우회전
+                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_right_black_24dp));
+                    break;
+                default:
+                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_upward_black_24dp));
+                    break;
+            }
+        }
+    }
+
+    private LatLng findNearestPoint(final LatLng p, final LatLng start, final LatLng end) {
+        if (start.equals(end)) {
+            return start;
+        }
+
+        final double s0lat = Math.toRadians(p.latitude);
+        final double s0lng = Math.toRadians(p.longitude);
+        final double s1lat = Math.toRadians(start.latitude);
+        final double s1lng = Math.toRadians(start.longitude);
+        final double s2lat = Math.toRadians(end.latitude);
+        final double s2lng = Math.toRadians(end.longitude);
+
+        double s2s1lat = s2lat - s1lat;
+        double s2s1lng = s2lng - s1lng;
+        final double u = ((s0lat - s1lat) * s2s1lat + (s0lng - s1lng) * s2s1lng)
+                / (s2s1lat * s2s1lat + s2s1lng * s2s1lng);
+        if (u <= 0) {
+            return start;
+        }
+        if (u >= 1) {
+            return end;
+        }
+
+        return new LatLng(start.latitude + (u * (end.latitude - start.latitude)),
+                start.longitude + (u * (end.longitude - start.longitude)));
+    }
+
+    boolean isLocationOnPath(LatLng latLng, Polyline polyline) {
+        // 현재 경로에 있는지 확인
+        return PolyUtil.isLocationOnPath(latLng, polyline.getPoints(), true, TRACK_IN_TOLERANCE);
+    }
+
+    // location기반으로 마커 위치를 도로(polyline)에 매칭시키게끔 변경한다.
+    Location snapOnRoad(Location currentLocation, Polyline polyline) {
+        LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        LatLng nearestPoint = findNearestPoint(latLng, polyline.getPoints().get(0), polyline.getPoints().get(polyline.getPoints().size() - 1));
+        currentLocation.setLatitude(nearestPoint.latitude);
+        currentLocation.setLongitude(nearestPoint.longitude);
+        return currentLocation;
+    }
+
+    // 마지막 위치 기반으로 애니메이션 시작.. 도중에 현재 위치를 찾으면 해당 도로에 snap한다.
+    void cycleAnimateStart(Location lastLocation, Polyline polyline, int speed) {
+
+    }
+
+    // 새로운 폴리라인 생성
+    private Polyline newPolyLine() {
+        PolylineOptions rectOptions = new PolylineOptions().geodesic(true).color(Color.RED);
+        Polyline polyline = mGoogleMap.addPolyline(rectOptions);
+        return polyline;
     }
 
     public class Animator implements Runnable {
@@ -925,7 +1237,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
         private Marker trackingMarker;
         private Polyline polyLine;
-        private PolylineOptions rectOptions;
 
         public void reset() {
             resetMarkers();
@@ -943,7 +1254,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             if (animator != null) {
                 mHandler.removeCallbacks(animator);
             }
-
         }
 
         public void initialize(boolean showPolyLine) {
@@ -1020,26 +1330,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             );
         }
 
-        private Polyline initializePolyLine() {
-            //polyLinePoints = new ArrayList<LatLng>();
-            if (polyLine != null) {
-                polyLine.remove();
-            }
-            rectOptions = new PolylineOptions().geodesic(true).color(Color.CYAN);
-            rectOptions.add(markers.get(0).getPosition());
-            return mGoogleMap.addPolyline(rectOptions);
-        }
-
-        /**
-         * Add the marker to the polyline.
-         */
-        private void updatePolyLine(LatLng latLng) {
-            List<LatLng> points = polyLine.getPoints();
-            points.add(latLng);
-            polyLine.setPoints(points);
-        }
-
-
         public void stopAnimation() {
             animator.stop();
         }
@@ -1049,7 +1339,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 animator.initialize(showPolyLine);
             }
         }
-
 
         @Override
         public void run() {
@@ -1156,7 +1445,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                     highLightMarker(movingCurrentMarkerIndex, descriptorMarkerIndex);
                     stopAnimation();
                 }
-
             }
         }
 
@@ -1173,29 +1461,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             if (distance != null) {
                 // 남은 거리 출력
                 distanceTextView.setText(getString(R.string.remaining_distance, distance));
-            }
-        }
-
-        void setDirectionImage(Integer direction, ImageView guideImageView) {
-            if (direction != null) {
-                Log.d(TAG, "direction : " + directionMap.get(direction));
-                switch (direction) {
-                    case -1: // 아무것도 없는 경우
-                        guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_upward_black_24dp));
-                        break;
-                    case 11: //직진
-                        guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_upward_black_24dp));
-                        break;
-                    case 12: //좌회전
-                        guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_left_arrow_black_24dp));
-                        break;
-                    case 13: //우회전
-                        guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_right_black_24dp));
-                        break;
-                    default:
-                        guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_upward_black_24dp));
-                        break;
-                }
             }
         }
     }
