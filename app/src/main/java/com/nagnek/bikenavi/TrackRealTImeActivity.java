@@ -70,6 +70,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
+import com.google.maps.android.SphericalUtil;
 import com.nagnek.bikenavi.app.AppConfig;
 import com.nagnek.bikenavi.app.AppController;
 import com.nagnek.bikenavi.guide.GuideContent;
@@ -148,6 +149,9 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private ArrayList<Polyline> guideSegmentPolyLines; // 안내별 분할 경로
     private boolean resolvingError;
     private boolean enableSnapOnRoad;
+    private int currentTotalRidingDistance = 0;   // 주행한 총 거리
+    private Integer lastSegmentIndex; // 마지막으로 추적된 gps의 위치 인덱스
+    private double currentSegmentDistance = 0;   //위의 마지막 인덱스에서 계산된 거리
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -192,19 +196,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         thirdFutureGuideLayout = (LinearLayout) findViewById(R.id.thirdFutureGuideLayout);
 
         guideTextVIew = (TextView) findViewById(R.id.guide);
-
-        Button snapOnRoad = (Button) findViewById(R.id.snapOnRoad);
-        snapOnRoad.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                enableSnapOnRoad = !enableSnapOnRoad;
-                if (enableSnapOnRoad) {
-                    Toast.makeText(TrackRealTImeActivity.this, "snap On", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(TrackRealTImeActivity.this, "snap Off", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
 
         Intent receivedIntent = getIntent();
         start_poi_name = receivedIntent.getStringExtra(NagneUtil.getStringFromResources(this.getApplicationContext(), R.string.start_point_text_for_transition));
@@ -1059,63 +1050,167 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             return;
         }
         if (polyLine != null) {
+            // 현재 사용한 시각 갱신
+            // 이전 사용한 시각 갱신
+            if (mLastUpdateTime != null) {
+                if (mBeforeUpdateTime != null) {
+                    mMoreBeforeUpdateTime = mBeforeUpdateTime;
+                }
+                mBeforeUpdateTime = mLastUpdateTime;
+            }
+            mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+
+            // 이전과 그보다 더이전 위치 갱신
+            if (mCurrentLocation != null) {
+                if (mBeforeLocation != null) {
+                    mMoreBeforeLocation = mBeforeLocation;
+                }
+                mBeforeLocation = mCurrentLocation;
+            }
+
+            mCurrentLocation = location;
 
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
             // 길 위에 있는지 확인
             if (isLocationOnPath(latLng, polyLine)) {
+                location = snapOnRoad(location, polyLine);
                 int currentTotalRidingDistance = 0; // 현재 총 주행 거리
-                for (int i = 0; i < guideSegmentPolyLines.size(); ++i) {
-                    Integer currentDistance = distanceList.get(i);
-                    if (currentDistance != null) {
-                        currentTotalRidingDistance += currentDistance;
-                    }
-                    if (isLocationOnPath(latLng, guideSegmentPolyLines.get(i))) {
-                        final int descriptorMarkerIndex = i;
-                        new Handler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                guideTextVIew.setText(descriptorMarkers.get(descriptorMarkerIndex).getSnippet());
+
+                // lastSegment가 있었던 경우라면 해당 폴리라인 인덱스부터 현재 위치가 있는 폴리라인을 찾는다.
+                if(lastSegmentIndex != null) {
+                    // 이전의 lastSegmentIndex의 guideSegmentPolyline에 현재 위치가 있는지 확인
+                    if(isLocationOnPath(latLng, guideSegmentPolyLines.get(lastSegmentIndex))) {
+                        updateLineInfoOfTextView(lastSegmentIndex, latLng);
+                    } else if(lastSegmentIndex + 1 < guideSegmentPolyLines.size() && isLocationOnPath(latLng, guideSegmentPolyLines.get(lastSegmentIndex + 1))) {
+                        updateLineInfoOfTextView(lastSegmentIndex + 1, latLng);
+                    } else {
+                        for (int i = 0; i < guideSegmentPolyLines.size(); ++i) {
+                            Integer currentDistance = distanceList.get(i);
+                            if (currentDistance != null) {
+                                currentTotalRidingDistance += currentDistance;
                             }
-                        });
+                            if (isLocationOnPath(latLng, guideSegmentPolyLines.get(i))) {
+                                // 텍스트뷰에 있는 정보 업데이트
+                                updateLineInfoOfTextView(i, latLng);
+                            }
+                        }
+                    }
+                } else {
+                    for (int i = 0; i < guideSegmentPolyLines.size(); ++i) {
+                        Integer currentDistance = distanceList.get(i);
+                        if (currentDistance != null) {
+                            currentTotalRidingDistance += currentDistance;
+                        }
+                        if (isLocationOnPath(latLng, guideSegmentPolyLines.get(i))) {
+                            // 텍스트뷰에 있는 정보 업데이트
+                            updateLineInfoOfTextView(i, latLng);
+                        }
                     }
                 }
-                location = snapOnRoad(location, polyLine);
             } else {
                 ++over_location_count;
                 if (over_location_count >= 3 && over_location_count % 3 == 0 && !isShowCheckingChangeRouteDialog) {
                     // 3번 연속으로 범위가 벗어난 경우 잠깐 튄것이 아니라고 판단한다.
 
-                    // 위치 변경 추적 중단
-                    if (mGoogleApiClient.isConnected()) {
-                        stopLocationUpdates();
-                    }
                     // 위치 벗어남을 알림. 다시 길을 찾을지를 문의하는 창을 띄움.
                     checkRefindRouteToDestinationFromCurrent();
                 }
             }
         }
-
-        // 현재 사용한 시각 갱신
-        // 이전 사용한 시각 갱신
-        if (mLastUpdateTime != null) {
-            if (mBeforeUpdateTime != null) {
-                mMoreBeforeUpdateTime = mBeforeUpdateTime;
-            }
-            mBeforeUpdateTime = mLastUpdateTime;
-        }
-        mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-
-        // 이전과 그보다 더이전 위치 갱신
-        if (mCurrentLocation != null) {
-            if (mBeforeLocation != null) {
-                mMoreBeforeLocation = mBeforeLocation;
-            }
-            mBeforeLocation = mCurrentLocation;
-        }
-
-        mCurrentLocation = location;
         updateUI();
     }
+
+    // 지도위에 표시되는 거리 텍스트 업데이트
+    void updateLineInfoOfTextView(int i, LatLng latLng) {
+        final int descriptorMarkerIndex = i;
+        final String guideText;
+        String nextGuideText;
+        String moreNextGuideText;
+        final String turnGuideFirstText, turnGuideSecondText, turnGuideThirdText;
+        String remainingFutureDistance, remainingFutureSecondDistance, remainingFutureThirdDistance;
+        switch (descriptorPointList.get(i).pointType) {
+            case point:
+
+                break;
+            case line:
+                if (lastSegmentIndex == null) {
+                    lastSegmentIndex = i;
+                } else if (lastSegmentIndex != i) {
+                    lastSegmentIndex = i;
+                    currentSegmentDistance = 0;
+                }
+
+                double betweenCurrentAndBeforeLocation;
+                // 이전의 위치를 포함해서 현재의 latlng 지점을 추가해서 거리를 갱신한다.
+                if(mBeforeLocation != null) {
+                    betweenCurrentAndBeforeLocation = getDistance(mBeforeLocation, latLng);
+                } else {
+                    betweenCurrentAndBeforeLocation = 0;
+                }
+                updateSegmentDistance(betweenCurrentAndBeforeLocation);
+                updateTotalDistance(betweenCurrentAndBeforeLocation);
+                break;
+        }
+        currentSegmentDistance += distanceList.get(i);
+        new Handler().post(new Runnable() {
+            @Override
+            public void run() {
+                if(descriptorPointList.get(descriptorMarkerIndex).pointType == PointType.point) {
+                    // 전환점 타입이면 그대로 출력
+                    guideTextVIew.setText(descriptorMarkers.get(descriptorMarkerIndex).getSnippet());
+                    remainingFutureFirstText.setText(descriptorMarkers.get(descriptorMarkerIndex).getSnippet());
+                    if(descriptorMarkerIndex + 1 < descriptorMarkers.size()) {
+                        remainingFutureSecondText.setText(descriptorMarkers.get(descriptorMarkerIndex + 1).getSnippet());
+                        if(descriptorMarkerIndex + 2 < descriptorMarkers.size()) {
+                            remainingFutureThirdText.setText(descriptorMarkers.get(descriptorMarkerIndex + 1).getSnippet());
+                        } else {
+                            thirdFutureGuideLayout.setVisibility(View.GONE);
+                        }
+                    } else {
+                        secondFutureGuideLayout.setVisibility(View.GONE);
+                    }
+                } else {
+                    // 아닌 경우 현재 세그멘트 거리를 계산해서 출력
+                    // TODO : 어디의 거리인지 보여주기 (신반포로 라던가)
+                    guideTextVIew.setText(String.valueOf(distanceList.get(descriptorMarkerIndex) - currentSegmentDistance));
+                    remainingFutureFirstText.setText(String.valueOf(distanceList.get(descriptorMarkerIndex) - currentSegmentDistance));
+                    if(descriptorMarkerIndex + 1 < descriptorMarkers.size()) {
+                        remainingFutureSecondText.setText(descriptorMarkers.get(descriptorMarkerIndex + 1).getSnippet());
+                        if(descriptorMarkerIndex + 2 < descriptorMarkers.size()) {
+                            remainingFutureThirdText.setText(descriptorMarkers.get(descriptorMarkerIndex + 1).getSnippet());
+                        } else {
+                            thirdFutureGuideLayout.setVisibility(View.GONE);
+                        }
+                    } else {
+                        secondFutureGuideLayout.setVisibility(View.GONE);
+                    }
+                }
+            }
+        });
+    }
+
+    void updateSegmentDistance(double distance) {
+        currentSegmentDistance += distance;
+    }
+
+    void updateTotalDistance(double distance) {
+        currentTotalRidingDistance += distance;
+    }
+
+    double getDistance(Location beforelocation, LatLng latLng) {
+        LatLng beforeLatLng = getLatLngFromLocation(beforelocation);
+        return getDistanceBetweenPoints(beforeLatLng, latLng);
+    }
+
+    LatLng getLatLngFromLocation(Location location) {
+        return new LatLng(location.getLatitude(), location.getLongitude());
+    }
+
+    // 거리들 가져옴.
+    public double getDistanceBetweenPoints(LatLng from, LatLng to) {
+        return SphericalUtil.computeDistanceBetween(from, to);
+    }
+
 
     // 경로를 재설정할지 정하는 다이얼로그 띄움.
     private void checkRefindRouteToDestinationFromCurrent() {
@@ -1127,7 +1222,14 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             public void onClick(DialogInterface dialog, int which) {
                 TMapPOIItem tMapPOIItem = null;
                 isShowCheckingChangeRouteDialog = false;
+                lastSegmentIndex = null;
+                currentTotalRidingDistance = 0;
+                currentSegmentDistance = 0;
                 try {
+                    // 위치 변경 추적 중단
+                    if (mGoogleApiClient.isConnected()) {
+                        stopLocationUpdates();
+                    }
                     over_location_count = 0;
                     tMapPOIItem = getTMapPOIItemUsingCurrentLocation(mCurrentLocation);
                     performFindRoute(tMapPOIItem.getPOIName(), dest_poi_name);
@@ -1463,7 +1565,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 }
             }
         }
-
 
         private LatLng getEndLatLng() {
             return markers.get(movingCurrentMarkerIndex + 1).getPosition();

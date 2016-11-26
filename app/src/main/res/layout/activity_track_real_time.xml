@@ -117,12 +117,6 @@
                         android:text="50m" />
                 </LinearLayout>
 
-                <Button
-                    android:id="@+id/snapOnRoad"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="snapOnRoad" />
-
                 <!--속도 표시-->
                 <TextView
                     android:id="@+id/speed"
