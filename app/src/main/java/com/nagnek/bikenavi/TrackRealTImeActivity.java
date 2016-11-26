@@ -1158,11 +1158,18 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 if(descriptorPointList.get(descriptorMarkerIndex).pointType == PointType.point) {
                     // 전환점 타입이면 그대로 출력
                     guideTextVIew.setText(descriptorMarkers.get(descriptorMarkerIndex).getSnippet());
+                    Integer direction = directionList.get(descriptorMarkerIndex);
+                    setDirectionImage(direction, guideImageView);
+                    setDirectionImage(direction, turnGuideFirstImage);
                     remainingFutureFirstText.setText(descriptorMarkers.get(descriptorMarkerIndex).getSnippet());
                     if(descriptorMarkerIndex + 1 < descriptorMarkers.size()) {
                         remainingFutureSecondText.setText(descriptorMarkers.get(descriptorMarkerIndex + 1).getSnippet());
+                        direction = directionList.get(descriptorMarkerIndex + 1);
+                        setDirectionImage(direction, turnGuideSecondImage);
                         if(descriptorMarkerIndex + 2 < descriptorMarkers.size()) {
                             remainingFutureThirdText.setText(descriptorMarkers.get(descriptorMarkerIndex + 1).getSnippet());
+                            direction = directionList.get(descriptorMarkerIndex + 2);
+                            setDirectionImage(direction, turnGuideThirdImage);
                         } else {
                             thirdFutureGuideLayout.setVisibility(View.GONE);
                         }
