@@ -100,7 +100,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     protected final static String LAST_UPDATED_TIME_STRING_KEY = "last-updated-time-string-key"; // 마지막 사용한 시각
     protected final static String BEFORE_UPDATED_TIME_STRING_KEY = "before-updated-time-string-key"; // 이전에 사용한 시각
     protected final static String MORE_BEFORE_UPDATED_TIME_STRING_KEY = "more-before-updated-time-string-key"; // 이전에 사용한 시각
-    protected final static int TRACK_IN_TOLERANCE = 30; // 추적 오차 완전히 벗어났다고 판단되는 거리
+    protected final static int TRACK_IN_TOLERANCE = 50; // 추적 오차 완전히 벗어났다고 판단되는 거리
     protected final static String LOCATION_KEY = "location-key";
     protected final static String LOCATION_BEFORE_KEY = "location-before_key";
     protected final static String LOCATION_MORE_BEFORE_KEY = "location-more_before_key";
@@ -1108,6 +1108,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                     }
                 }
             } else {
+                Toast.makeText(this, "벗어났습니다", Toast.LENGTH_SHORT).show();
                 ++over_location_count;
                 if (over_location_count >= 3 && over_location_count % 3 == 0 && !isShowCheckingChangeRouteDialog) {
                     // 3번 연속으로 범위가 벗어난 경우 잠깐 튄것이 아니라고 판단한다.
@@ -1181,10 +1182,17 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                     // TODO : 어디의 거리인지 보여주기 (신반포로 라던가)
                     guideTextVIew.setText(String.valueOf(distanceList.get(descriptorMarkerIndex) - currentSegmentDistance));
                     remainingFutureFirstText.setText(String.valueOf(distanceList.get(descriptorMarkerIndex) - currentSegmentDistance));
+                    Integer direction = directionList.get(descriptorMarkerIndex);
+                    setDirectionImage(direction, guideImageView);
+                    setDirectionImage(direction, turnGuideFirstImage);
                     if(descriptorMarkerIndex + 1 < descriptorMarkers.size()) {
-                        remainingFutureSecondText.setText(descriptorMarkers.get(descriptorMarkerIndex + 1).getSnippet());
+                        remainingFutureSecondText.setText(distanceList.get(descriptorMarkerIndex + 1));
+                        direction = directionList.get(descriptorMarkerIndex + 1);
+                        setDirectionImage(direction, turnGuideSecondImage);
                         if(descriptorMarkerIndex + 2 < descriptorMarkers.size()) {
-                            remainingFutureThirdText.setText(descriptorMarkers.get(descriptorMarkerIndex + 1).getSnippet());
+                            remainingFutureThirdText.setText(distanceList.get(descriptorMarkerIndex + 2));
+                            direction = directionList.get(descriptorMarkerIndex + 2);
+                            setDirectionImage(direction, turnGuideThirdImage);
                         } else {
                             thirdFutureGuideLayout.setVisibility(View.GONE);
                         }
