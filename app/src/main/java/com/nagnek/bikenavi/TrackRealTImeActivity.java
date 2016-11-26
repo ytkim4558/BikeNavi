@@ -1063,7 +1063,12 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
             // 길 위에 있는지 확인
             if (isLocationOnPath(latLng, polyLine)) {
+                int currentTotalRidingDistance = 0; // 현재 총 주행 거리
                 for (int i = 0; i < guideSegmentPolyLines.size(); ++i) {
+                    Integer currentDistance = distanceList.get(i);
+                    if (currentDistance != null) {
+                        currentTotalRidingDistance += currentDistance;
+                    }
                     if (isLocationOnPath(latLng, guideSegmentPolyLines.get(i))) {
                         final int descriptorMarkerIndex = i;
                         new Handler().post(new Runnable() {
@@ -1072,7 +1077,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                 guideTextVIew.setText(descriptorMarkers.get(descriptorMarkerIndex).getSnippet());
                             }
                         });
-                        break;
                     }
                 }
                 location = snapOnRoad(location, polyLine);
