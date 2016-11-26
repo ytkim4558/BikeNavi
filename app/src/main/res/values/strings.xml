@@ -4,7 +4,7 @@
 
 <resources>
     <string name="app_name">BikeNavi</string>
-    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAlLEqHBvm2ZUyWZfl_lVQCH_msZ7a6SI8</string>
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAIgZSrU7fGx4iVj7zTeq6NUM0o3a3AHSk</string>
     <string name="hint_email">이메일</string>
     <string name="hint_password">비밀번호</string>
     <string name="hint_password_check">비밀번호 확인</string>
