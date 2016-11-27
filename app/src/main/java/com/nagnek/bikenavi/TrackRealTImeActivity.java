@@ -88,12 +88,18 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 public class TrackRealTImeActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
@@ -427,6 +433,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 tmapData3.findPathDataAllType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
                     @Override
                     public void onFindPathDataAll(final Document document) {
+                        //String s = documenttoString(document);
                         Handler handler = new Handler(Looper.getMainLooper());
                         handler.post(new Runnable() {
                             @Override
@@ -631,6 +638,30 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                 }
                                             }
                                         }
+
+                                        // passLineStyle인 경우
+                                        if(pointIndex == null && lineIndex == null) {
+                                            String lineString = HttpConnect.getContentFromNode(item, "LineString");
+                                            if(lineString != null) {
+                                                String str = HttpConnect.getContentFromNode(item, "coordinates");
+                                                if (str != null) {
+                                                    String[] coordinateList = str.split(" ");
+
+                                                    for (String coordinate : coordinateList) {
+                                                        try {
+                                                            String[] e1 = coordinate.split(",");
+                                                            LatLng latLng = new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
+                                                            CustomPoint customPoint = new CustomPoint();
+                                                            customPoint.latLng = latLng;
+                                                            customPoint.pointType = PointType.line;
+                                                            descriptorPointList.add(customPoint);
+                                                        } catch (Exception var13) {
+                                                            Log.d(TAG, var13.getMessage());
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
 
                                     LatLngBounds.Builder builder = new LatLngBounds.Builder();
@@ -720,6 +751,23 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 animator.startAnimation(true);
             }
         });
+    }
+
+    public static String documenttoString(Document doc) {
+        try {
+            StringWriter sw = new StringWriter();
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+
+            transformer.transform(new DOMSource(doc), new StreamResult(sw));
+            return sw.toString();
+        } catch (Exception ex) {
+            throw new RuntimeException("Error converting to String", ex);
+        }
     }
 
     // 전환점설명 XXXXXXXX라인설명XXXXXXXXXXx전환점설명 XXXXX라인설명//
