@@ -501,12 +501,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                     Log.d(TAG, "distance가 없네? pointIndex : " + String.valueOf(pointIndex));
                                                     directionList.add(null);
                                                 }
-                                                String distance = HttpConnect.getContentFromNode(item, "tmap:distance");
-                                                if (distance != null) {
-                                                    distanceList.add(Integer.valueOf(distance));
-                                                } else {
-                                                    distanceList.add(null);
-                                                }
 
                                                 // 좌표 정보 추가
                                                 String str = HttpConnect.getContentFromNode(item, "coordinates");
@@ -517,12 +511,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                             String[] e1 = coordinates.split(",");
                                                             // 마커 및 path 포인트를 추가하기 위한 위도 경도 생성
                                                             LatLng latLng = new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
-
-                                                            CustomPoint customPoint = new CustomPoint();
-                                                            customPoint.latLng = latLng;
-                                                            customPoint.pointType = PointType.point;
-                                                            descriptorPointList.add(customPoint);
-
                                                             // 마커 생성
                                                             MarkerOptions marker = new MarkerOptions().title("지점").snippet(description).position(latLng);
                                                             // 마커리스트에 추가 (addmarker는 Main 스레드에서만 되므로 이 콜백함수에서 쓸수없다. 따라서 한번에 묶어서 핸들러로 호출한다.)
@@ -549,12 +537,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                 } else {
                                                     directionList.add(11); // 직진
                                                 }
-                                                String distance = HttpConnect.getContentFromNode(item, "tmap:distance");
-                                                if (distance != null) {
-                                                    distanceList.add(Integer.valueOf(distance));
-                                                } else {
-                                                    distanceList.add(null);
-                                                }
 
                                                 /**
                                                  * 좌표 정보 추가
@@ -566,10 +548,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                         String[] e1 = str2[str2.length / 2].split(",");
                                                         // 마커 및 path 포인트를 추가하기 위한 위도 경도 생성
                                                         LatLng latLng = new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
-                                                        CustomPoint customPoint = new CustomPoint();
-                                                        customPoint.latLng = latLng;
-                                                        customPoint.pointType = PointType.line;
-                                                        descriptorPointList.add(customPoint);
+
                                                         // 마커 생성
                                                         MarkerOptions marker = new MarkerOptions().title("지점").snippet(description).position(latLng);
                                                         // 마커리스트에 추가 (addmarker는 Main 스레드에서만 되므로 이 콜백함수에서 쓸수없다. 따라서 한번에 묶어서 핸들러로 호출한다.)
@@ -584,6 +563,76 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                         }
                                     }
 
+                                    for (int i = 0; i < list.getLength(); ++i) {
+                                        Element item = (Element) list.item(i);
+                                        /**
+                                         * tmap 점별 그리기
+                                         */
+
+                                        String pointIndex = HttpConnect.getContentFromNode(item, "tmap:pointIndex");
+                                        if (pointIndex != null) {
+                                            String distance = HttpConnect.getContentFromNode(item, "tmap:distance");
+                                            if (distance != null) {
+                                                distanceList.add(Integer.valueOf(distance));
+                                            } else {
+                                                distanceList.add(null);
+                                            }
+
+                                            // 좌표 정보 추가
+                                            String str = HttpConnect.getContentFromNode(item, "coordinates");
+                                            if (str != null) {
+                                                String[] coordinateList = str.split(" ");
+                                                for (String coordinates : coordinateList) {
+                                                    try {
+                                                        String[] e1 = coordinates.split(",");
+                                                        // 마커 및 path 포인트를 추가하기 위한 위도 경도 생성
+                                                        LatLng latLng = new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
+
+                                                        CustomPoint customPoint = new CustomPoint();
+                                                        customPoint.latLng = latLng;
+                                                        customPoint.pointType = PointType.point;
+                                                        descriptorPointList.add(customPoint);
+                                                    } catch (Exception var13) {
+                                                        Log.d("tag", "에러 : " + var13.getMessage());
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        /**
+                                         * tmap 라인 그리기
+                                         */
+                                        String lineIndex = HttpConnect.getContentFromNode(item, "tmap:lineIndex");
+                                        if (lineIndex != null) {
+                                            String distance = HttpConnect.getContentFromNode(item, "tmap:distance");
+                                            if (distance != null) {
+                                                distanceList.add(Integer.valueOf(distance));
+                                            } else {
+                                                distanceList.add(null);
+                                            }
+
+                                            String str = HttpConnect.getContentFromNode(item, "coordinates");
+
+                                            // customPointList 생성용
+                                            if (str != null) {
+                                                String[] coordinateList = str.split(" ");
+                                                for (String coordinates : coordinateList) {
+                                                    try {
+                                                        String[] e1 = coordinates.split(",");
+                                                        // 마커 및 path 포인트를 추가하기 위한 위도 경도 생성
+                                                        LatLng latLng = new LatLng(Double.parseDouble(e1[1]), Double.parseDouble(e1[0]));
+                                                        CustomPoint customPoint = new CustomPoint();
+                                                        customPoint.latLng = latLng;
+                                                        customPoint.pointType = PointType.line;
+                                                        descriptorPointList.add(customPoint);
+                                                    } catch (Exception var13) {
+                                                        Log.d("tag", "에러 : " + var13.getMessage());
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
                                     LatLngBounds.Builder builder = new LatLngBounds.Builder();
                                     // 경로 찾고나서 경로 지점들의 마커들 추가, 모든 마커들을 표시할 수 있는 줌레벨 계산
                                     for (MarkerOptions markerOptions : markerOptionsArrayList) {
@@ -594,8 +643,9 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
                                     LatLngBounds bounds = builder.build();
 
+                                    // TODO : 디버깅시 descriporPointList와 stopPointList 갯수가 같은 지 확인
                                     // 가이드별 polyline 생성
-                                    setGuidePolylines(pathStopPointList, descriptorPointList);
+                                    setGuidePolylines(descriptorPointList);
 
                                     int padding = 0; // offset from edges of the map in pixels
                                     CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
@@ -673,8 +723,9 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     }
 
     // 전환점설명 XXXXXXXX라인설명XXXXXXXXXXx전환점설명 XXXXX라인설명//
-    // AAABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCCCDDDDDDDDDDDDD
+    // ABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCDDDDDDDDDDDDD
     // A(좌회전), B(신반포로 23길 직진), C(우회전), D(신반포로 25길 직진)
+    // A와 B는 같은 위치에 있을수도 있음.
 //    ® 현재 설명이 전환점인 경우
 //        ◊ 현재 좌표가 설명좌표 + 2인경우
 //           } 새로운 라인을 생성한다.
@@ -691,41 +742,40 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 //           } 해당 라인에 점을 계속 추가한다.
 // 가이드 별 폴리라인들 생성
     // 각 폴리라인을 설명 마커 별로 구분하고 , 설명 마커는 라인지점(예 : 신반포로)와 전환점(예 : 좌회전 우회전) 을 구분하여 설정한다.
-    public void setGuidePolylines(ArrayList<LatLng> stopPointList, ArrayList<CustomPoint> guidePointList) {
-        if (stopPointList != null && stopPointList.size() > 0 && guidePointList != null && guidePointList.size() > 0) {
+    public void setGuidePolylines(ArrayList<CustomPoint> stopPoints) {
+
+        PointType beforePointType = null;
+        if (stopPoints != null && stopPoints.size() > 0) {
             guideSegmentPolyLines = new ArrayList<>();
             // 각 경유지점에서 설명이 있는 지점에 도달할 경우 분할해서 하나의 경로를 생성한다.
 //            CustomPoint nextGuidePoint = j + 1 < guidePointList.size() ? guidePointList.get(j+1) : null;
             int guidePointI = 0; // guidePoint와 같은 좌표를 가진 i 위치
             // polyline 초기화
             Polyline polyline = newPolyLine();
-            polyline.setVisible(false);
-            for (int i = 0, gudiePointIndex = 0; i < stopPointList.size(); ++i) {
-                LatLng stopLatLng = stopPointList.get(i);
-                CustomPoint guidePoint = guidePointList.get(gudiePointIndex);
-                CustomPoint nextGuidePoint = gudiePointIndex + 1 < guidePointList.size() ? guidePointList.get(gudiePointIndex + 1) : null;
-                LatLng nextPoint = null;
-                LatLng moreNextPoint = null;
-                nextPoint = i + 1 < stopPointList.size() ? stopPointList.get(i + 1) : null;
-                moreNextPoint = i + 2 < stopPointList.size() ? stopPointList.get(i + 2) : null;
+            polyline.setVisible(true);
+            for (int i = 0; i < stopPoints.size(); ++i) {
+                CustomPoint stopPoint = stopPoints.get(i);
+                LatLng stopLatLng = stopPoint.latLng;
 
-                switch (guidePoint.pointType) {
+                switch (stopPoint.pointType) {
                     // 다음 설명이 지점 마커의 설명인 경우
                     case point:
-                        if (moreNextPoint != null && guidePoint.latLng.equals(moreNextPoint)) {
+                        if (beforePointType == null || beforePointType == PointType.line) {
+                            beforePointType = PointType.point;
                             // 새로운 설명 라인 추가한다.
-                            guideSegmentPolyLines.add(polyline);
                             // 새로 라인 생성
                             polyline = newPolyLine();
+                            guideSegmentPolyLines.add(polyline);
                         }
                         break;
                     // 라인 마커인 경우
                     case line:
-                        if (nextPoint != null && nextGuidePoint != null && nextGuidePoint.latLng.equals(nextPoint)) {
+                        if (beforePointType == null || beforePointType == PointType.point) {
+                            beforePointType = PointType.line;
                             // 새로운 설명 라인 추가한다.
-                            guideSegmentPolyLines.add(polyline);
                             // 새로 라인 생성
                             polyline = newPolyLine();
+                            guideSegmentPolyLines.add(polyline);
                         }
                         break;
                 }
@@ -1037,16 +1087,22 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         }
     }
 
+    private void showToastMessage(String text) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     public void onLocationChanged(Location location) {
         // it happens
         if (location == null) {
             Log.d(TAG, "location이 없습니다");
+            showToastMessage("location이 없습니다");
             return;
         }
         // all location should have an accuracy
         if (!location.hasAccuracy()) {
             Log.d(TAG, "정확도가 없습니다");
+            showToastMessage("정확도가 없습니다.");
             return;
         }
         if (polyLine != null) {
@@ -1073,7 +1129,10 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
             // 길 위에 있는지 확인
             if (isLocationOnPath(latLng, polyLine)) {
+                showToastMessage("길 위에 있습니다");
                 location = snapOnRoad(location, polyLine);
+                mCurrentLocation = location;
+                latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 int currentTotalRidingDistance = 0; // 현재 총 주행 거리
 
                 // lastSegment가 있었던 경우라면 해당 폴리라인 인덱스부터 현재 위치가 있는 폴리라인을 찾는다.
@@ -1102,6 +1161,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                             currentTotalRidingDistance += currentDistance;
                         }
                         if (isLocationOnPath(latLng, guideSegmentPolyLines.get(i))) {
+                            showToastMessage(i+"번째에 있다");
                             // 텍스트뷰에 있는 정보 업데이트
                             updateLineInfoOfTextView(i, latLng);
                         }
@@ -1342,7 +1402,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
     // 새로운 폴리라인 생성
     private Polyline newPolyLine() {
-        PolylineOptions rectOptions = new PolylineOptions().geodesic(true).color(Color.RED);
+        PolylineOptions rectOptions = new PolylineOptions().geodesic(true).color(Color.BLUE);
         Polyline polyline = mGoogleMap.addPolyline(rectOptions);
         return polyline;
     }
