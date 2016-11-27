@@ -158,6 +158,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private int currentTotalRidingDistance = 0;   // 주행한 총 거리
     private Integer lastSegmentIndex; // 마지막으로 추적된 gps의 위치 인덱스
     private double currentSegmentDistance = 0;   //위의 마지막 인덱스에서 계산된 거리
+    private ArrayList<String> snippetArrayList; // tmap 결과로 나오는 description의 모음
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -484,6 +485,10 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                     //마커추가예정 리스트 초기화
                                     markerOptionsArrayList.clear();
 
+                                    /**
+                                     * 애니메이션에 필요한 반복
+                                     */
+
                                     for (int i = 0; i < list.getLength(); ++i) {
                                         Element item = (Element) list.item(i);
                                         String description = HttpConnect.getContentFromNode(item, "description");
@@ -569,6 +574,10 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 //                                Log.d("dd", "공백");
                                         }
                                     }
+
+                                    /**
+                                     * 실시간 경로에 필요한 내용을 위한 반복
+                                      */
 
                                     for (int i = 0; i < list.getLength(); ++i) {
                                         Element item = (Element) list.item(i);
