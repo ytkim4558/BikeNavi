@@ -1493,6 +1493,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private Polyline newPolyLine() {
         PolylineOptions rectOptions = new PolylineOptions().geodesic(true).color(Color.BLUE);
         Polyline polyline = mGoogleMap.addPolyline(rectOptions);
+        polyline.setVisible(false);
         return polyline;
     }
 
