@@ -37,7 +37,6 @@ import android.util.SparseArray;
 import android.view.View;
 import android.view.animation.Interpolator;
 import android.view.animation.LinearInterpolator;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -158,7 +157,9 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private int currentTotalRidingDistance = 0;   // 주행한 총 거리
     private Integer lastSegmentIndex; // 마지막으로 추적된 gps의 위치 인덱스
     private double currentSegmentDistance = 0;   //위의 마지막 인덱스에서 계산된 거리
-    private ArrayList<String> snippetArrayList; // tmap 결과로 나오는 description의 모음
+    private ArrayList<String> realTimedescriptionArrayList; // tmap 결과로 나오는 description의 모음
+    private List<Integer> realTimedirectionList;    // 실시간 때 필요한 방향 전환 리스트;
+    private List<Integer> realTimedistanceList; // tmap 실시간 거리
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -505,6 +506,17 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
                                             String pointIndex = HttpConnect.getContentFromNode(item, "tmap:pointIndex");
                                             if (pointIndex != null) {
+
+                                                /**
+                                                 * 거리 추가
+                                                 */
+                                                String distance = HttpConnect.getContentFromNode(item, "tmap:distance");
+                                                if (distance != null) {
+                                                    distanceList.add(Integer.valueOf(distance));
+                                                } else {
+                                                    distanceList.add(null);
+                                                }
+
                                                 // 방향전환 추가
                                                 String direction = HttpConnect.getContentFromNode(item, "tmap:turnType");
                                                 if (direction != null) {
@@ -551,6 +563,16 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                 }
 
                                                 /**
+                                                 * 거리 추가
+                                                 */
+                                                String distance = HttpConnect.getContentFromNode(item, "tmap:distance");
+                                                if (distance != null) {
+                                                    distanceList.add(Integer.valueOf(distance));
+                                                } else {
+                                                    distanceList.add(null);
+                                                }
+
+                                                /**
                                                  * 좌표 정보 추가
                                                  */
                                                 String str = HttpConnect.getContentFromNode(item, "coordinates");
@@ -578,6 +600,10 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                     /**
                                      * 실시간 경로에 필요한 내용을 위한 반복
                                       */
+                                    guideSegmentPolyLines = new ArrayList<>();
+                                    realTimedescriptionArrayList = new ArrayList<>();
+                                    realTimedirectionList = new ArrayList<>();
+                                    realTimedistanceList = new ArrayList<>();
 
                                     for (int i = 0; i < list.getLength(); ++i) {
                                         Element item = (Element) list.item(i);
@@ -587,11 +613,14 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
                                         String pointIndex = HttpConnect.getContentFromNode(item, "tmap:pointIndex");
                                         if (pointIndex != null) {
-                                            String distance = HttpConnect.getContentFromNode(item, "tmap:distance");
-                                            if (distance != null) {
-                                                distanceList.add(Integer.valueOf(distance));
+                                            /**
+                                             * 방향전환 추가
+                                             */
+                                            String direction = HttpConnect.getContentFromNode(item, "tmap:turnType");
+                                            if (direction != null) {
+                                                realTimedirectionList.add(Integer.valueOf(direction));
                                             } else {
-                                                distanceList.add(null);
+                                                realTimedirectionList.add(11); // 직진
                                             }
 
                                             // 좌표 정보 추가
@@ -620,11 +649,20 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                          */
                                         String lineIndex = HttpConnect.getContentFromNode(item, "tmap:lineIndex");
                                         if (lineIndex != null) {
+                                            /**
+                                             * 설명 추가
+                                             */
+                                            String description = HttpConnect.getContentFromNode(item, "description");
+                                            realTimedescriptionArrayList.add(description);
+
+                                            /**
+                                             * 거리 추가
+                                             */
                                             String distance = HttpConnect.getContentFromNode(item, "tmap:distance");
                                             if (distance != null) {
-                                                distanceList.add(Integer.valueOf(distance));
+                                                realTimedistanceList.add(Integer.valueOf(distance));
                                             } else {
-                                                distanceList.add(null);
+                                                realTimedistanceList.add(null);
                                             }
 
                                             String str = HttpConnect.getContentFromNode(item, "coordinates");
@@ -632,6 +670,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                             // customPointList 생성용
                                             if (str != null) {
                                                 String[] coordinateList = str.split(" ");
+                                                Polyline guideSegmentPolyLine = newPolyLine();
                                                 for (String coordinates : coordinateList) {
                                                     try {
                                                         String[] e1 = coordinates.split(",");
@@ -641,10 +680,15 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                         customPoint.latLng = latLng;
                                                         customPoint.pointType = PointType.line;
                                                         descriptorPointList.add(customPoint);
+
+                                                        // segment polyline에 좌표 업데이트
+                                                        updatePolyLine(guideSegmentPolyLine, latLng);
                                                     } catch (Exception var13) {
                                                         Log.d("tag", "에러 : " + var13.getMessage());
                                                     }
                                                 }
+                                                // 세그먼트별 polyline추가
+                                                guideSegmentPolyLines.add(guideSegmentPolyLine);
                                             }
                                         }
 
@@ -652,10 +696,27 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                         if(pointIndex == null && lineIndex == null) {
                                             String lineString = HttpConnect.getContentFromNode(item, "LineString");
                                             if(lineString != null) {
+                                                /**
+                                                 * 설명 추가
+                                                 */
+                                                String description = HttpConnect.getContentFromNode(item, "description");
+                                                realTimedescriptionArrayList.add(description);
+
+                                                /**
+                                                 * 거리 추가
+                                                 */
+                                                String distance = HttpConnect.getContentFromNode(item, "tmap:distance");
+                                                if (distance != null) {
+                                                    realTimedistanceList.add(Integer.valueOf(distance));
+                                                } else {
+                                                    realTimedistanceList.add(null);
+                                                }
+
                                                 String str = HttpConnect.getContentFromNode(item, "coordinates");
                                                 if (str != null) {
                                                     String[] coordinateList = str.split(" ");
 
+                                                    Polyline guideSegmentPolyLine = newPolyLine();
                                                     for (String coordinate : coordinateList) {
                                                         try {
                                                             String[] e1 = coordinate.split(",");
@@ -664,10 +725,14 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                             customPoint.latLng = latLng;
                                                             customPoint.pointType = PointType.line;
                                                             descriptorPointList.add(customPoint);
+                                                            // segment polyline에 좌표 업데이트
+                                                            updatePolyLine(guideSegmentPolyLine, latLng);
                                                         } catch (Exception var13) {
                                                             Log.d(TAG, var13.getMessage());
                                                         }
                                                     }
+                                                    // 세그먼트별 polyline추가
+                                                    guideSegmentPolyLines.add(guideSegmentPolyLine);
                                                 }
                                             }
                                         }
@@ -685,7 +750,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
                                     // TODO : 디버깅시 descriporPointList와 stopPointList 갯수가 같은 지 확인
                                     // 가이드별 polyline 생성
-                                    setGuidePolylines(descriptorPointList);
+                                    //setGuidePolylines(descriptorPointList);
 
                                     int padding = 0; // offset from edges of the map in pixels
                                     CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
@@ -1196,9 +1261,9 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 if(lastSegmentIndex != null) {
                     // 이전의 lastSegmentIndex의 guideSegmentPolyline에 현재 위치가 있는지 확인
                     if(isLocationOnPath(latLng, guideSegmentPolyLines.get(lastSegmentIndex))) {
-                        updateLineInfoOfTextView(lastSegmentIndex, latLng);
+                        updateSegmentDistanceAndLineInfoOfTextView(lastSegmentIndex, latLng);
                     } else if(lastSegmentIndex + 1 < guideSegmentPolyLines.size() && isLocationOnPath(latLng, guideSegmentPolyLines.get(lastSegmentIndex + 1))) {
-                        updateLineInfoOfTextView(lastSegmentIndex + 1, latLng);
+                        updateSegmentDistanceAndLineInfoOfTextView(lastSegmentIndex + 1, latLng);
                     } else {
                         for (int i = 0; i < guideSegmentPolyLines.size(); ++i) {
                             Integer currentDistance = distanceList.get(i);
@@ -1207,20 +1272,20 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                             }
                             if (isLocationOnPath(latLng, guideSegmentPolyLines.get(i))) {
                                 // 텍스트뷰에 있는 정보 업데이트
-                                updateLineInfoOfTextView(i, latLng);
+                                updateSegmentDistanceAndLineInfoOfTextView(i, latLng);
                             }
                         }
                     }
                 } else {
                     for (int i = 0; i < guideSegmentPolyLines.size(); ++i) {
-                        Integer currentDistance = distanceList.get(i);
+                        Integer currentDistance = realTimedistanceList.get(i);
                         if (currentDistance != null) {
                             currentTotalRidingDistance += currentDistance;
                         }
                         if (isLocationOnPath(latLng, guideSegmentPolyLines.get(i))) {
                             showToastMessage(i+"번째에 있다");
                             // 텍스트뷰에 있는 정보 업데이트
-                            updateLineInfoOfTextView(i, latLng);
+                            updateSegmentDistanceAndLineInfoOfTextView(i, latLng);
                         }
                     }
                 }
@@ -1238,84 +1303,51 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         updateUI();
     }
 
-    // 지도위에 표시되는 거리 텍스트 업데이트
-    void updateLineInfoOfTextView(int i, LatLng latLng) {
-        final int descriptorMarkerIndex = i;
-        final String guideText;
-        String nextGuideText;
-        String moreNextGuideText;
-        final String turnGuideFirstText, turnGuideSecondText, turnGuideThirdText;
-        String remainingFutureDistance, remainingFutureSecondDistance, remainingFutureThirdDistance;
-        switch (descriptorPointList.get(i).pointType) {
-            case point:
+    // 지도위에 표시되는 거리 업데이트 및 텍스트 업데이트
+    void updateSegmentDistanceAndLineInfoOfTextView(int i, LatLng latLng) {
+        final int descriptIndex = i;
 
-                break;
-            case line:
-                if (lastSegmentIndex == null) {
-                    lastSegmentIndex = i;
-                } else if (lastSegmentIndex != i) {
-                    lastSegmentIndex = i;
-                    currentSegmentDistance = 0;
-                }
-
-                double betweenCurrentAndBeforeLocation;
-                // 이전의 위치를 포함해서 현재의 latlng 지점을 추가해서 거리를 갱신한다.
-                if(mBeforeLocation != null) {
-                    betweenCurrentAndBeforeLocation = getDistance(mBeforeLocation, latLng);
-                } else {
-                    betweenCurrentAndBeforeLocation = 0;
-                }
-                updateSegmentDistance(betweenCurrentAndBeforeLocation);
-                updateTotalDistance(betweenCurrentAndBeforeLocation);
-                break;
+        if (lastSegmentIndex == null) {
+            lastSegmentIndex = i;
+        } else if (lastSegmentIndex != i) {
+            lastSegmentIndex = i;
+            currentSegmentDistance = 0;
         }
+
+        double betweenCurrentAndBeforeLocation;
+        // 이전의 위치를 포함해서 현재의 latlng 지점을 추가해서 거리를 갱신한다.
+        if(mBeforeLocation != null) {
+            betweenCurrentAndBeforeLocation = getDistance(mBeforeLocation, latLng);
+        } else {
+            betweenCurrentAndBeforeLocation = 0;
+        }
+        updateSegmentDistance(betweenCurrentAndBeforeLocation);
+        updateTotalDistance(betweenCurrentAndBeforeLocation);
+
         currentSegmentDistance += distanceList.get(i);
         new Handler().post(new Runnable() {
             @Override
             public void run() {
-                if(descriptorPointList.get(descriptorMarkerIndex).pointType == PointType.point) {
-                    // 전환점 타입이면 그대로 출력
-                    guideTextVIew.setText(descriptorMarkers.get(descriptorMarkerIndex).getSnippet());
-                    Integer direction = directionList.get(descriptorMarkerIndex);
-                    setDirectionImage(direction, guideImageView);
-                    setDirectionImage(direction, turnGuideFirstImage);
-                    remainingFutureFirstText.setText(descriptorMarkers.get(descriptorMarkerIndex).getSnippet());
-                    if(descriptorMarkerIndex + 1 < descriptorMarkers.size()) {
-                        remainingFutureSecondText.setText(descriptorMarkers.get(descriptorMarkerIndex + 1).getSnippet());
-                        direction = directionList.get(descriptorMarkerIndex + 1);
-                        setDirectionImage(direction, turnGuideSecondImage);
-                        if(descriptorMarkerIndex + 2 < descriptorMarkers.size()) {
-                            remainingFutureThirdText.setText(descriptorMarkers.get(descriptorMarkerIndex + 1).getSnippet());
-                            direction = directionList.get(descriptorMarkerIndex + 2);
-                            setDirectionImage(direction, turnGuideThirdImage);
-                        } else {
-                            thirdFutureGuideLayout.setVisibility(View.GONE);
-                        }
+                // description의 경우 출발점은 라인인덱스와 1 차이나기 때문에 +1 부터 진행한다
+                String remaingFutureFirstText = descriptIndex + 1 < realTimedescriptionArrayList.size() ? realTimedescriptionArrayList.get(descriptIndex + 1) : null;
+                guideTextVIew.setText(remaingFutureFirstText);
+                Integer direction = realTimedirectionList.get(descriptIndex);
+                setDirectionImage(direction, guideImageView);
+                setDirectionImage(direction, turnGuideFirstImage);
+                remainingFutureFirstText.setText(remaingFutureFirstText);
+                if(descriptIndex + 2 < realTimedescriptionArrayList.size()) {
+                    remainingFutureSecondText.setText(realTimedescriptionArrayList.get(descriptIndex + 2));
+                    direction = realTimedirectionList.get(descriptIndex + 1);
+                    setDirectionImage(direction, turnGuideSecondImage);
+                    if(descriptIndex + 3 < realTimedescriptionArrayList.size()) {
+                        remainingFutureThirdText.setText(realTimedescriptionArrayList.get(descriptIndex + 3));
+                        direction = realTimedirectionList.get(descriptIndex + 2);
+                        setDirectionImage(direction, turnGuideThirdImage);
                     } else {
-                        secondFutureGuideLayout.setVisibility(View.GONE);
+                        thirdFutureGuideLayout.setVisibility(View.GONE);
                     }
                 } else {
-                    // 아닌 경우 현재 세그멘트 거리를 계산해서 출력
-                    // TODO : 어디의 거리인지 보여주기 (신반포로 라던가)
-                    guideTextVIew.setText(String.valueOf(distanceList.get(descriptorMarkerIndex) - currentSegmentDistance));
-                    remainingFutureFirstText.setText(String.valueOf(distanceList.get(descriptorMarkerIndex) - currentSegmentDistance));
-                    Integer direction = directionList.get(descriptorMarkerIndex);
-                    setDirectionImage(direction, guideImageView);
-                    setDirectionImage(direction, turnGuideFirstImage);
-                    if(descriptorMarkerIndex + 1 < descriptorMarkers.size()) {
-                        remainingFutureSecondText.setText(distanceList.get(descriptorMarkerIndex + 1));
-                        direction = directionList.get(descriptorMarkerIndex + 1);
-                        setDirectionImage(direction, turnGuideSecondImage);
-                        if(descriptorMarkerIndex + 2 < descriptorMarkers.size()) {
-                            remainingFutureThirdText.setText(distanceList.get(descriptorMarkerIndex + 2));
-                            direction = directionList.get(descriptorMarkerIndex + 2);
-                            setDirectionImage(direction, turnGuideThirdImage);
-                        } else {
-                            thirdFutureGuideLayout.setVisibility(View.GONE);
-                        }
-                    } else {
-                        secondFutureGuideLayout.setVisibility(View.GONE);
-                    }
+                    secondFutureGuideLayout.setVisibility(View.GONE);
                 }
             }
         });
