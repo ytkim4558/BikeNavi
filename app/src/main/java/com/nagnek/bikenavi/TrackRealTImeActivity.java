@@ -1295,8 +1295,8 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                     }
                 }
             } else {
-                Toast.makeText(this, "벗어났습니다", Toast.LENGTH_SHORT).show();
                 if(onceOnRoad) {
+                    Toast.makeText(this, "벗어났습니다", Toast.LENGTH_SHORT).show();
                     ++over_location_count;
                     if (over_location_count >= 3 && over_location_count % 3 == 0 && !isShowCheckingChangeRouteDialog) {
                         // 3번 연속으로 범위가 벗어난 경우 잠깐 튄것이 아니라고 판단한다.
@@ -1304,6 +1304,8 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                         // 위치 벗어남을 알림. 다시 길을 찾을지를 문의하는 창을 띄움.
                         checkRefindRouteToDestinationFromCurrent();
                     }
+                } else {
+                    Toast.makeText(this, "길 위에 있지 않습니다", Toast.LENGTH_SHORT).show();
                 }
             }
         }
