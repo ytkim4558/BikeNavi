@@ -112,6 +112,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private static final String TAG = TrackRealTImeActivity.class.getSimpleName();
     private static final int REQUEST_CHECK_SETTINGS = 5;
     private static final int REQUEST_RESOLVE_ERROR = 6;
+    private static final int ANIMATE_SPEEED_TURN = 1000;
     private static int over_location_count = 0; // 경로에서 벗어난 횟수
     private final Handler mHandler = new Handler();
     /**
@@ -162,7 +163,23 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private List<Double> realTimedistanceList; // tmap 실시간 거리
     private Polyline realtimeAllPolylines;  // tmap 전체 경로
     private boolean onceOnRoad; // 한번이라도 길 위에 있던 경우
-    private static final int ANIMATE_SPEEED_TURN = 1000;
+
+    public static String documenttoString(Document doc) {
+        try {
+            StringWriter sw = new StringWriter();
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+
+            transformer.transform(new DOMSource(doc), new StreamResult(sw));
+            return sw.toString();
+        } catch (Exception ex) {
+            throw new RuntimeException("Error converting to String", ex);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -830,23 +847,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         });
     }
 
-    public static String documenttoString(Document doc) {
-        try {
-            StringWriter sw = new StringWriter();
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-
-            transformer.transform(new DOMSource(doc), new StreamResult(sw));
-            return sw.toString();
-        } catch (Exception ex) {
-            throw new RuntimeException("Error converting to String", ex);
-        }
-    }
-
     // 전환점설명 XXXXXXXX라인설명XXXXXXXXXXx전환점설명 XXXXX라인설명//
     // ABBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBCDDDDDDDDDDDDD
     // A(좌회전), B(신반포로 23길 직진), C(우회전), D(신반포로 25길 직진)
@@ -1343,7 +1343,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 over_location_count = 0;
                 mCurrentLocation = location;
                 latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                double currentTotalRidingDistance = 0; // 현재 총 주행 거리
 
                 // lastSegment가 있었던 경우라면 해당 폴리라인 인덱스부터 현재 위치가 있는 폴리라인을 찾는다.
                 if(lastSegmentIndex != null) {
@@ -1354,10 +1353,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                         updateSegmentDistanceAndLineInfoOfTextView(lastSegmentIndex + 1, latLng);
                     } else {
                         for (int i = 0; i < guideSegmentPolyLines.size(); ++i) {
-                            Double currentDistance = realTimedistanceList.get(i);
-                            if (currentDistance != null) {
-                                currentTotalRidingDistance += currentDistance;
-                            }
                             if (isLocationOnPath(latLng, guideSegmentPolyLines.get(i))) {
                                 // 텍스트뷰에 있는 정보 업데이트
                                 updateSegmentDistanceAndLineInfoOfTextView(i, latLng);
@@ -1366,10 +1361,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                     }
                 } else {
                     for (int i = 0; i < guideSegmentPolyLines.size(); ++i) {
-                        Double currentDistance = realTimedistanceList.get(i);
-                        if (currentDistance != null) {
-                            currentTotalRidingDistance += currentDistance;
-                        }
                         if (isLocationOnPath(latLng, guideSegmentPolyLines.get(i))) {
                             showToastMessage(i+"번째에 있다");
                             // 텍스트뷰에 있는 정보 업데이트
@@ -1423,18 +1414,26 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             @Override
             public void run() {
                 // distance의 경우 출발점은 라인인덱스와 같다.
-                String remaingFutureFirstText = distanceIndex < realTimedistanceList.size() ? getString(R.string.remaining_distance, realTimedistanceList.get(distanceIndex)) : null;
+                String remaingFutureFirstText = distanceIndex < realTimedistanceList.size() && realTimedistanceList.get(distanceIndex) != null ? getString(R.string.remaining_inttype_distance, realTimedistanceList.get(distanceIndex).intValue()) : null;
                 guideTextVIew.setText(remaingFutureFirstText);
                 Integer direction = realTimedirectionList.get(distanceIndex);
                 setDirectionImage(direction, guideImageView);
                 setDirectionImage(direction, turnGuideFirstImage);
                 remainingFutureFirstText.setText(remaingFutureFirstText);
                 if(distanceIndex + 1 < realTimedistanceList.size()) {
-                    remainingFutureSecondText.setText( getString(R.string.remaining_distance, realTimedistanceList.get(distanceIndex + 1)));
+                    if (realTimedistanceList.get(distanceIndex + 1) != null) {
+                        remainingFutureSecondText.setText(getString(R.string.remaining_inttype_distance, realTimedistanceList.get(distanceIndex + 1).intValue()));
+                    } else {
+                        remainingFutureSecondText.setText(null);
+                    }
                     direction = realTimedirectionList.get(distanceIndex + 1);
                     setDirectionImage(direction, turnGuideSecondImage);
                     if(distanceIndex + 2 < realTimedistanceList.size()) {
-                        remainingFutureThirdText.setText( getString(R.string.remaining_distance, realTimedistanceList.get(distanceIndex + 2)));
+                        if (realTimedistanceList.get(distanceIndex + 2) != null) {
+                            remainingFutureThirdText.setText(getString(R.string.remaining_inttype_distance, realTimedistanceList.get(distanceIndex + 2).intValue()));
+                        } else {
+                            remainingFutureThirdText.setText(null);
+                        }
                         direction = realTimedirectionList.get(distanceIndex + 2);
                         setDirectionImage(direction, turnGuideThirdImage);
                     } else {
@@ -1836,7 +1835,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         void displayRemainingDistance(Integer distance, TextView distanceTextView) {
             if (distance != null) {
                 // 남은 거리 출력
-                distanceTextView.setText(getString(R.string.remaining_distance, distance));
+                distanceTextView.setText(getString(R.string.remaining_inttype_distance, distance));
             }
         }
     }

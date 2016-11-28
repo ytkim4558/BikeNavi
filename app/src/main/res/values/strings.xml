@@ -40,7 +40,8 @@
     <string name="searchview_transition_name">장소검색창전환</string>
     <string name="name_bookmark_button">즐겨찾기</string>
 
-    <string name="remaining_distance">%1$dm</string>
+    <string name="remaining_inttype_distance">%1$dm</string>
+    <string name="remaining_doubletype_distance">%1$fm</string>
 
     <!--지도 액티비티에 필요한 변수-->
     <string name="hint_start_point">출발 장소를 입력하세요</string>
