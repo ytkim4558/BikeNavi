@@ -161,6 +161,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private List<Integer> realTimedirectionList;    // 실시간 때 필요한 방향 전환 리스트;
     private List<Double> realTimedistanceList; // tmap 실시간 거리
     private Polyline realtimeAllPolylines;  // tmap 전체 경로
+    private boolean onceOnRoad; // 한번이라도 길 위에 있던 경우
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -1253,8 +1254,10 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
             // 길 위에 있는지 확인
             if (isLocationOnPath(latLng, realtimeAllPolylines)) {
+                onceOnRoad = true;
                 showToastMessage("길 위에 있습니다");
                 location = snapOnRoad(location, realtimeAllPolylines);
+                over_location_count = 0;
                 mCurrentLocation = location;
                 latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 double currentTotalRidingDistance = 0; // 현재 총 주행 거리
@@ -1268,7 +1271,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                         updateSegmentDistanceAndLineInfoOfTextView(lastSegmentIndex + 1, latLng);
                     } else {
                         for (int i = 0; i < guideSegmentPolyLines.size(); ++i) {
-                            Integer currentDistance = distanceList.get(i);
+                            Double currentDistance = realTimedistanceList.get(i);
                             if (currentDistance != null) {
                                 currentTotalRidingDistance += currentDistance;
                             }
@@ -1293,12 +1296,14 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 }
             } else {
                 Toast.makeText(this, "벗어났습니다", Toast.LENGTH_SHORT).show();
-                ++over_location_count;
-                if (over_location_count >= 3 && over_location_count % 3 == 0 && !isShowCheckingChangeRouteDialog) {
-                    // 3번 연속으로 범위가 벗어난 경우 잠깐 튄것이 아니라고 판단한다.
+                if(onceOnRoad) {
+                    ++over_location_count;
+                    if (over_location_count >= 3 && over_location_count % 3 == 0 && !isShowCheckingChangeRouteDialog) {
+                        // 3번 연속으로 범위가 벗어난 경우 잠깐 튄것이 아니라고 판단한다.
 
-                    // 위치 벗어남을 알림. 다시 길을 찾을지를 문의하는 창을 띄움.
-                    checkRefindRouteToDestinationFromCurrent();
+                        // 위치 벗어남을 알림. 다시 길을 찾을지를 문의하는 창을 띄움.
+                        checkRefindRouteToDestinationFromCurrent();
+                    }
                 }
             }
         }
@@ -1333,18 +1338,18 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             @Override
             public void run() {
                 // distance의 경우 출발점은 라인인덱스와 같다.
-                String remaingFutureFirstText = distanceIndex < realTimedistanceList.size() ? String.valueOf(realTimedistanceList.get(distanceIndex)) : null;
+                String remaingFutureFirstText = distanceIndex < realTimedistanceList.size() ? getString(R.string.remaining_distance, realTimedistanceList.get(distanceIndex)) : null;
                 guideTextVIew.setText(remaingFutureFirstText);
                 Integer direction = realTimedirectionList.get(distanceIndex);
                 setDirectionImage(direction, guideImageView);
                 setDirectionImage(direction, turnGuideFirstImage);
                 remainingFutureFirstText.setText(remaingFutureFirstText);
                 if(distanceIndex + 1 < realTimedistanceList.size()) {
-                    remainingFutureSecondText.setText( String.valueOf(realTimedistanceList.get(distanceIndex + 1)));
+                    remainingFutureSecondText.setText( getString(R.string.remaining_distance, realTimedistanceList.get(distanceIndex + 1)));
                     direction = realTimedirectionList.get(distanceIndex + 1);
                     setDirectionImage(direction, turnGuideSecondImage);
                     if(distanceIndex + 2 < realTimedistanceList.size()) {
-                        remainingFutureThirdText.setText( String.valueOf(realTimedistanceList.get(distanceIndex + 2)));
+                        remainingFutureThirdText.setText( getString(R.string.remaining_distance, realTimedistanceList.get(distanceIndex + 2)));
                         direction = realTimedirectionList.get(distanceIndex + 2);
                         setDirectionImage(direction, turnGuideThirdImage);
                     } else {
