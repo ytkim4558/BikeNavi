@@ -162,6 +162,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     private List<Double> realTimedistanceList; // tmap 실시간 거리
     private Polyline realtimeAllPolylines;  // tmap 전체 경로
     private boolean onceOnRoad; // 한번이라도 길 위에 있던 경우
+    private static final int ANIMATE_SPEEED_TURN = 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -1070,42 +1071,120 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         mGoogleApiClient.disconnect();
         super.onStop();
     }
+    LatLng convertToLatLng(Location location) {
+        return new LatLng(location.getLatitude(), location.getLongitude());
+    }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         // 현재 사용한 시각 갱신
         // 이전 사용한 시각 갱신
-        if (mLastUpdateTime != null) {
-            if (mBeforeUpdateTime != null) {
-                mMoreBeforeUpdateTime = mBeforeUpdateTime;
+        if(polyLine != null) {
+            // 이전 사용한 시각 갱신
+            if (mLastUpdateTime != null) {
+                if (mBeforeUpdateTime != null) {
+                    mMoreBeforeUpdateTime = mBeforeUpdateTime;
+                }
+                mBeforeUpdateTime = mLastUpdateTime;
             }
-            mBeforeUpdateTime = mLastUpdateTime;
-        }
 
-        // 이전과 그보다 더이전 위치 갱신
-        if (mCurrentLocation != null) {
-            if (mBeforeLocation != null) {
-                mMoreBeforeLocation = mBeforeLocation;
+            // 이전과 그보다 더이전 위치 갱신
+            if (mCurrentLocation != null) {
+                if (mBeforeLocation != null) {
+                    mMoreBeforeLocation = mBeforeLocation;
+                    float bearingL = bearingBetweenLatLngs(convertToLatLng(mBeforeLocation), convertToLatLng(mCurrentLocation));
+                    CameraPosition cameraPosition =
+                            new CameraPosition.Builder()
+                                    .target(new LatLng(mBeforeLocation.getLatitude(), mBeforeLocation.getLongitude())) // changed this...
+                                    .bearing(bearingL)
+                                    .zoom(mGoogleMap.getCameraPosition().zoom)
+                                    .build();
+
+                    mGoogleMap.animateCamera(
+                            CameraUpdateFactory.newCameraPosition(cameraPosition),
+                            ANIMATE_SPEEED_TURN,
+                            null
+                    );
+                }
+                mBeforeLocation = mCurrentLocation;
             }
-            mBeforeLocation = mCurrentLocation;
-        }
-        if (mCurrentLocation == null) {
-            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return;
+            if (mCurrentLocation == null) {
+                if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
+                }
+                Log.d(TAG, "onConnected");
+                // 현재 사용한 시각 갱신
+                mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
+                mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                Location location = mCurrentLocation;
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                // 길 위에 있는지 확인
+                if (isLocationOnPath(latLng, realtimeAllPolylines)) {
+                    onceOnRoad = true;
+                    showToastMessage("길 위에 있습니다");
+                    location = snapOnRoad(location, realtimeAllPolylines);
+                    over_location_count = 0;
+                    mCurrentLocation = location;
+                    latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    double currentTotalRidingDistance = 0; // 현재 총 주행 거리
+
+                    // lastSegment가 있었던 경우라면 해당 폴리라인 인덱스부터 현재 위치가 있는 폴리라인을 찾는다.
+                    if(lastSegmentIndex != null) {
+                        // 이전의 lastSegmentIndex의 guideSegmentPolyline에 현재 위치가 있는지 확인
+                        if(isLocationOnPath(latLng, guideSegmentPolyLines.get(lastSegmentIndex))) {
+                            updateSegmentDistanceAndLineInfoOfTextView(lastSegmentIndex, latLng);
+                        } else if(lastSegmentIndex + 1 < guideSegmentPolyLines.size() && isLocationOnPath(latLng, guideSegmentPolyLines.get(lastSegmentIndex + 1))) {
+                            updateSegmentDistanceAndLineInfoOfTextView(lastSegmentIndex + 1, latLng);
+                        } else {
+                            for (int i = 0; i < guideSegmentPolyLines.size(); ++i) {
+                                Double currentDistance = realTimedistanceList.get(i);
+                                if (currentDistance != null) {
+                                    currentTotalRidingDistance += currentDistance;
+                                }
+                                if (isLocationOnPath(latLng, guideSegmentPolyLines.get(i))) {
+                                    // 텍스트뷰에 있는 정보 업데이트
+                                    updateSegmentDistanceAndLineInfoOfTextView(i, latLng);
+                                }
+                            }
+                        }
+                    } else {
+                        for (int i = 0; i < guideSegmentPolyLines.size(); ++i) {
+                            Double currentDistance = realTimedistanceList.get(i);
+                            if (currentDistance != null) {
+                                currentTotalRidingDistance += currentDistance;
+                            }
+                            if (isLocationOnPath(latLng, guideSegmentPolyLines.get(i))) {
+                                showToastMessage(i+"번째에 있다");
+                                // 텍스트뷰에 있는 정보 업데이트
+                                updateSegmentDistanceAndLineInfoOfTextView(i, latLng);
+                            }
+                        }
+                    }
+                } else {
+                    if(onceOnRoad) {
+                        Toast.makeText(this, "벗어났습니다", Toast.LENGTH_SHORT).show();
+                        ++over_location_count;
+                        if (over_location_count >= 3 && over_location_count % 3 == 0 && !isShowCheckingChangeRouteDialog) {
+                            // 3번 연속으로 범위가 벗어난 경우 잠깐 튄것이 아니라고 판단한다.
+
+                            // 위치 벗어남을 알림. 다시 길을 찾을지를 문의하는 창을 띄움.
+                            checkRefindRouteToDestinationFromCurrent();
+                        }
+                    } else {
+                        Toast.makeText(this, "길 위에 있지 않습니다", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                updateUI();
             }
-            Log.d(TAG, "onConnected");
-            mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());
-            mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            updateUI();
+            startLocationUpdates();
         }
-        startLocationUpdates();
     }
 
     protected void startLocationUpdates() {
@@ -1250,6 +1329,10 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             }
 
             mCurrentLocation = location;
+            // 속도 계산하기 위한 부분
+            if(mLastUpdateTime != null && mBeforeLocation != null && mBeforeUpdateTime != null) {
+                // mCurrentLocation - mBeofreLocation / 이전 시간 - 현재시간 .. 단위 맞춰야된다.
+            }
 
             LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
             // 길 위에 있는지 확인
