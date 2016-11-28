@@ -105,7 +105,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     protected final static String LAST_UPDATED_TIME_STRING_KEY = "last-updated-time-string-key"; // 마지막 사용한 시각
     protected final static String BEFORE_UPDATED_TIME_STRING_KEY = "before-updated-time-string-key"; // 이전에 사용한 시각
     protected final static String MORE_BEFORE_UPDATED_TIME_STRING_KEY = "more-before-updated-time-string-key"; // 이전에 사용한 시각
-    protected final static int TRACK_IN_TOLERANCE = 50; // 추적 오차 완전히 벗어났다고 판단되는 거리
+    protected final static int TRACK_IN_TOLERANCE = 30; // 추적 오차 완전히 벗어났다고 판단되는 거리
     protected final static String LOCATION_KEY = "location-key";
     protected final static String LOCATION_BEFORE_KEY = "location-before_key";
     protected final static String LOCATION_MORE_BEFORE_KEY = "location-more_before_key";
