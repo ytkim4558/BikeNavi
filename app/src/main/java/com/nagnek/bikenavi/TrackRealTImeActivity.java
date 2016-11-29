@@ -732,6 +732,16 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                                     realTimedistanceList.add(null);
                                                 }
 
+                                                /**
+                                                 * 방향전환 추가
+                                                 */
+                                                String direction = HttpConnect.getContentFromNode(item, "tmap:turnType");
+                                                if (direction != null) {
+                                                    realTimedirectionList.add(Integer.valueOf(direction));
+                                                } else {
+                                                    realTimedirectionList.add(11); // 직진
+                                                }
+
                                                 String str = HttpConnect.getContentFromNode(item, "coordinates");
                                                 if (str != null) {
                                                     String[] coordinateList = str.split(" ");
@@ -1105,6 +1115,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                             ANIMATE_SPEEED_TURN,
                             null
                     );
+                    trackingCycleMarker.setRotation(bearingL);
                 }
                 mBeforeLocation = mCurrentLocation;
             }
@@ -1360,12 +1371,37 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                         }
                     }
                 } else {
+                    Integer minIndex = null;
+                    MinDistancePolyline minDistancePolyLine = null;
+                    // 주의 : minIndex와 mindistancePolyLine의 minindex는 다르다. polyline들에서의 polyline인덱스와 polyline의 점들에서의 pointIndex의 차이
+
+                    /**
+                     * 현재 위치에서 최소거리를 가진 polyLine찾기
+                     */
                     for (int i = 0; i < guideSegmentPolyLines.size(); ++i) {
                         if (isLocationOnPath(latLng, guideSegmentPolyLines.get(i))) {
-                            showToastMessage(i+"번째에 있다");
-                            // 텍스트뷰에 있는 정보 업데이트
-                            updateSegmentDistanceAndLineInfoOfTextView(i, latLng);
+                            if (minDistancePolyLine == null) {
+                                minDistancePolyLine = new MinDistancePolyline();
+                            }
+
+                            MinDistancePolyline currentMinDistancePolyLine = getMinDistanceAndPointIndexFromPolyline(guideSegmentPolyLines.get(i), latLng);
+                            if (minDistancePolyLine.minDistance == null ||
+                                    (minDistancePolyLine.minDistance != null && currentMinDistancePolyLine != null && minDistancePolyLine.minDistance > currentMinDistancePolyLine.minDistance)) {
+                                minDistancePolyLine = currentMinDistancePolyLine;
+                                minIndex = i;
+                            }
                         }
+                    }
+
+                    /**
+                     * 최소위치 차이 가진 인덱스 라인을 이용
+                     */
+                    if (minIndex != null) {
+                        showToastMessage(minIndex + "번째에 있다");
+                        // 텍스트뷰에 있는 정보 업데이트
+                        updateSegmentDistanceAndLineInfoOfTextView(minIndex, latLng);
+                    } else {
+                        showToastMessage("못찾겠다.");
                     }
                 }
             } else {
@@ -1413,12 +1449,14 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         new Handler().post(new Runnable() {
             @Override
             public void run() {
-                // distance의 경우 출발점은 라인인덱스와 같다.
+                // distance의 경우 라인인덱스와 같고 direction은 출발점은 제외해야하므로 +1을 더 해야한다. 도착지점도 제외해야하므로 마지막을 제외하기 위에 마지막인덱스를 제외한다.
                 String remaingFutureFirstText = distanceIndex < realTimedistanceList.size() && realTimedistanceList.get(distanceIndex) != null ? getString(R.string.remaining_inttype_distance, realTimedistanceList.get(distanceIndex).intValue()) : null;
                 guideTextVIew.setText(remaingFutureFirstText);
-                Integer direction = realTimedirectionList.get(distanceIndex);
-                setDirectionImage(direction, guideImageView);
-                setDirectionImage(direction, turnGuideFirstImage);
+                if (distanceIndex + 1 < realTimedirectionList.size() - 1) {
+                    Integer direction = realTimedirectionList.get(distanceIndex + 1);
+                    setDirectionImage(direction, guideImageView);
+                    setDirectionImage(direction, turnGuideFirstImage);
+                }
                 remainingFutureFirstText.setText(remaingFutureFirstText);
                 if(distanceIndex + 1 < realTimedistanceList.size()) {
                     if (realTimedistanceList.get(distanceIndex + 1) != null) {
@@ -1426,21 +1464,31 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                     } else {
                         remainingFutureSecondText.setText(null);
                     }
-                    direction = realTimedirectionList.get(distanceIndex + 1);
-                    setDirectionImage(direction, turnGuideSecondImage);
+                    if (distanceIndex + 2 < realTimedirectionList.size() - 1) {
+                        if (secondFutureGuideLayout.getVisibility() == View.GONE) {
+                            secondFutureGuideLayout.setVisibility(View.VISIBLE);
+                        }
+                        Integer direction = realTimedirectionList.get(distanceIndex + 2);
+                        setDirectionImage(direction, turnGuideSecondImage);
+                    } else {
+                        secondFutureGuideLayout.setVisibility(View.GONE);
+                    }
                     if(distanceIndex + 2 < realTimedistanceList.size()) {
                         if (realTimedistanceList.get(distanceIndex + 2) != null) {
                             remainingFutureThirdText.setText(getString(R.string.remaining_inttype_distance, realTimedistanceList.get(distanceIndex + 2).intValue()));
                         } else {
                             remainingFutureThirdText.setText(null);
                         }
-                        direction = realTimedirectionList.get(distanceIndex + 2);
-                        setDirectionImage(direction, turnGuideThirdImage);
-                    } else {
-                        thirdFutureGuideLayout.setVisibility(View.GONE);
+                        if (distanceIndex + 3 < realTimedirectionList.size() - 1) {
+                            if (thirdFutureGuideLayout.getVisibility() == View.GONE) {
+                                thirdFutureGuideLayout.setVisibility(View.VISIBLE);
+                            }
+                            Integer direction = realTimedirectionList.get(distanceIndex + 3);
+                            setDirectionImage(direction, turnGuideThirdImage);
+                        } else {
+                            thirdFutureGuideLayout.setVisibility(View.GONE);
+                        }
                     }
-                } else {
-                    secondFutureGuideLayout.setVisibility(View.GONE);
                 }
             }
         });
@@ -1483,10 +1531,6 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 currentTotalRidingDistance = 0;
                 currentSegmentDistance = 0;
                 try {
-                    // 위치 변경 추적 중단
-                    if (mGoogleApiClient.isConnected()) {
-                        stopLocationUpdates();
-                    }
                     over_location_count = 0;
                     tMapPOIItem = getTMapPOIItemUsingCurrentLocation(mCurrentLocation);
                     performFindRoute(tMapPOIItem.getPOIName(), dest_poi_name);
@@ -1571,11 +1615,43 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
     // location기반으로 마커 위치를 도로(polyline)에 매칭시키게끔 변경한다.
     Location snapOnRoad(Location currentLocation, Polyline polyline) {
         LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        LatLng nearestPoint = findNearestPoint(latLng, polyline.getPoints().get(0), polyline.getPoints().get(polyline.getPoints().size() - 1));
-        currentLocation.setLatitude(nearestPoint.latitude);
-        currentLocation.setLongitude(nearestPoint.longitude);
+        LatLng nearestPoint = null;
+
+        // polyline을 이루는 직선들 중 어느 라인이 현재 점과 가장 가까운지 확인
+        MinDistancePolyline minDistancePolyLine = getMinDistanceAndPointIndexFromPolyline(polyline, latLng);
+
+        // 가장 가까운 라인에서 현재 지점중 가장 가까운 점으로 바꿈
+        if (minDistancePolyLine != null) {
+            nearestPoint = findNearestPoint(latLng, polyline.getPoints().get(minDistancePolyLine.pointMinIndex - 1), polyline.getPoints().get(minDistancePolyLine.pointMinIndex));
+            if (nearestPoint != null) {
+                currentLocation.setLatitude(nearestPoint.latitude);
+                currentLocation.setLongitude(nearestPoint.longitude);
+            }
+        }
+
         return currentLocation;
     }
+
+    MinDistancePolyline getMinDistanceAndPointIndexFromPolyline(Polyline polyline, LatLng latLng) {
+        MinDistancePolyline minDistancePolyLine = null;
+        // polyline을 이루는 직선들 중 어느 라인이 현재 점과 가장 가까운지 확인
+        double minDistance = Double.MAX_VALUE;
+        for (int i = 1; i < polyline.getPoints().size(); ++i) {
+            double currentDistance = PolyUtil.distanceToLine(latLng, polyline.getPoints().get(i - 1), polyline.getPoints().get(i));
+
+            if (minDistance > currentDistance) {
+                if (minDistancePolyLine == null) {
+                    minDistancePolyLine = new MinDistancePolyline();
+                }
+                minDistancePolyLine.minDistance = currentDistance;
+                minDistancePolyLine.pointMinIndex = i;
+                minDistance = currentDistance;
+            }
+        }
+        return minDistancePolyLine;
+    }
+
+    // polyline에서 현재 지점과 가장 가까운 라인의 index와 거리 계산
 
     // 마지막 위치 기반으로 애니메이션 시작.. 도중에 현재 위치를 찾으면 해당 도로에 snap한다.
     void cycleAnimateStart(Location lastLocation, Polyline polyline, int speed) {
@@ -1588,6 +1664,12 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         Polyline polyline = mGoogleMap.addPolyline(rectOptions);
         polyline.setVisible(false);
         return polyline;
+    }
+
+    // MinDistancePolyline의 클래스
+    class MinDistancePolyline {
+        Double minDistance;
+        Integer pointMinIndex;
     }
 
     public class Animator implements Runnable {
