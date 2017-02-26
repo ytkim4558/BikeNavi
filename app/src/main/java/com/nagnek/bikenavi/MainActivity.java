@@ -481,32 +481,6 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // 메뉴의 항목을 선택(클릭)했을 때 호출되는 콜백메서드
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        Log.d(TAG, "onOptionsItemSelected - 메뉴항목을 클릭했을 때 호출됨.");
-
-        int id = item.getItemId();
-
-        switch (id) {
-            case R.id.action_settings:
-                IPManager ipManager = new IPManager(this);
-                String savedIP = ipManager.loadServerIP();
-                if (savedIP != null) {
-                    AppConfig.setServerIp(savedIP);
-                    serverIpAutoComplete.setText(savedIP);
-                } else {
-                    serverIpAutoComplete.setText(AppConfig.HOSTING_IP);
-                }
-                alertDialog.show();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
