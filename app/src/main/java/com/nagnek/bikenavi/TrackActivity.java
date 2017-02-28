@@ -816,7 +816,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
             trackingMarker = mGoogleMap.addMarker(new MarkerOptions().position(markerPos)
                     .title("접니다")
                     .snippet("자전거에요"));
-            trackingMarker.setIcon(getBitmapDescriptor(R.drawable.ic_directions_bike_red_24dp));
+            trackingMarker.setIcon(getBitmapDescriptor(R.drawable.bike));
 
             CameraPosition cameraPosition =
                     new CameraPosition.Builder()

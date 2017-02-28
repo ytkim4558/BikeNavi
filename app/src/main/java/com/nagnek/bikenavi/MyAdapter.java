@@ -115,7 +115,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             }
             final LinearLayout backgroundLayout = holder.backGroundLayout;
             Glide.with(AppController.getGlobalApplicationContext())
-                    .load(R.drawable.background_poly)
+                    .load(R.drawable.header_top)
                     .asBitmap()
                     .into(new SimpleTarget<Bitmap>() {
                         @Override
