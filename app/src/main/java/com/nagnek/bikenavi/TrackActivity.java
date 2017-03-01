@@ -489,6 +489,9 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                                         if (str != null) {
                                             String[] str2 = str.split(" ");
 
+                                            int current_marker_no = 1;
+                                            int totalMarkerCount = str2.length;
+
                                             for (int k = 0; k < str2.length; ++k) {
                                                 try {
                                                     String[] e1 = str2[k].split(",");
@@ -496,6 +499,17 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                                                     pathStopPointList.add(latLng);
                                                     Marker marker = mGoogleMap.addMarker(new MarkerOptions().position(latLng).visible(false));
                                                     markers.add(marker);
+                                                    // 마커 번호가 첫번째면 start, 끝이면 end, 나머지는 경유지 아이콘을 삽입한다
+                                                    if(current_marker_no == 1) {
+                                                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.start_marker));
+                                                    } else if(current_marker_no == totalMarkerCount) {
+                                                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.goal_marker));
+                                                    } else {
+                                                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.normal_marker));
+                                                    }
+
+                                                    ++current_marker_no;
+
                                                 } catch (Exception var13) {
                                                     Log.d(TAG, var13.getMessage());
                                                 }
@@ -575,9 +589,22 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                                     if (mGoogleMap != null) {
                                         LatLngBounds.Builder builder = new LatLngBounds.Builder();
                                         // 경로 찾고나서 경로 지점들의 마커들 추가, 모든 마커들을 표시할 수 있는 줌레벨 계산
+                                        int current_marker_no = 1;
+                                        int totalMarkerCount = markerOptionsArrayList.size();
                                         for (MarkerOptions markerOptions : markerOptionsArrayList) {
                                             Marker marker = mGoogleMap.addMarker(markerOptions);
                                             descriptorMarkers.add(marker);
+
+                                            // 마커 번호가 첫번째면 start, 끝이면 end, 나머지는 경유지 아이콘을 삽입한다
+                                            if(current_marker_no == 1) {
+                                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.start_marker));
+                                            } else if(current_marker_no == totalMarkerCount) {
+                                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.goal_marker));
+                                            } else {
+                                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.normal_marker));
+                                            }
+
+                                            ++current_marker_no;
                                             builder.include(markerOptions.getPosition());
                                         }
                                         LatLngBounds bounds = builder.build();
@@ -700,7 +727,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
      * Highlight the marker by marker.
      */
     private void highLightMarker(Marker marker) {
-        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.route_marker));
         marker.showInfoWindow();
     }
 
@@ -721,8 +748,21 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
 
     private void resetMarkers() {
         Log.d("tag", "초기화");
+
+        int current_marker_no = 1;
+        int totalMarkerCount = this.descriptorMarkers.size();
+
         for (Marker marker : this.descriptorMarkers) {
-            marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+            // 마커 번호가 첫번째면 start, 끝이면 end, 나머지는 경유지 아이콘을 삽입한다
+            if(current_marker_no == 1) {
+                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.start_marker));
+            } else if(current_marker_no == totalMarkerCount) {
+                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.goal_marker));
+            } else {
+                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.normal_marker));
+            }
+
+            ++current_marker_no;
         }
     }
 

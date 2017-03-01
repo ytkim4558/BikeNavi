@@ -1562,19 +1562,23 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             Log.d(TAG, "direction : " + directionMap.get(direction));
             switch (direction) {
                 case -1: // 아무것도 없는 경우
-                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_upward_black_24dp));
+                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.none_sign));
                     break;
+                case 0: // 안내 없음
+                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.none_sign));
                 case 11: //직진
-                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_upward_black_24dp));
+                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.straight_sign));
                     break;
                 case 12: //좌회전
-                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_left_arrow_black_24dp));
+                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.left_turn_sign));
                     break;
                 case 13: //우회전
-                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_right_black_24dp));
+                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.right_turn_sign));
                     break;
+                case 14: // 유턴
+                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.u_turn_sign));
                 default:
-                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.ic_arrow_upward_black_24dp));
+                    guideImageView.setImageDrawable(ContextCompat.getDrawable(TrackRealTImeActivity.this, R.drawable.straight_sign));
                     break;
             }
         }

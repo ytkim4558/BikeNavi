@@ -70,8 +70,7 @@
                         android:id="@+id/firstTurnGuide"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        android:contentDescription="@string/first_turn_guide"
-                        android:src="@drawable/ic_arrow_right_black_24dp" />
+                        android:contentDescription="@string/first_turn_guide" />
 
                     <com.nagnek.bikenavi.customview.BorderTextView
                         android:id="@+id/firstText"
@@ -79,8 +78,7 @@
                         android:layout_height="wrap_content"
                         app:textStroke="true"
                         app:textStrokeWidth="3.0"
-                        app:textStrokeColor="@color/white"
-                        android:text="200m" />
+                        app:textStrokeColor="@color/white" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -95,8 +93,7 @@
                         android:id="@+id/secondTurnGuide"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:contentDescription="@string/second_turn_guide"
-                        android:src="@drawable/ic_arrow_upward_black_24dp" />
+                        android:contentDescription="@string/second_turn_guide" />
 
                     <com.nagnek.bikenavi.customview.BorderTextView
                         android:id="@+id/secondText"
@@ -104,8 +101,7 @@
                         android:layout_height="wrap_content"
                         app:textStroke="true"
                         app:textStrokeWidth="3.0"
-                        app:textStrokeColor="@color/white"
-                        android:text="50m" />
+                        app:textStrokeColor="@color/white"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -120,8 +116,7 @@
                         android:id="@+id/thirdTurnGuide"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:contentDescription="@string/third_turn_guide"
-                        android:src="@drawable/ic_left_arrow_black_24dp" />
+                        android:contentDescription="@string/third_turn_guide"/>
 
                     <com.nagnek.bikenavi.customview.BorderTextView
                         android:id="@+id/thirdText"
@@ -130,8 +125,7 @@
                         android:layout_below="@+id/thirdTurnGuide"
                         app:textStroke="true"
                         app:textStrokeWidth="3.0"
-                        app:textStrokeColor="@color/white"
-                        android:text="50m" />
+                        app:textStrokeColor="@color/white"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -147,8 +141,7 @@
                     android:id="@+id/bigTurnGuide"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:contentDescription="@string/big_turn_guide"
-                    android:src="@drawable/ic_arrow_right_black_24dp" />
+                    android:contentDescription="@string/big_turn_guide"/>
 
                 <com.nagnek.bikenavi.customview.BorderTextView
                     android:id="@+id/guide"
@@ -157,7 +150,6 @@
                     app:textStroke="true"
                     app:textStrokeWidth="3.0"
                     app:textStrokeColor="@color/white"
-                    android:text="200m"
                     android:textAppearance="?android:attr/textAppearanceLarge" />
             </LinearLayout>
 
