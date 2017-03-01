@@ -14,12 +14,15 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.nagnek.bikenavi.TrackActivity">
 
-    <TextView
+    <com.nagnek.bikenavi.customview.BorderTextView
         android:id="@+id/track_log"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="트랙 로그"
+        app:textStroke="true"
+        app:textStrokeWidth="3.0"
+        app:textStrokeColor="@color/white"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <FrameLayout
@@ -70,10 +73,13 @@
                         android:contentDescription="@string/first_turn_guide"
                         android:src="@drawable/ic_arrow_right_black_24dp" />
 
-                    <TextView
+                    <com.nagnek.bikenavi.customview.BorderTextView
                         android:id="@+id/firstText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        app:textStroke="true"
+                        app:textStrokeWidth="3.0"
+                        app:textStrokeColor="@color/white"
                         android:text="200m" />
                 </LinearLayout>
 
@@ -92,10 +98,13 @@
                         android:contentDescription="@string/second_turn_guide"
                         android:src="@drawable/ic_arrow_upward_black_24dp" />
 
-                    <TextView
+                    <com.nagnek.bikenavi.customview.BorderTextView
                         android:id="@+id/secondText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        app:textStroke="true"
+                        app:textStrokeWidth="3.0"
+                        app:textStrokeColor="@color/white"
                         android:text="50m" />
                 </LinearLayout>
 
@@ -114,11 +123,14 @@
                         android:contentDescription="@string/third_turn_guide"
                         android:src="@drawable/ic_left_arrow_black_24dp" />
 
-                    <TextView
+                    <com.nagnek.bikenavi.customview.BorderTextView
                         android:id="@+id/thirdText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/thirdTurnGuide"
+                        app:textStroke="true"
+                        app:textStrokeWidth="3.0"
+                        app:textStrokeColor="@color/white"
                         android:text="50m" />
                 </LinearLayout>
 
@@ -138,10 +150,13 @@
                     android:contentDescription="@string/big_turn_guide"
                     android:src="@drawable/ic_arrow_right_black_24dp" />
 
-                <TextView
+                <com.nagnek.bikenavi.customview.BorderTextView
                     android:id="@+id/guide"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    app:textStroke="true"
+                    app:textStrokeWidth="3.0"
+                    app:textStrokeColor="@color/white"
                     android:text="200m"
                     android:textAppearance="?android:attr/textAppearanceLarge" />
             </LinearLayout>
@@ -168,13 +183,16 @@
             app:behavior_peekHeight="72dp"
             app:layout_behavior="@string/bottom_sheet_behavior">
 
-            <TextView
+            <com.nagnek.bikenavi.customview.BorderTextView
                 android:layout_width="wrap_content"
                 android:layout_height="72dp"
                 android:ellipsize="end"
                 android:gravity="center_vertical"
                 android:lines="1"
                 android:maxLines="1"
+                app:textStroke="true"
+                app:textStrokeWidth="3.0"
+                app:textStrokeColor="@color/white"
                 android:text="@string/detail_route"
                 android:textAppearance="?android:attr/textAppearanceMedium" />
 
