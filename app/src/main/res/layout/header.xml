@@ -22,13 +22,6 @@
             android:layout_marginTop="38dp"
             android:src="@drawable/ic_account_circle_white_24dp" />
 
-        <Button
-            android:id="@+id/btn_login"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="43dp"
-            android:text="@string/btn_login" />
     </LinearLayout>
 
 

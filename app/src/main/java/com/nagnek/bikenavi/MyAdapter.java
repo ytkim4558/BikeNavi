@@ -93,8 +93,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         Log.d(TAG, "onBindViewHolder");
         if (holder.holderId == 1) {                              // as the list view is going to be called after the header view so we decrement the
             // position by 1 and pass it to the holder while setting the text and image
-            holder.textView.setText(mNavTitles[position - 1]); // Setting the text with the array of our Titles
-            holder.imageView.setImageResource(mIcons[position - 1]);// Setting the image with array of our icons
+            if(position <= mNavTitles.length) {
+                holder.textView.setText(mNavTitles[position - 1]); // Setting the text with the array of our Titles
+            }
+            if(position <= mIcons.length) {
+                holder.imageView.setImageResource(mIcons[position - 1]);// Setting the image with array of our icons
+            }
             holder.itemView.setTag(position);
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -108,11 +112,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             holder.profile.setImageResource(profileID);           // Similarly we set the resources for header view
             holder.name.setText(name);
             holder.email.setText(email);
-            if (loginState) {
-                holder.loginStateButton.setText("로그아웃");
-            } else {
-                holder.loginStateButton.setText("로그인");
-            }
             final LinearLayout backgroundLayout = holder.backGroundLayout;
             Glide.with(AppController.getGlobalApplicationContext())
                     .load(R.drawable.header_top)
@@ -155,9 +154,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     // 액티비티는 항상 이 인터페이스를 구현해야 한다.
     public interface ClickListener {
         void onProfileImageClicked(ImageView profileImage);
-
-        void onLoginStateButtonClicked(Button loginStateButton);
-
         void onNavItemClicked(int position);
     }
 
@@ -169,7 +165,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         ImageView profile;
         TextView name;
         TextView email;
-        Button loginStateButton;    // 비로그인 상태에서는 로그인 , 로그인 상태에서는 로그아웃이라고 표시되는 버튼
         LinearLayout backGroundLayout; // 배경
 
         public ViewHolder(View itemView, int viewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
@@ -189,13 +184,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                     @Override
                     public void onClick(View v) {
                         mCallback.onProfileImageClicked(profile);
-                    }
-                });
-                loginStateButton = (Button) itemView.findViewById(R.id.btn_login);
-                loginStateButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mCallback.onLoginStateButtonClicked(loginStateButton);
                     }
                 });
                 holderId = 0;                                                // Setting holder id = 0 as the object being populated are of type header view

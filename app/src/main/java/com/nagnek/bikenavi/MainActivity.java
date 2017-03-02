@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     static final int SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT = 2; // 장소 검색 화면에서 장소 검색 request code
     static final int SEARCH_INTEREST_POINT_FROM_REALTIME_TRACK_FRAGMENT = 3; // 리얼타임 경로 화면에서 장소 검색 request code
     private static final String TAG = MainActivity.class.getSimpleName();
-    final String TITLES[] = {"길찾기", "장소찾기", "실시간 길찾기"};
+    final String TITLES[] = {"길찾기", "장소찾기", "실시간 길찾기", "회원가입 / 로그인"};
     final int ICONS[] = {R.drawable.ic_directions_black_24dp, R.drawable.places_ic_search, R.drawable.real_time_track};
     // 비슷하게 헤더뷰에 이름과 이메일을 위한 String 리소스를 생성한다.
     // 그리고나서 proifle picture 리소스를 헤더뷰에 생성한다.
@@ -138,16 +138,6 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     }
 
     @Override
-    public void onLoginStateButtonClicked(Button loginStateButton) {
-        if (session.isLoggedIn() || session.isGoogleLoggedIn() || session.isFacebookIn() || session.isKakaoLoggedIn()) {
-            logoutUser();
-            mAdapter.changeLoginState(false);
-        } else {
-            redirectLoginActivity();
-        }
-    }
-
-    @Override
     public void onNavItemClicked(int position) {
         switch (position) {
             // 길찾기 아이콘 클릭했을 때
@@ -175,6 +165,17 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
                 fragmentManager.beginTransaction()
                         .replace(R.id.content_frame, fragment)
                         .commit();
+            }
+            break;
+
+            // 로그인을 클릭햇을 때
+            case 4: {
+                if (session.isLoggedIn() || session.isGoogleLoggedIn() || session.isFacebookIn() || session.isKakaoLoggedIn()) {
+                    logoutUser();
+                    mAdapter.changeLoginState(false);
+                } else {
+                    redirectLoginActivity();
+                }
             }
         }
         // HIghlight the selected item, update the title, and close the drawer
@@ -244,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
             FacebookSdk.sdkInitialize(getApplicationContext());
             LoginManager.getInstance().logOut();
         }
-        mAdapter.swap(null, "로그인 해주세요", null);
+        mAdapter.swap(null, "", null);
         refreshRecentUsedTrackListAndBookmarkedTrackList();
     }
 
@@ -284,6 +285,9 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
 
         mDrawerRecyclerView = (RecyclerView) findViewById(R.id.left_drawer);
         mDrawerRecyclerView.setHasFixedSize(true);
+        if (session.isLoggedIn() || session.isGoogleLoggedIn() || session.isFacebookIn() || session.isKakaoLoggedIn()) {
+            TITLES[3] = "로그아웃";
+        }
         mAdapter = new MyAdapter(TITLES, ICONS, null, null, PROFILE, this, session.isSessionLoggedIn());
         mDrawerRecyclerView.setAdapter(mAdapter);
         mLayoutManager = new LinearLayoutManager(this);
@@ -434,7 +438,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
             mAdapter.swap(null, null, email);
             mAdapter.changeLoginState(true);
         } else {
-            mAdapter.swap(null, "로그인 해주세요", null);
+            mAdapter.swap(null, "", null);
             mAdapter.changeLoginState(false);
         }
     }

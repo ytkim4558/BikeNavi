@@ -37,7 +37,7 @@
         android:id="@+id/mapViewFrameLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/track_log"
+        android:layout_below="@id/bookmark_button"
         android:layout_marginBottom="72dp">
 
         <fragment
