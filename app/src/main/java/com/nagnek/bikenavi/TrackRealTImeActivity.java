@@ -769,10 +769,22 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                                     }
 
                                     LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                                    int current_marker_no = 1;
+                                    int totalMarkerCount = markerOptionsArrayList.size();
                                     // 경로 찾고나서 경로 지점들의 마커들 추가, 모든 마커들을 표시할 수 있는 줌레벨 계산
                                     for (MarkerOptions markerOptions : markerOptionsArrayList) {
                                         Marker marker = mGoogleMap.addMarker(markerOptions);
                                         descriptorMarkers.add(marker);
+                                        // 마커 번호가 첫번째면 start, 끝이면 end, 나머지는 경유지 아이콘을 삽입한다
+                                        if(current_marker_no == 1) {
+                                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.start_marker));
+                                        } else if(current_marker_no == totalMarkerCount) {
+                                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.goal_marker));
+                                        } else {
+                                            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.normal_marker));
+                                        }
+
+                                        ++current_marker_no;
                                         builder.include(markerOptions.getPosition());
                                     }
 
@@ -1000,7 +1012,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
      * Highlight the marker by marker.
      */
     private void highLightMarker(Marker marker) {
-        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
+        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.route_marker));
         marker.showInfoWindow();
     }
 
@@ -1021,8 +1033,21 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
     private void resetMarkers() {
         Log.d("tag", "초기화");
+        int current_marker_no = 1;
+        int totalMarkerCount = descriptorMarkers.size();
         for (Marker marker : this.descriptorMarkers) {
             marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
+
+            // 마커 번호가 첫번째면 start, 끝이면 end, 나머지는 경유지 아이콘을 삽입한다
+            if(current_marker_no == 1) {
+                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.start_marker));
+            } else if(current_marker_no == totalMarkerCount) {
+                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.goal_marker));
+            } else {
+                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.normal_marker));
+            }
+
+            ++current_marker_no;
         }
     }
 
