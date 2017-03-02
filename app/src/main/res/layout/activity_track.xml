@@ -28,7 +28,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:src="@drawable/bookmark_image_btn_states" />
+        android:src="@drawable/bookmark_image_btn_states"
+        android:background="@color/white"
+        android:padding="11dp"
+        />
 
     <FrameLayout
         android:id="@+id/mapViewFrameLayout"

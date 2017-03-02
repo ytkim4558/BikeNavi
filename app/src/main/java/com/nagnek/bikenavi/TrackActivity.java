@@ -152,7 +152,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                         // 로그인하지 않은 경우
                         if (!db.checkIFBookmarkedTrackExists(track)) {
                             db.addBookmarkedTrack(track);
-                            AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this);
+                            AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this, R.style.AlertDialogCustom);
                             alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -164,7 +164,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                             bookMarkButton.setSelected(true);
                         } else {
                             db.deleteBookmarkedTrackRow(track);
-                            AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this);
+                            AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this, R.style.AlertDialogCustom);
                             alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {

@@ -254,7 +254,7 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback, G
                         // 로그인하지 않은 경우
                         if (!db.checkIFBookmarkedPOIExists(currentPOI)) {
                             db.addBookmarkedPOI(currentPOI);
-                            AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                            AlertDialog.Builder alert = new AlertDialog.Builder(getActivity(), R.style.AlertDialogCustom);
                             alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -266,7 +266,7 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback, G
                             bookmarkImageButton.setSelected(true);
                         } else {
                             db.deleteBookmarkedPOIRow(currentPOI);
-                            AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                            AlertDialog.Builder alert = new AlertDialog.Builder(getActivity(), R.style.AlertDialogCustom);
                             alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -346,7 +346,7 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback, G
                     // Check for error node in json
                     if (!error) {
                         // 서버에 반영 성공했다. 딱히 뭐 할거 있나..?
-                        AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                        AlertDialog.Builder alert = new AlertDialog.Builder(getActivity(), R.style.AlertDialogCustom);
                         alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

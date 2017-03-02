@@ -36,7 +36,7 @@
                 android:layout_height="match_parent"
                 android:layout_alignParentRight="true"
                 android:contentDescription="@string/btn_delete"
-                android:src="@drawable/ic_delete_black_24dp" />
+                android:src="@drawable/garbish" />
 
         </RelativeLayout>
     </android.support.v7.widget.CardView>
