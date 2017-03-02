@@ -223,7 +223,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             // User is already logged in. Take him to main activty
             Intent intent = new Intent(LoginActivity.this, WelcomeActivity.class);
             startActivity(intent);
-            finish();
         }
 
         if (session.isGoogleLoggedIn()) {
