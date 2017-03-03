@@ -186,6 +186,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     private void redirectLoginActivity() { // Launching the login activity
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
+        finish();
     }
 
     /**

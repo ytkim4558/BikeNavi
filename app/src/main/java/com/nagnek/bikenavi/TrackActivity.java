@@ -118,7 +118,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         session = new SessionManager(getApplicationContext());
 
         // Progress dialog
-        pDialog = new ProgressDialog(this);
+        pDialog = new ProgressDialog(this, R.style.AlertDialogCustom);
         pDialog.setCancelable(false);
 
         Intent receivedIntent = getIntent();
@@ -232,7 +232,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                     // Check for error node in json
                     if (!error) {
                         // 서버에 반영 성공했다. 딱히 뭐 할거 있나..?
-                        AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this);
+                        AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this, R.style.AlertDialogCustom);
                         alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -344,7 +344,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                     if (!error) {
 
                         // 서버에 반영 성공했다. 딱히 뭐 할거 있나..?
-                        AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this);
+                        AlertDialog.Builder alert = new AlertDialog.Builder(TrackActivity.this, R.style.AlertDialogCustom);
                         alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

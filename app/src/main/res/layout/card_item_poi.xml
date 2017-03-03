@@ -10,7 +10,7 @@
     <android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
         android:id="@+id/card_view"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="match_parent"
         android:layout_margin="10dp"
         card_view:cardCornerRadius="4dp"
         card_view:cardElevation="14dp">
@@ -44,7 +44,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
-                android:src="@drawable/garbish" />
+                android:src="@drawable/garbish"
+                android:paddingTop="4dp"/>
 
             <TextView
                 android:id="@+id/text_poi_last_used_at"

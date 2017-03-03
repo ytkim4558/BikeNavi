@@ -46,6 +46,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -62,7 +63,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class POISearchFragment extends Fragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class  POISearchFragment extends Fragment implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     static final int SEARCH_INTEREST_POINT_FROM_POI_SEARCH_FRAGMENT = 2; // 장소 검색 화면에서 장소 검색 request code
     static final LatLng SEOUL_STATION = new LatLng(37.555755, 126.970431);
     private static final String TAG = POISearchFragment.class.getSimpleName();
@@ -236,7 +237,7 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback, G
         Log.d(TAG, "onCreateView");
 
         // Progress dialog
-        pDialog = new ProgressDialog(getContext());
+        pDialog = new ProgressDialog(getContext(), R.style.AlertDialogCustom);
         pDialog.setCancelable(false);
 
         // Inflate the layout for this fragment
@@ -469,7 +470,7 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback, G
                     if (!error) {
 
                         // 서버에 반영 성공했다. 딱히 뭐 할거 있나..?
-                        AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                        AlertDialog.Builder alert = new AlertDialog.Builder(getActivity(), R.style.AlertDialogCustom);
                         alert.setPositiveButton("확인", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -608,6 +609,7 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback, G
         if (mGoogleMap != null) {
             MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(poiName).snippet(address);
             Marker marker = mGoogleMap.addMarker(markerOptions);
+            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.default_marker));
             marker.showInfoWindow();
         }
     }
@@ -625,6 +627,7 @@ public class POISearchFragment extends Fragment implements OnMapReadyCallback, G
         if (mGoogleMap != null) {
             MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(poiName).snippet(address);
             Marker marker = mGoogleMap.addMarker(markerOptions);
+            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.default_marker));
             marker.showInfoWindow();
         }
     }
