@@ -65,6 +65,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         notifyDataSetChanged();
     }
 
+    // 회원가입 / 로그인, 로그아웃 상태 메시지
+    public void changeLoginText(String text) {
+        this.mNavTitles[3] = text;
+    }
+
     public void changeLoginState(boolean loginState) {
         MyAdapter.loginState = loginState;
     }
