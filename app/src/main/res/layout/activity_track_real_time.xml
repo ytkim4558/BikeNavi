@@ -21,7 +21,7 @@
         android:gravity="center"
         android:text="트랙 로그"
         app:textStroke="true"
-        app:textStrokeWidth="3.0"
+        app:textStrokeWidth="10"
         app:textStrokeColor="@color/white"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -77,7 +77,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         app:textStroke="true"
-                        app:textStrokeWidth="3.0"
+                        app:textStrokeWidth="10"
                         app:textStrokeColor="@color/white" />
                 </LinearLayout>
 
@@ -91,8 +91,8 @@
                     <!--두번째 턴 가이드-->
                     <ImageView
                         android:id="@+id/secondTurnGuide"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
                         android:contentDescription="@string/second_turn_guide" />
 
                     <com.nagnek.bikenavi.customview.BorderTextView
@@ -100,7 +100,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         app:textStroke="true"
-                        app:textStrokeWidth="3.0"
+                        app:textStrokeWidth="10"
                         app:textStrokeColor="@color/white"/>
                 </LinearLayout>
 
@@ -114,8 +114,8 @@
                     <!--세 번째 턴 가이드-->
                     <ImageView
                         android:id="@+id/thirdTurnGuide"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
                         android:contentDescription="@string/third_turn_guide"/>
 
                     <com.nagnek.bikenavi.customview.BorderTextView
@@ -124,7 +124,7 @@
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/thirdTurnGuide"
                         app:textStroke="true"
-                        app:textStrokeWidth="3.0"
+                        app:textStrokeWidth="10"
                         app:textStrokeColor="@color/white"/>
                 </LinearLayout>
 
@@ -148,7 +148,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:textStroke="true"
-                    app:textStrokeWidth="3.0"
+                    app:textStrokeWidth="10"
                     app:textStrokeColor="@color/white"
                     android:textAppearance="?android:attr/textAppearanceLarge" />
             </LinearLayout>
@@ -183,7 +183,7 @@
                 android:lines="1"
                 android:maxLines="1"
                 app:textStroke="true"
-                app:textStrokeWidth="3.0"
+                app:textStrokeWidth="10"
                 app:textStrokeColor="@color/white"
                 android:text="@string/detail_route"
                 android:textAppearance="?android:attr/textAppearanceMedium" />

@@ -505,7 +505,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                                                     } else if(current_marker_no == totalMarkerCount) {
                                                         marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.goal_marker));
                                                     } else {
-                                                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.normal_marker));
+                                                        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.route_marker));
                                                     }
 
                                                     ++current_marker_no;
@@ -601,7 +601,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
                                             } else if(current_marker_no == totalMarkerCount) {
                                                 marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.goal_marker));
                                             } else {
-                                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.normal_marker));
+                                                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.route_marker));
                                             }
 
                                             ++current_marker_no;
@@ -717,7 +717,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
         LatLng usedForMovingMarkers = markers.get(moveMarkerIndex).getPosition();
         Log.d("tag", "markerIndex :" + moveMarkerIndex + ", descIndex : " + descriptorMarkerIndex);
         if (descriptorLatLng.latitude == usedForMovingMarkers.latitude && descriptorLatLng.longitude == usedForMovingMarkers.longitude) {
-            highLightMarker(descriptorMarkers.get(descriptorMarkerIndex));
+            highLightMarker(descriptorMarkerIndex, descriptorMarkers.get(descriptorMarkerIndex));
             return true;
         }
         return false;
@@ -726,8 +726,14 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
     /**
      * Highlight the marker by marker.
      */
-    private void highLightMarker(Marker marker) {
-        marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.route_marker));
+    private void highLightMarker(int descriptorMarkerIndex, Marker marker) {
+        if(descriptorMarkerIndex == 0) {
+            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.highlight_start_marker));
+        } else if(descriptorMarkerIndex == descriptorMarkers.size() - 1) {
+            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.highlight_goal_marker));
+        } else {
+            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.highlight_route_marker));
+        }
         marker.showInfoWindow();
     }
 
@@ -759,7 +765,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
             } else if(current_marker_no == totalMarkerCount) {
                 marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.goal_marker));
             } else {
-                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.normal_marker));
+                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.route_marker));
             }
 
             ++current_marker_no;

@@ -52,6 +52,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.kakao.auth.AuthType;
 import com.kakao.auth.ISessionCallback;
 import com.kakao.auth.Session;
 import com.kakao.util.exception.KakaoException;
@@ -86,7 +87,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
      */
     CallbackManager facebookCallbackManager;    // 페북 콜백매니저
     private Button btnLogin; // 자체 로그인
-    private SignInButton btnGoogleLogin; //구글 로그인
+    private Button btnGoogleLogin; //구글 로그인
     private Button btnLinkToRegister; // 회원가입으로 가게하는 버튼
     private AppCompatEditText inputEmail;   // 이메일 입력창
     private AppCompatEditText inputPassword;    // 패스워드 입력창
@@ -129,9 +130,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
 
         // 페이스북
         facebookCallbackManager = CallbackManager.Factory.create();
-        if (session.isFacebookIn()) {
-            LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
-        }
         LoginManager.getInstance().registerCallback(facebookCallbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
@@ -173,7 +171,7 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         inputEmail = (AppCompatEditText) findViewById(R.id.email);
         inputPassword = (AppCompatEditText) findViewById(R.id.password);
         btnLogin = (Button) findViewById(R.id.btnLogin);
-        btnGoogleLogin = (SignInButton) findViewById(R.id.sign_in_button);
+        btnGoogleLogin = (Button) findViewById(R.id.sign_in_button);
 
         ti_input_email = (TextInputLayout) findViewById(R.id.ti_email);
 
@@ -201,16 +199,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
                 .requestServerAuthCode(getString(R.string.server_client_id))
                 .requestEmail()
                 .build();
-
-        // Customize sign-in button. The sign-in button can be displayed in
-        // multiple sizes and color schemes. It can also be contextually
-        // rendered based on the requested scopes. For example. a red button may
-        // be displayed when Google+ scopes are requested, but a white button
-        // may be displayed when only basic profile is requested. Try adding the
-        // Scopes.PLUS_LOGIN scope to the GoogleSignInOptions to see the
-        // difference.
-        btnGoogleLogin.setSize(SignInButton.SIZE_WIDE);
-        btnGoogleLogin.setScopes(mGso.getScopeArray());
 
         // 구글 로그인 api에 접근하기 위한 googleapi 클라이언트 객체 생성.
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -296,17 +284,30 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         /**
          * 카카오톡
          */
-        com.kakao.usermgmt.LoginButton kakaoLoginButton = (com.kakao.usermgmt.LoginButton) findViewById(R.id.com_kakao_login);
+        Button kakaoLoginButton = (Button) findViewById(R.id.com_kakao_login);
         kakaoLoginButton.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View v) {
                 pDialog.setMessage("카카오톡 로그인 시도중...");
+                // 카카오 세션을 오픈한다.
+                callback = new SessionCallback();
+                Session.getCurrentSession().addCallback(callback);
+                Session.getCurrentSession().checkAndImplicitOpen();
+                Session.getCurrentSession().open(AuthType.KAKAO_TALK_EXCLUDE_NATIVE_LOGIN, LoginActivity.this);
                 showDialog();
             }
         });
-        callback = new SessionCallback();
-        Session.getCurrentSession().addCallback(callback);
-        Session.getCurrentSession().checkAndImplicitOpen();
+
+        /**
+         * 페이스북
+         */
+        Button facebookLoginButton = (Button) findViewById(R.id.facebook_login_button);
+        facebookLoginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LoginManager.getInstance().logInWithReadPermissions(LoginActivity.this, Arrays.asList("public_profile"));
+            }
+        });
     }
 
     protected void redirectSignupActivity() {
@@ -365,8 +366,6 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         if (Session.getCurrentSession().handleActivityResult(requestCode, resultCode, data)) {  // 카카오톡 콜백.. 뭐하는거지? 처리?
             return;
         }
-
-        LoginButton facebookLoginButton = (LoginButton) findViewById(R.id.facebook_login_button);
 
         // 페북 콜백
         facebookCallbackManager.onActivityResult(requestCode, resultCode, data);

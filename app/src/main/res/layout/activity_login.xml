@@ -60,30 +60,35 @@
         android:textColor="@color/btn_login" />
 
     <!-- 구글 로그인 버튼 -->
-    <com.google.android.gms.common.SignInButton
+    <Button
         android:id="@+id/sign_in_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="60dp"
-        android:text="@string/common_signin_button_text_long" />
+        android:background="@color/google_plus"
+        android:text="구글계정으로 시작하기" />
 
     <!-- 카카오톡 로그인 버튼 -->
-    <com.kakao.usermgmt.LoginButton
+    <Button
         android:id="@+id/com_kakao_login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:layout_marginTop="@dimen/activity_vertical_margin" />
+        android:layout_marginTop="8dp"
+        android:background="@color/kakaotalk_background"
+        android:text="카카오계정으로 시작하기"/>
 
     <!-- 페이스북 로그인 버튼 -->
-    <com.facebook.login.widget.LoginButton
+    <Button
         android:id="@+id/facebook_login_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="30dp"
-        android:layout_marginTop="30dp" />
+        android:layout_marginTop="8dp"
+        android:background="@color/facebook_theme_color"
+        android:text="페이스북계정으로 시작하기"/>
 
     <!-- Link to Login Screen -->
 
