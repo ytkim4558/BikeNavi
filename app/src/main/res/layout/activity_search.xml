@@ -52,7 +52,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/mycurrentpoint"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:backgroundTint="@color/colorPrimary"
+        android:textColor="@color/white"/>
 
     <android.support.design.widget.TabLayout
         android:id="@+id/tab_layout"
