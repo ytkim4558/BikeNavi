@@ -78,14 +78,14 @@ public class TrackListOfRecentUsedAdapter extends RecyclerView.Adapter<TrackList
         List<POI> stopIDList = recentTrackList.get(position).stop_poi_list;
         if (stopIDList == null) {
             // 경유지가 없으므로 시작장소 -> 도착장소로 표시
-            holder.track_log.setText(recentTrackList.get(position).startPOI.name + " -> " + recentTrackList.get(position).destPOI.name);
+            holder.track_log.setText(recentTrackList.get(position).startPOI.name + " ➤ " + recentTrackList.get(position).destPOI.name);
         } else {
             // 경유지마다 전부 표시
             // 트랙 경로들을 -> 로 묶어서 보여줌
             String track_list = recentTrackList.get(position).startPOI.name;
 
             for (POI poi : stopIDList) {
-                track_list += ("->" + poi.name);
+                track_list += (" ➤ " + poi.name);
             }
             track_list += recentTrackList.get(position).destPOI.name;
             holder.track_log.setText(track_list);

@@ -245,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
             FacebookSdk.sdkInitialize(getApplicationContext());
             LoginManager.getInstance().logOut();
         }
-        mAdapter.swap(null, "", null);
+        mAdapter.swap(null, null);
         refreshRecentUsedTrackListAndBookmarkedTrackList();
     }
 
@@ -290,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
         } else {
             TITLES[3] = "회원가입 / 로그인";
         }
-        mAdapter = new MyAdapter(TITLES, ICONS, null, null, PROFILE, this, session.isSessionLoggedIn());
+        mAdapter = new MyAdapter(TITLES, ICONS, null, PROFILE, this, session.isSessionLoggedIn());
         mDrawerRecyclerView.setAdapter(mAdapter);
         mLayoutManager = new LinearLayoutManager(this);
         mDrawerRecyclerView.setLayoutManager(mLayoutManager);
@@ -410,7 +410,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
 
             String email = user.get(SQLiteHandler.KEY_EMAIL);
 
-            mAdapter.swap(null, null, email);
+            mAdapter.swap(null, email);
             mAdapter.changeLoginState(true);
         } else if (session.isGoogleLoggedIn()) {
             // Fetching user details from sqlite
@@ -419,7 +419,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
 
             String email = user.get(SQLiteHandler.KEY_GOOGLE_EMAIL);
 
-            mAdapter.swap(null, null, email);
+            mAdapter.swap(null, email);
             mAdapter.changeLoginState(true);
         } else if (session.isFacebookIn()) {
             // Fetching user details from sqlite
@@ -428,7 +428,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
 
             String name = user.get(SQLiteHandler.KEY_FACEBOOK_NAME);
 
-            mAdapter.swap(null, name, null);
+            mAdapter.swap(null, name);
             mAdapter.changeLoginState(true);
         } else if (session.isKakaoLoggedIn()) {
             Log.d(TAG, "카카오로긴");
@@ -437,10 +437,10 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
 
             String email = user.get(SQLiteHandler.KEY_KAKAO_NICK_NAME);
 
-            mAdapter.swap(null, null, email);
+            mAdapter.swap(null, email);
             mAdapter.changeLoginState(true);
         } else {
-            mAdapter.swap(null, "", null);
+            mAdapter.swap(null, null);
             mAdapter.changeLoginState(false);
         }
     }

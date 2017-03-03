@@ -231,7 +231,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
 
         TextView route = (TextView) findViewById(R.id.track_log);
 
-        route.setText(start_poi_name + "=>" + dest_poi_name);
+        route.setText(start_poi_name + " ➤ " + dest_poi_name);
 
         /**
          * 구글맵 생성

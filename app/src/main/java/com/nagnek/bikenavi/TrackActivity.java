@@ -143,7 +143,7 @@ public class TrackActivity extends AppCompatActivity implements OnMapReadyCallba
             }
         }
 
-        route.setText(start_poi_name + "=>" + dest_poi_name);
+        route.setText(start_poi_name + " ➤ " + dest_poi_name);
         bookMarkButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

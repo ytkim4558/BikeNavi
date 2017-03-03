@@ -37,15 +37,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private int mIcons[];       // Int Array to store the passed icons resource value from MainActivity.java
     private String name;        //String Resource for header View name
     private int profileID;        //int Resource for header view profileID picture
-    private String email;       //String Resource for header view email
 
 
-    MyAdapter(String titles[], int icons[], String name, String email, int profileID, ClickListener clickListener, boolean loginState) { // MyAdapter Constructor with titles and icons parameter
+    MyAdapter(String titles[], int icons[], String name, int profileID, ClickListener clickListener, boolean loginState) { // MyAdapter Constructor with titles and icons parameter
         // titles, icons, name, email, profileID pic are passed from the main activity as we
         mNavTitles = titles;                //have seen earlier
         mIcons = icons;
         this.name = name;
-        this.email = email;
         this.profileID = profileID;                     //here we assign those passed values to the values we declared here
         mCallback = clickListener;
         MyAdapter.loginState = loginState;
@@ -55,13 +53,17 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     // Creating a ViewHolder which extends the RecyclerView View Holder
     // ViewHolder are used to to store the inflated views in order to recycle them
 
-    public void swap(int icons[], String name, String email) {
+    public void swap(int icons[], String name) {
         if (icons != null) {
             mIcons = icons;
         }
 
-        this.name = name;
-        this.email = email;
+        if(name != null && name.equals("") != true) {
+            this.name = name + "님";
+        } else {
+            this.name = name;
+        }
+
         notifyDataSetChanged();
     }
 
@@ -116,7 +118,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         } else {
             holder.profile.setImageResource(profileID);           // Similarly we set the resources for header view
             holder.name.setText(name);
-            holder.email.setText(email);
             final LinearLayout backgroundLayout = holder.backGroundLayout;
             Glide.with(AppController.getGlobalApplicationContext())
                     .load(R.drawable.header_top)
@@ -169,7 +170,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         ImageView imageView;
         ImageView profile;
         TextView name;
-        TextView email;
         LinearLayout backGroundLayout; // 배경
 
         public ViewHolder(View itemView, int viewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
@@ -183,7 +183,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                 holderId = 1;                                               // Setting holder id as 1 as the object being populated are of type item row
             } else {
                 name = (TextView) itemView.findViewById(R.id.name);         // Creating Text View object from header.xml for name
-                email = (TextView) itemView.findViewById(R.id.email);       // Creating Text View object from header.xml for email
                 profile = (ImageView) itemView.findViewById(R.id.circleView);// Creating Image view object from header.xml for profile pic
                 profile.setOnClickListener(new View.OnClickListener() {
                     @Override

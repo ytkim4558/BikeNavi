@@ -9,22 +9,6 @@
     android:orientation="vertical"
     android:weightSum="1">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/circleView"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="65dp"
-            android:src="@drawable/ic_account_circle_white_24dp" />
-
-    </LinearLayout>
-
-
     <TextView
         android:id="@+id/name"
         android:layout_width="wrap_content"
@@ -32,17 +16,22 @@
         android:layout_marginStart="@dimen/text_margin"
         android:text="김용탁"
         android:textColor="#ffffff"
-        android:textSize="14sp"
+        android:layout_marginTop="30dp"
+        android:textSize="17sp"
         android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/email"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/text_margin"
-        android:layout_marginTop="5dp"
-        android:text="ytkim4558@naver.com"
-        android:textColor="#ffffff"
-        android:textSize="14sp"
-        android:textStyle="normal" />
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/circleView"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:layout_marginStart="16dp"
+            android:src="@drawable/ic_account_circle_white_24dp" />
+
+    </LinearLayout>
 </LinearLayout>

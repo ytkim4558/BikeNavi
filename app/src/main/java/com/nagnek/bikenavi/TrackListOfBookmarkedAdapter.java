@@ -70,7 +70,7 @@ class TrackListOfBookmarkedAdapter extends RecyclerView.Adapter<TrackListOfBookm
             if (bookmarkedTrackList != null) {
                 if (bookmarkedTrackList.get(position) != null) {
                     if (bookmarkedTrackList.get(position).startPOI != null & bookmarkedTrackList.get(position).destPOI != null) {
-                        holder.track_log.setText(bookmarkedTrackList.get(position).startPOI.name + " -> " + bookmarkedTrackList.get(position).destPOI.name);
+                        holder.track_log.setText(bookmarkedTrackList.get(position).startPOI.name + " ➤ " + bookmarkedTrackList.get(position).destPOI.name);
                     }
                 }
             }
@@ -83,7 +83,7 @@ class TrackListOfBookmarkedAdapter extends RecyclerView.Adapter<TrackListOfBookm
                     if (bookmarkedTrackList.get(position).startPOI != null & bookmarkedTrackList.get(position).destPOI != null) {
                         track_list = bookmarkedTrackList.get(position).startPOI.name;
                         for (POI poi : stopList) {
-                            track_list += ("->" + poi.name);
+                            track_list += (" ➤ " + poi.name);
                         }
 
                         track_list += bookmarkedTrackList.get(position).destPOI.name;
