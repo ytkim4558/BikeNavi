@@ -70,6 +70,8 @@
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
         android:layout_below="@+id/dest_point_search_frame_layout"
         android:background="?attr/colorPrimary"
         android:elevation="6dp"
