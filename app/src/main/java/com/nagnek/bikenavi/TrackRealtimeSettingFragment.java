@@ -43,6 +43,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -347,6 +348,7 @@ public class TrackRealTimeSettingFragment extends Fragment implements OnMapReady
         if (mGoogleMap != null) {
             MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(poiName).snippet(address);
             Marker marker = mGoogleMap.addMarker(markerOptions);
+            marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.default_marker));
             marker.showInfoWindow();
             if (mLastLocation != null) {
                redirectTrackRealTImeActivity();

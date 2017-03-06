@@ -1351,6 +1351,12 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
             showToastMessage("정확도가 없습니다.");
             return;
         }
+
+        // 자전거 마커 방향전환
+        if(trackingCycleMarker != null) {
+            trackingCycleMarker.setRotation(location.getBearing() );
+        }
+
         if (polyLine != null) {
             // 현재 사용한 시각 갱신
             // 이전 사용한 시각 갱신
@@ -1480,6 +1486,13 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
         new Handler().post(new Runnable() {
             @Override
             public void run() {
+                // 이전 마커까지 하이라이트
+
+                for(int i = 0; i< distanceIndex; ++i) {
+                    highLightMarker(i, descriptorMarkers.get(i));
+                }
+                showToastMessage("disttanceindex : " + distanceIndex);
+
                 // distance의 경우 라인인덱스와 같고 direction은 출발점은 제외해야하므로 +1을 더 해야한다. 도착지점도 제외해야하므로 마지막을 제외하기 위에 마지막인덱스를 제외한다.
                 String remaingFutureFirstText = distanceIndex < realTimedistanceList.size() && realTimedistanceList.get(distanceIndex) != null ? getString(R.string.remaining_inttype_distance, realTimedistanceList.get(distanceIndex).intValue()) : null;
                 guideTextVIew.setText(remaingFutureFirstText);
