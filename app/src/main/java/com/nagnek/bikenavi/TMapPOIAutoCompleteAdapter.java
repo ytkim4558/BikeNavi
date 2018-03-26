@@ -14,8 +14,8 @@ import android.widget.Filterable;
 import android.widget.TextView;
 
 import com.nagnek.bikenavi.app.AppConfig;
-import com.skp.Tmap.TMapData;
-import com.skp.Tmap.TMapPOIItem;
+import com.skt.Tmap.TMapData;
+import com.skt.Tmap.TMapPOIItem;
 
 import org.xml.sax.SAXException;
 

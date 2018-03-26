@@ -6,7 +6,7 @@ package com.nagnek.bikenavi.app;
 
 import android.content.Context;
 
-import com.skp.Tmap.TMapTapi;
+import com.skt.Tmap.TMapTapi;
 
 /**
  * Created by user on 2016-09-27.
@@ -55,7 +55,7 @@ public class AppConfig {
                     break;
                 }
             } while (tMapTapi == null);
-            tMapTapi.setSKPMapAuthentication("d2bc2636-c213-3bad-9058-7d46cf9f8039");
+            tMapTapi.setSKTMapAuthentication("928a9e60-7530-4388-a8f0-f5f4b96aefb5");
         }
     }
 

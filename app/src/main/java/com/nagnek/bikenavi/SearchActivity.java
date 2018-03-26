@@ -40,9 +40,9 @@ import com.nagnek.bikenavi.app.AppController;
 import com.nagnek.bikenavi.customview.DelayAutoCompleteTextView;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.helper.SessionManager;
-import com.skp.Tmap.TMapData;
-import com.skp.Tmap.TMapPOIItem;
-import com.skp.Tmap.TMapPoint;
+import com.skt.Tmap.TMapData;
+import com.skt.Tmap.TMapPOIItem;
+import com.skt.Tmap.TMapPoint;
 
 import org.json.JSONException;
 import org.json.JSONObject;

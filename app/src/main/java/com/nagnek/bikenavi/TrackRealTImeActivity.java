@@ -76,10 +76,10 @@ import com.nagnek.bikenavi.guide.GuideContent;
 import com.nagnek.bikenavi.helper.SQLiteHandler;
 import com.nagnek.bikenavi.helper.SessionManager;
 import com.nagnek.bikenavi.util.NagneUtil;
-import com.skp.Tmap.TMapData;
-import com.skp.Tmap.TMapPOIItem;
-import com.skp.Tmap.TMapPoint;
-import com.skp.Tmap.util.HttpConnect;
+import com.skt.Tmap.TMapData;
+import com.skt.Tmap.TMapPOIItem;
+import com.skt.Tmap.TMapPoint;
+import com.skt.Tmap.util.HttpConnect;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -452,7 +452,7 @@ public class TrackRealTImeActivity extends AppCompatActivity implements OnMapRea
                 mSource = poiPositionOfStartItemArrayList.get(0).getPOIPoint();
                 mDest = poiPositionOfDestItemArrayList.get(0).getPOIPoint();
 
-                tmapData3.findPathDataAllType(TMapData.TMapPathType.BICYCLE_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
+                tmapData3.findPathDataAllType(TMapData.TMapPathType.CAR_PATH, mSource, mDest, new TMapData.FindPathDataAllListenerCallback() {
                     @Override
                     public void onFindPathDataAll(final Document document) {
                         //String s = documenttoString(document);
