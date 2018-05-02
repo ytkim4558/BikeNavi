@@ -5,8 +5,8 @@
 package com.nagnek.bikenavi.app;
 
 import android.app.Activity;
+import android.app.Application;
 import android.graphics.Bitmap;
-import android.support.multidex.MultiDexApplication;
 import android.support.v4.util.LruCache;
 import android.text.TextUtils;
 import android.util.Log;
@@ -43,7 +43,7 @@ import java.util.HashMap;
  * 카카오톡 로그인을 위한 소스추가 : 2016-10-09 참고 : http://uareuni.tistory.com/13
  */
 
-public class AppController extends MultiDexApplication {
+public class AppController extends Application {
 
     /**
      * 자체로그인 위함.
@@ -63,7 +63,6 @@ public class AppController extends MultiDexApplication {
     /**
      * 카카오톡
      *
-     * @param
      */
     public static Activity getCurrentActivity() {
         return currentActivity;

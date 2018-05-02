@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements MyAdapter.ClickLi
     static final int SEARCH_INTEREST_POINT_FROM_REALTIME_TRACK_FRAGMENT = 3; // 리얼타임 경로 화면에서 장소 검색 request code
     private static final String TAG = MainActivity.class.getSimpleName();
     final String TITLES[] = {"길찾기", "장소찾기", "실시간 길찾기", "회원가입 / 로그인"};
-    final int ICONS[] = {R.drawable.ic_directions_black_24dp, R.drawable.places_ic_search, R.drawable.real_time_track, R.drawable.profile};
+    final int ICONS[] = {R.drawable.ic_directions_black_24dp, R.drawable.ic_search_black_24dp, R.drawable.real_time_track, R.drawable.profile};
     // 비슷하게 헤더뷰에 이름과 이메일을 위한 String 리소스를 생성한다.
     // 그리고나서 proifle picture 리소스를 헤더뷰에 생성한다.
     final int PROFILE = R.drawable.ic_account_circle_white_24dp;
